@@ -227,7 +227,7 @@ service http:InterceptableService / on new http:Listener(9090,
     # + ctx - Request context
     # + configuration - User configurations including downloaded microapps
     # + return - Success response for the Database create/update or error
-    resource function post update\-user\-configurations(http:RequestContext ctx,
+    resource function post user\-configurations(http:RequestContext ctx,
         database:UserConfiguration configuration) returns database:ExecutionSuccessResult|SuperAppServerError {
 
         authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
