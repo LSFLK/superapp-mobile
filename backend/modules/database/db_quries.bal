@@ -92,45 +92,6 @@ isolated function getMicroAppByIdQuery(string appId) returns sql:ParameterizedQu
         active = 1
 `;
 
-# Query to get all MicroApps
-# + return - Generated Query to get all MicroApps
-isolated function getAllMicroAppsQuery() returns sql:ParameterizedQuery {
-    return `
-        SELECT
-            name,
-            description,
-            promo_text as promoText,
-            micro_app_id as appId,
-            icon_url as iconUrl,
-            banner_image_url as bannerImageUrl,
-            mandatory as isMandatory
-        FROM
-            micro_app 
-        WHERE
-            active = 1`;
-}
-
-# Query to serach MicroApps
-#
-# + search - Search keyword
-# + return - Generated Query to search MicroApps
-isolated function searchMicroAppsQuery(string search) returns sql:ParameterizedQuery {
-    return `
-        SELECT
-            name,
-            description,
-            micro_app_id as appId,
-            icon_url as iconUrl,
-            banner_image_url as bannerImageUrl,
-            mandatory as isMandatory
-        FROM
-            micro_app 
-        WHERE
-            (name LIKE ${search} OR description LIKE ${search} OR micro_app_id LIKE ${search})
-        AND
-            active = 1`;
-}
-
 # Query to get SuperApp versions by platform
 #
 # + platform - Platform (ios or android)
