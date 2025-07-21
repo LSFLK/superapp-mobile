@@ -82,10 +82,8 @@ export async function refreshAccessToken(): Promise<string> {
     throw new Error("No access token returned from refresh");
   }
 
-  if (data.access_token) {
-    await AsyncStorage.setItem(GOOGLE_ACCESS_TOKEN_KEY, data.access_token);
-  }
-
+  await AsyncStorage.setItem(GOOGLE_ACCESS_TOKEN_KEY, data.access_token);
+  
   if (data.refresh_token) {
     await AsyncStorage.setItem(GOOGLE_REFRESH_TOKEN_KEY, data.refresh_token);
   }

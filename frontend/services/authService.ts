@@ -152,7 +152,7 @@ export const refreshAccessToken = async (
         console.error(
           `Token refresh failed: ${response.status} ${response.statusText}`
         );
-        if (response.status == 400) await onLogout();
+        if (response.status === 400) await onLogout();
 
         refreshPromise = null;
         return null;
@@ -324,7 +324,7 @@ export const tokenExchange = async (
           }
         );
 
-        if (response.status == 200) return response.data;
+        if (response.status === 200) return response.data;
 
         if (response.status === 401) {
           console.warn(

@@ -143,10 +143,10 @@ const unzipFile = async (dispatch: AppDispatch, appId: string) => {
     );
 
     const indexPath = await getIndexPath(extractedDir);
-    if (!indexPath) throw "Index file not found";
+    if (!indexPath) throw new Error("Index file not found");
 
     const clientId = await getClientId(extractedDir);
-    if (!clientId) throw "Client id not found";
+    if (!clientId) throw new Error("Client id not found");
 
     const formattedUri = encodeURI(
       indexPath.startsWith("file://") ? indexPath : `file://${indexPath}`
