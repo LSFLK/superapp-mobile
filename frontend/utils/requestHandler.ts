@@ -55,7 +55,6 @@ export const apiRequest = async (
       if (newAuthData?.accessToken) {
         // Retry the request with the new token
         config.headers.Authorization = `Bearer ${newAuthData.accessToken}`;
-        config.headers.JWTAssertion = newAuthData.accessToken;
 
         try {
           return await axios(config);
