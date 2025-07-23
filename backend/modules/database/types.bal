@@ -98,7 +98,7 @@ public type MicroAppVersion record {|
 |};
 
 # Record type to model Version of the SuperApp.
-public type SuperAppVersion record {|
+public type Version record {|
     # Version
     string version;
     # Unique build number
@@ -114,7 +114,7 @@ public type SuperAppVersion record {|
 |};
 
 # Record type to model configurations for the users of the SuperApp.
-public type UserConfiguration record {|
+public type AppConfig record {|
     # User email
     string email;
     # Configuration key, unique key for the configuration

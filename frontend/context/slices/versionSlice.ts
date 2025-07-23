@@ -45,7 +45,7 @@ export const getVersions = createAsyncThunk(
     try {
       const response = await apiRequest(
         {
-          url: `${BASE_URL}/superapp-versions?platform=${Platform.OS}`,
+          url: `${BASE_URL}/versions?platform=${Platform.OS}`,
           method: "GET",
         },
         onLogout

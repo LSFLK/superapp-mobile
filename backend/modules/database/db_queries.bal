@@ -19,7 +19,7 @@ import ballerina/sql;
 #
 # + groups - An array of user groups used to filter allowed micro apps
 # + return - sql:ParameterizedQuery to retrieve the list of allowed micro app IDs
-isolated function getMicroAppIdsAllowedForGroups(string[] groups) returns sql:ParameterizedQuery => sql:queryConcat(`
+isolated function getMicroAppIdsByGroupsQuery(string[] groups) returns sql:ParameterizedQuery => sql:queryConcat(`
     SELECT DISTINCT
         micro_app_id as appId
     FROM
@@ -75,7 +75,7 @@ isolated function getAllMicroAppVersionsQuery(string appId) returns sql:Paramete
 #
 # + appId - MicroApp Id
 # + return - Generated Query to get MicroApp by appId
-isolated function getMicroAppByIdQuery(string appId) returns sql:ParameterizedQuery => `
+isolated function getMicroAppByAppIdQuery(string appId) returns sql:ParameterizedQuery => `
     SELECT
         name,
         description,
@@ -92,11 +92,11 @@ isolated function getMicroAppByIdQuery(string appId) returns sql:ParameterizedQu
         active = 1
 `;
 
-# Query to get SuperApp versions by platform
+# Query to get Super App versions by platform
 #
 # + platform - Platform (ios or android)
-# + return - Generated Query to get SuperApp versions
-isolated function getSuperAppVersionsByPlatformQuery(string platform) returns sql:ParameterizedQuery => `
+# + return - Generated Query to get Super App versions
+isolated function getVersionsByPlatformQuery(string platform) returns sql:ParameterizedQuery => `
     SELECT
         version,
         build,
@@ -113,11 +113,11 @@ isolated function getSuperAppVersionsByPlatformQuery(string platform) returns sq
         build DESC
 `;
 
-# Query to configurations by email
+# Query to get app configurations by email
 #
 # + email - User email
-# + return - Generated Query to get configurations by email
-isolated function getUserConfigurationsByEmailQuery(string email) returns sql:ParameterizedQuery => `
+# + return - Generated Query to get app configurations by email
+isolated function getAppConfigsByEmailQuery(string email) returns sql:ParameterizedQuery => `
     SELECT
         email,
         config_key,
@@ -138,7 +138,7 @@ isolated function getUserConfigurationsByEmailQuery(string email) returns sql:Pa
 # + configValue - Configuration value
 # + isActive - status 1 or 0
 # + return - Generated Query to insert/update configurations
-isolated function updateUserConfigurationsQuery(string email, string configKey, string configValue, int isActive)
+isolated function updateAppConfigsByEmailQuery(string email, string configKey, string configValue, int isActive)
     returns sql:ParameterizedQuery => `
         INSERT INTO user_config (
             email,

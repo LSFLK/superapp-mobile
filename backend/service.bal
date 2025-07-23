@@ -20,22 +20,19 @@ import superapp_mobile_service.entity;
 import ballerina/http;
 import ballerina/log;
 
-configurable int maxHeaderSize = 16384;
-configurable string[] appsToRemoveNonLk = ?;
-configurable string Lklocation = ?;
-configurable string mobileAppReviewerEmail = ?;
+configurable int maxHeaderSize = 16384; // 16KB header size for WSO2 Choreo support
+configurable string[] restrictedAppsForNonLk = ?;
+configurable string lkLocation = "Sri Lanka";
+configurable string mobileAppReviewerEmail = ?; // App store reviewer email
 
 @display {
     label: "SuperApp Mobile Service",
     id: "wso2-open-operations/superapp-mobile-service"
 }
-
 service class ErrorInterceptor {
     *http:ResponseErrorInterceptor;
 
     remote function interceptResponseError(error err, http:RequestContext ctx) returns http:BadRequest|error {
-
-        // Handle data-binding errors.
         if err is http:PayloadBindingError {
             string customError = "Payload binding failed!";
             log:printError(customError, err);
@@ -49,23 +46,17 @@ service class ErrorInterceptor {
     }
 }
 
-service http:InterceptableService / on new http:Listener(9090,
-    config = {
-        requestLimits: {
-            maxHeaderSize
-        }
-    }
-) {
+service http:InterceptableService / on new http:Listener(9090, config = {requestLimits: {maxHeaderSize}}) {
 
     # + return - authorization:JwtInterceptor, ErrorInterceptor
     public function createInterceptors() returns http:Interceptor[] =>
         [new authorization:JwtInterceptor(), new ErrorInterceptor()];
 
-    # Retrieves the list of micro apps available to the authenticated user.
+    # Fetch user information of the logged in users.
     #
     # + ctx - Request context
-    # + return - A list of microapps if successful, or an error on failure
-    resource function get microapps(http:RequestContext ctx) returns database:MicroApp[]|SuperAppServerError {
+    # + return - User information object or an error
+    resource function get user\-info(http:RequestContext ctx) returns entity:Employee|http:InternalServerError {
         authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
         if userInfo is error {
             return {
@@ -75,9 +66,42 @@ service http:InterceptableService / on new http:Listener(9090,
             };
         }
 
-        database:MicroApp[]|error allMicroApps = database:getAllMicroApps(userInfo.groups);
+        entity:Employee|error loggedInUser = getUserInfo(userInfo.email);
+        if loggedInUser is error {
+            string customError = "Error occurred while retrieving user data!";
+            log:printError(customError, loggedInUser);
+            return {
+                body: {
+                    message: customError
+                }
+            };
+        }
+
+        error? cacheError = userInfoCache.put(userInfo.email, loggedInUser);
+        if cacheError is error {
+            log:printError("Error in updating the user cache!", cacheError);
+        }
+
+        return loggedInUser;
+    }
+    
+    # Retrieves the list of micro apps available to the authenticated user.
+    #
+    # + ctx - Request context
+    # + return - A list of microapps if successful, or an error on failure
+    resource function get micro\-apps(http:RequestContext ctx) returns database:MicroApp[]|http:InternalServerError {
+        authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
+        if userInfo is error {
+            return <http:InternalServerError>{
+                body: {
+                    message: ERR_MSG_USER_HEADER_NOT_FOUND
+                }
+            };
+        }
+
+        database:MicroApp[]|error allMicroApps = database:getMicroApps(userInfo.groups);
         if allMicroApps is error {
-            string customError = "Error occurred while retrieving MicroApps";
+            string customError = "Error occurred while retrieving Micro Apps!";
             log:printError(customError, err = allMicroApps.message());
             return {
                 body: {
@@ -86,14 +110,14 @@ service http:InterceptableService / on new http:Listener(9090,
             };
         }
 
-        // Bypass the filtering for the mobile app reviewer
+        // Bypass the filtering for the app store reviewer
         if userInfo.email == mobileAppReviewerEmail {
             return allMicroApps;
         }
 
         entity:Employee|error? loggedInUser = getUserInfo(userInfo.email);
         if loggedInUser is error {
-            string customError = string `Error occurred while retrieving user data: ${userInfo.email}!`;
+            string customError = "Error occurred while retrieving user data!";
             log:printError(customError, loggedInUser);
             return {
                 body: {
@@ -104,8 +128,8 @@ service http:InterceptableService / on new http:Listener(9090,
 
         database:MicroApp[] filteredMicroApps = allMicroApps;
 
-        if loggedInUser is entity:Employee && loggedInUser.location != Lklocation {
-            filteredMicroApps = allMicroApps.filter(microapp => appsToRemoveNonLk.indexOf(microapp.appId) is ());
+        if loggedInUser is entity:Employee && loggedInUser.location != lkLocation {
+            filteredMicroApps = allMicroApps.filter(microapp => restrictedAppsForNonLk.indexOf(microapp.appId) is ());
         }
 
         return filteredMicroApps;
@@ -116,33 +140,33 @@ service http:InterceptableService / on new http:Listener(9090,
     # + ctx - Request context
     # + appId - ID of the micro app to retrieve
     # + return - Single microapp, or errors on failure and not found
-    resource function get microapps/[string appId](http:RequestContext ctx)
-        returns database:MicroApp|SuperAppServerError|SuperAppNotFoundError {
+    resource function get micro\-apps/[string appId](http:RequestContext ctx)
+        returns database:MicroApp|http:InternalServerError|http:NotFound {
 
         authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
         if userInfo is error {
-            return <SuperAppServerError>{
+            return <http:InternalServerError>{
                 body: {
                     message: ERR_MSG_USER_HEADER_NOT_FOUND
                 }
             };
         }
 
-        database:MicroApp?|error microApp = database:getMicroAppById(appId, userInfo.groups);
+        database:MicroApp|error? microApp = database:getMicroAppById(appId, userInfo.groups);
 
         if microApp is error {
-            string customError = "Error occurred while retrieving the MicroApp for the given App ID";
+            string customError = "Error occurred while retrieving the Micro App for the given app ID!";
             log:printError(customError, microApp);
-            return <SuperAppServerError>{
+            return <http:InternalServerError>{
                 body: {
                     message: customError
                 }
             };
         }
         if microApp is () {
-            string customError = "MicroApp not found for the given App ID";
+            string customError = "Micro App not found for the given app ID!";
             log:printError(customError, appId = appId);
-            return <SuperAppNotFoundError>{
+            return <http:NotFound>{
                 body: {
                     message: customError
                 }
@@ -156,39 +180,39 @@ service http:InterceptableService / on new http:Listener(9090,
     #
     # + ctx - Request context
     # + platform - Target platform to fetch versions for (android or ios)
-    # + return - A list of database:SuperAppVersion records if successful, or an error on failure
-    resource function get superapp\-versions(http:RequestContext ctx, string platform)
-        returns database:SuperAppVersion[]|SuperAppServerError {
+    # + return - A list of database:Version records if successful, or an error on failure
+    resource function get versions(http:RequestContext ctx, string platform)
+        returns database:Version[]|http:InternalServerError {
 
         authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
         if userInfo is error {
-            return <SuperAppServerError>{
+            return <http:InternalServerError>{
                 body: {
                     message: ERR_MSG_USER_HEADER_NOT_FOUND
                 }
             };
         }
 
-        database:SuperAppVersion[]|error superAppVersions = database:getSuperAppVersionsByPlatform(platform);
-        if superAppVersions is error {
-            string customError = "Error occurred while retrieving SuperApp versions for the given platform";
-            log:printError(customError, superAppVersions);
-            return <SuperAppServerError>{
+        database:Version[]|error versions = database:getVersionsByPlatform(platform);
+        if versions is error {
+            string customError = "Error occurred while retrieving versions for the given platform!";
+            log:printError(customError, versions);
+            return <http:InternalServerError>{
                 body: {
                     message: customError
                 }
             };
         }
 
-        return superAppVersions;
+        return versions;
     }
 
-    # Fetch user configurations(downloaded microapps) of the logged in user.
+    # Fetch the app configurations(downloaded microapps) of the logged in user.
     #
     # + ctx - Request context
     # + return - User configurations or error
-    resource function get user\-configurations(http:RequestContext ctx)
-        returns database:UserConfiguration[]|SuperAppServerError {
+    resource function get users/app\-configs(http:RequestContext ctx)
+        returns database:AppConfig[]|http:InternalServerError {
 
         authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
         if userInfo is error {
@@ -199,19 +223,10 @@ service http:InterceptableService / on new http:Listener(9090,
             };
         }
 
-        database:UserConfiguration[]|error userConfigurations = database:getUserConfigurationsByEmail(userInfo.email);
-        if userConfigurations is error {
-            string customError = "Error occurred while retrieving configurations for the user";
-            log:printError(customError, userConfigurations);
-            return {
-                body: {
-                    message: customError
-                }
-            };
-        }
-        if userConfigurations.length() == 0 {
-            string customError = "User configurations not found for the user";
-            log:printError(customError, email = userInfo.email);
+        database:AppConfig[]|error appConfigs = database:getAppConfigsByEmail(userInfo.email);
+        if appConfigs is error {
+            string customError = "Error occurred while retrieving app configurations for the user!";
+            log:printError(customError, appConfigs);
             return {
                 body: {
                     message: customError
@@ -219,20 +234,20 @@ service http:InterceptableService / on new http:Listener(9090,
             };
         }
 
-        return userConfigurations;
+        return appConfigs;
     }
 
-    # Add/Update user configurations(downloaded microapps) of the logged in user.
+    # Add/Update app configurations(downloaded microapps) of the logged in user.
     #
     # + ctx - Request context
-    # + configuration - User configurations including downloaded microapps
-    # + return - Success response for the Database create/update or error
-    resource function post user\-configurations(http:RequestContext ctx,
-        database:UserConfiguration configuration) returns database:ExecutionSuccessResult|SuperAppServerError {
+    # + configuration - User's app configurations including downloaded microapps
+    # + return - Created response or error
+    resource function post users/app\-configs(http:RequestContext ctx,
+        database:AppConfig configuration) returns http:Created|http:InternalServerError|http:BadRequest {
 
         authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
         if userInfo is error {
-            return {
+            return <http:InternalServerError>{
                 body: {
                     message: ERR_MSG_USER_HEADER_NOT_FOUND
                 }
@@ -240,9 +255,9 @@ service http:InterceptableService / on new http:Listener(9090,
         }
 
         if configuration.email != userInfo.email {
-            string customError = "Token email and the email in the request doesn't match";
-            log:printError(customError, email = userInfo.email, configurationEmail = configuration.email);
-            return {
+            string customError = "Token email and the email in the request doesn't match!";
+            log:printError(customError);
+            return <http:BadRequest>{
                 body: {
                     message: customError
                 }
@@ -250,50 +265,17 @@ service http:InterceptableService / on new http:Listener(9090,
         }
 
         database:ExecutionSuccessResult|error result =
-            database:updateUserConfigurationByEmail(userInfo.email, configuration);
+            database:updateAppConfigsByEmail(userInfo.email, configuration);
         if result is error {
-            string customError = "Error occurred while updating the user configuration";
+            string customError = "Error occurred while updating the user configuration!";
             log:printError(customError, result);
-            return {
+            return <http:InternalServerError>{
                 body: {
                     message: customError
                 }
             };
         }
 
-        return result;
-    }
-
-    # Fetch user information of the logged in users.
-    #
-    # + ctx - Request context
-    # + return - User information object or an error
-    resource function get user\-info(http:RequestContext ctx) returns entity:Employee|SuperAppServerError {
-        authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
-        if userInfo is error {
-            return {
-                body: {
-                    message: ERR_MSG_USER_HEADER_NOT_FOUND
-                }
-            };
-        }
-
-        entity:Employee|error loggedInUser = getUserInfo(userInfo.email);
-        if loggedInUser is error {
-            string customError = string `Error occurred while retrieving user data: ${userInfo.email}!`;
-            log:printError(customError, loggedInUser);
-            return {
-                body: {
-                    message: customError
-                }
-            };
-        }
-
-        error? cacheError = userInfoCache.put(userInfo.email, loggedInUser);
-        if cacheError is error {
-            log:printError(string `Error in updating the user cache for: ${userInfo.email}!`, cacheError);
-        }
-
-        return loggedInUser;
+        return http:CREATED;
     }
 }

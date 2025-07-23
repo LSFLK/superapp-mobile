@@ -92,7 +92,7 @@ export const UpdateUserConfiguration = async (
 
     const response = await apiRequest(
       {
-        url: `${BASE_URL}/user-configurations`,
+        url: `${BASE_URL}/users/app-configs`,
         method: "POST",
         data: {
           configKey: APP_LIST_CONFIG_KEY,

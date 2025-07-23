@@ -267,7 +267,7 @@ export const loadMicroAppDetails = async (
 
     // Fetch latest micro apps list from API
     const response = await apiRequest(
-      { url: `${BASE_URL}/microapps`, method: "GET" },
+      { url: `${BASE_URL}/micro-apps`, method: "GET" },
       onLogout
     );
 

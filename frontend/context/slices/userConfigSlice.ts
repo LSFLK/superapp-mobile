@@ -47,7 +47,7 @@ export const getUserConfigurations = createAsyncThunk(
   async (onLogout: () => Promise<void>, { rejectWithValue }) => {
     try {
       const response = await apiRequest(
-        { url: `${BASE_URL}/user-configurations`, method: "GET" },
+        { url: `${BASE_URL}/users/app-configs`, method: "GET" },
         onLogout
       );
 
