@@ -13,12 +13,12 @@ The new WSO2 Mobile App is designed to streamline your digital experience. Here'
 - **My Apps**: Access a variety of apps to enhance your digital experience.
 - **Profile**: Easily manage your profile and preferences.
 
-✨ **Passkey Authentication is Now Supported**  
+✨ **Passkey Authentication is Now Supported with Asgardeo**  
 Enjoy passwordless, phishing-resistant sign-ins using FIDO2/WebAuthn for a more secure and seamless login experience.
 
 ---
 
-## 📌 Super App Overview
+## 📌 Super App Mobile Overview
 
 This Super App serves as a **container** for multiple micro-apps. It:
 
@@ -30,7 +30,7 @@ This Super App serves as a **container** for multiple micro-apps. It:
 
 ---
 
-## 🔄 Super App Flow
+## 🔄 Super App Mobile Flow
 
 ### **High-Level Overview**
 
@@ -66,7 +66,7 @@ This Super App serves as a **container** for multiple micro-apps. It:
 
 ---
 
-### Super App Loading Sequence
+### Super App Mobile Loading Sequence
 
 ```mermaid
 sequenceDiagram
