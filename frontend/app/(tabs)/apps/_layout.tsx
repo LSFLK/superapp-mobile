@@ -16,13 +16,13 @@
 
 import SparkleIcon from "@/components/FloatingSparkle";
 import { Colors } from "@/constants/Colors";
-import { DOWNLOADED } from "@/constants/Constants";
+import { DOWNLOADED, isAndroid, isIos } from "@/constants/Constants";
 import { ScreenPaths } from "@/constants/ScreenPaths";
 import { MicroApp } from "@/context/slices/appSlice";
 import { RootState } from "@/context/store";
 import { Ionicons } from "@expo/vector-icons";
 import { router, Stack } from "expo-router";
-import { Platform } from "react-native";
+import { TouchableOpacity } from "react-native";
 import { useSelector } from "react-redux";
 
 export default function AppsStack() {
@@ -39,7 +39,7 @@ export default function AppsStack() {
           headerTitle: "My Apps",
           headerRight: () => (
             <>
-              {Platform.OS === "ios" && (
+              {isIos && (
                 <>
                   {localAppIds.length == 0 ? (
                     <SparkleIcon />
@@ -53,6 +53,19 @@ export default function AppsStack() {
                     />
                   )}
                 </>
+              )}
+              {isAndroid && (
+                <TouchableOpacity
+                  onPressIn={() => router.push(ScreenPaths.STORE)}
+                  hitSlop={20}
+                  style={{ marginRight: 16 }}
+                >
+                  <Ionicons
+                    name="storefront-outline"
+                    size={24}
+                    color={Colors.companyOrange}
+                  />
+                </TouchableOpacity>
               )}
             </>
           ),

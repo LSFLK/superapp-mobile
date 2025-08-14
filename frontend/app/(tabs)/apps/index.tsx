@@ -24,8 +24,6 @@ import {
   StyleSheet,
   useWindowDimensions,
   Keyboard,
-  TouchableOpacity,
-  Platform,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/context/store";
@@ -260,20 +258,6 @@ export default function HomeScreen() {
           }
         />
       </View>
-
-      {Platform.OS === "android" && (
-        <TouchableOpacity
-          style={styles.floatingButton}
-          onPress={() => router.push(ScreenPaths.STORE)}
-          activeOpacity={0.8}
-        >
-          <Ionicons
-            name="storefront"
-            size={25}
-            color={Colors[colorScheme ?? "light"].primaryBackgroundColor}
-          />
-        </TouchableOpacity>
-      )}
     </SafeAreaView>
   );
 }
