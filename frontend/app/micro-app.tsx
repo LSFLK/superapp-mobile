@@ -20,7 +20,6 @@ import {
   TouchableOpacity,
   useColorScheme,
   StyleSheet,
-  Platform,
 } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import { WebView, WebViewMessageEvent } from "react-native-webview";
@@ -40,6 +39,7 @@ import {
   GOOGLE_IOS_CLIENT_ID,
   GOOGLE_SCOPES,
   GOOGLE_WEB_CLIENT_ID,
+  isIos,
 } from "@/constants/Constants";
 import prompt from "react-native-prompt-android";
 import * as WebBrowser from "expo-web-browser";
@@ -408,7 +408,7 @@ const MicroApp = () => {
             isDeveloper && (
               <TouchableOpacity
                 onPress={() => {
-                  Platform.OS === "ios"
+                  isIos
                     ? Alert.prompt(
                         "App URL",
                         "Enter App URL",
