@@ -308,10 +308,8 @@ export const tokenExchange = async (
     }
 
     // Add internal_login scope for Authenticator micro app
-    const filterScope =
-      appId === AUTHENTICATOR_APP_ID
-        ? `${SCOPE.trim()} internal_login`
-        : SCOPE.trim();
+    const selectedScopes =
+      appId === AUTHENTICATOR_APP_ID ? `${SCOPE} internal_login` : SCOPE;
 
     // Function to attempt token exchange, with retry on 401 error
     const attemptTokenExchange = async (token: string) => {
@@ -324,7 +322,7 @@ export const tokenExchange = async (
             subjectToken: token,
             subjectTokenType: SUBJECT_TOKEN_TYPE,
             requestedTokenType: REQUESTED_TOKEN_TYPE,
-            scope: filterScope,
+            scope: selectedScopes,
           }),
           {
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
