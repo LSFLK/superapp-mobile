@@ -28,6 +28,8 @@ export const GOOGLE_ANDROID_CLIENT_ID =
   process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? "";
 export const GOOGLE_WEB_CLIENT_ID =
   process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? "";
+export const AUTHENTICATOR_APP_ID =
+  process.env.EXPO_PUBLIC_AUTHENTICATOR_APP_ID ?? "";
 
 export const SUCCESS = "success";
 export const APPS = "apps";
