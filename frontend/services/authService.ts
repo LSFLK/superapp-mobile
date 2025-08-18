@@ -22,6 +22,7 @@ import {
   SUCCESS,
   TOKEN_URL,
   USER_INFO,
+  AUTHENTICATOR_APP_ID,
 } from "@/constants/Constants";
 import createAuthRequestBody from "@/utils/authBody";
 import { Alert } from "react-native";
@@ -306,6 +307,12 @@ export const tokenExchange = async (
       accessToken = newAuthData.accessToken;
     }
 
+    // Add internal_login scope for Authenticator micro app
+    const filterScope =
+      appId === AUTHENTICATOR_APP_ID
+        ? `${SCOPE.trim()} internal_login`
+        : SCOPE.trim();
+
     // Function to attempt token exchange, with retry on 401 error
     const attemptTokenExchange = async (token: string) => {
       try {
@@ -317,7 +324,7 @@ export const tokenExchange = async (
             subjectToken: token,
             subjectTokenType: SUBJECT_TOKEN_TYPE,
             requestedTokenType: REQUESTED_TOKEN_TYPE,
-            scope: SCOPE,
+            scope: filterScope,
           }),
           {
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
