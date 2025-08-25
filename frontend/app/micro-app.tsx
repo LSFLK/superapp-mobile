@@ -407,7 +407,7 @@ const MicroApp = () => {
           headerRight: () =>
             isDeveloper && (
               <TouchableOpacity
-                onPress={() => {
+                onPressIn={() => {
                   isIos
                     ? Alert.prompt(
                         "App URL",
@@ -455,6 +455,7 @@ const MicroApp = () => {
                         }
                       );
                 }}
+                hitSlop={20}
               >
                 <Text style={styles.headerText}>App URL</Text>
               </TouchableOpacity>
