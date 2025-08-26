@@ -44,13 +44,17 @@ export default function AppsStack() {
                   {localAppIds.length == 0 ? (
                     <SparkleIcon />
                   ) : (
-                    <Ionicons
-                      name="storefront-outline"
-                      size={24}
-                      color={Colors.companyOrange}
-                      style={{ marginRight: 16 }}
+                    <TouchableOpacity
                       onPress={() => router.push(ScreenPaths.STORE)}
-                    />
+                      hitSlop={20}
+                      style={{ marginRight: 16 }}
+                    >
+                      <Ionicons
+                        name="storefront-outline"
+                        size={24}
+                        color={Colors.companyOrange}
+                      />
+                    </TouchableOpacity>
                   )}
                 </>
               )}
