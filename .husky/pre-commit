@@ -1,11 +1,24 @@
 #!/usr/bin/env sh
+
+# Copyright (c) $current_year WSO2 LLC. (https:#www.wso2.com).
+#
+# WSO2 LLC. licenses this file to you under the Apache License,
+# Version 2.0 (the "License"); you may not use this file except
+# in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http:#www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
 set -e
 
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "🔗 [pre-commit] Hook started"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
+echo "🔗 [pre-commit] Running pre-commit hooks..."
 
 # Collect staged files
 STAGED="$(git diff --cached --name-only --diff-filter=ACM || true)"
@@ -19,6 +32,92 @@ fi
 echo "📂 Staged files:"
 echo "$STAGED"
 echo ""
+
+# License header check for newly added files
+#
+# Rules:
+#  - Only checks newly added files
+#  - Reads staged content and inspects the first N lines.
+#  - Requires presence (case-insensitive) of:
+#      * "WSO2" (to find the ownership line)
+#      * "Apache License" (license name)
+#      * "Copyright" followed by a 4-digit year (allows 2023, 2024, 2025, etc.)
+#  - Skips common binary/asset files and LICENSE files.
+#
+ADDED_FILES="$(git diff --cached --name-only --diff-filter=A || true)"
+if [ -n "$ADDED_FILES" ]; then
+  echo "🔎 Checking license headers for newly added files..."
+  TMPFILE="$(mktemp)"
+
+  # Iterate added files and check the staged header
+  git diff --cached --name-only --diff-filter=A | while IFS= read -r file; do
+    # skip common binary/asset files or the top-level LICENSE itself
+    case "$file" in
+      LICENSE|LICENSE.*|*.png|*.jpg|*.jpeg|*.gif|*.webp|*.ico|*.pdf|*.zip|*.tar|*.gz|*.tgz|*.7z|*.exe|*.dll|*.so|*.class|*.jar|*.apk|*.ipa|*.otf|*.ttf|*.woff|*.woff2)
+        continue
+        ;;
+    esac
+
+    # read first 40 lines of staged content
+    header="$(git show :"$file" 2>/dev/null | sed -n '1,40p' || true)"
+
+    # if couldn't read staged content, treat as missing header
+    if [ -z "$header" ]; then
+      echo "$file" >> "$TMPFILE"
+      continue
+    fi
+
+    # checks: wso2 present, apache license present, copyright + 4-digit year present
+    if ! echo "$header" | grep -Eiq 'wso2'; then
+      echo "$file" >> "$TMPFILE"
+      continue
+    fi
+
+    if ! echo "$header" | grep -Eiq 'apache[[:space:]]+license'; then
+      echo "$file" >> "$TMPFILE"
+      continue
+    fi
+
+    if ! echo "$header" | grep -Eiq 'copyright.*[0-9]{4}'; then
+      echo "$file" >> "$TMPFILE"
+      continue
+    fi
+  done
+
+    if [ -s "$TMPFILE" ]; then
+    echo ""
+    echo "❌ License header check failed for the following newly added files:"
+    sed -n '1,200p' "$TMPFILE" | sed 's/^/  - /'
+    echo ""
+    echo "Each new file should include the WSO2 license header (Apache License 2.0) at the top."
+    echo "Example header you can copy-paste:"
+    echo "------------------------------------------------------------"
+    current_year=$(date +%Y)
+    cat <<EOF
+// Copyright (c) $current_year WSO2 LLC. (https://www.wso2.com).
+//
+// WSO2 LLC. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+EOF
+    echo "------------------------------------------------------------"
+    rm -f "$TMPFILE"
+    exit 1
+  fi
+
+  rm -f "$TMPFILE"
+  echo "✅ License header check passed."
+fi
 
 # Check for frontend changes
 if echo "$STAGED" | grep -qE '^frontend/'; then

@@ -10,7 +10,8 @@
     "test": "jest --watchAll",
     "lint": "eslint frontend --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint frontend --ext .js,.jsx,.ts,.tsx --fix",
-    "lint:ci": "eslint frontend --ext .js,.jsx,.ts,.tsx --max-warnings=0"
+    "lint:ci": "eslint frontend --ext .js,.jsx,.ts,.tsx --max-warnings=0",
+    "postinstall": "npm install --prefix .."
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": "eslint --fix --max-warnings=0"
