@@ -246,7 +246,7 @@ export async function restoreGoogleDriveBackup(): Promise<any> {
     throw new Error(`Failed to fetch backup files: ${errorText}`);
   }
 
-  const { files }: { files: Array<{ id: string; createdTime: string }> } =
+  const { files }: { files: { id: string; createdTime: string }[] } =
     await listRes.json();
 
   if (!files || files.length === 0) {
@@ -282,7 +282,7 @@ export async function restoreGoogleDriveBackup(): Promise<any> {
  * Refreshes access token if expired.
  */
 export async function listAppDataFiles(): Promise<
-  Array<{ id: string; name: string; createdTime: string }>
+  { id: string; name: string; createdTime: string }[]
 > {
   const accessToken = await getValidAccessToken();
 

@@ -1,0 +1,36 @@
+#!/usr/bin/env sh
+set -e
+
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🔗 [pre-commit] Hook started"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
+# Collect staged files
+STAGED="$(git diff --cached --name-only --diff-filter=ACM || true)"
+
+if [ -z "$STAGED" ]; then
+  echo "📭 No files staged for commit."
+  echo "✅ [pre-commit] Completed (no checks needed)."
+  exit 0
+fi
+
+echo "📂 Staged files:"
+echo "$STAGED"
+echo ""
+
+# Check for frontend changes
+if echo "$STAGED" | grep -qE '^frontend/'; then
+  echo "🛠  Changes detected in frontend/"
+  echo "🚀 Running lint-staged..."
+  cd frontend
+  npx lint-staged
+else
+  echo "⚡ No frontend changes detected."
+  echo "⏭  Skipping lint-staged."
+fi
+
+echo ""
+echo "✅ [pre-commit] Completed successfully."
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
