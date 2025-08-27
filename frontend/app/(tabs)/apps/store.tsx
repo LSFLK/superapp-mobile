@@ -14,34 +14,32 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { useEffect, useRef, useState } from "react";
-import {
-  SafeAreaView,
-  FlatList,
-  View,
-  ActivityIndicator,
-  Alert,
-  useColorScheme,
-  StyleSheet,
-  Text,
-  Keyboard,
-} from "react-native";
-import { useDispatch, useSelector } from "react-redux";
 import ListItem from "@/components/ListItem";
+import SearchBar from "@/components/SearchBar";
+import SignInMessage from "@/components/SignInMessage";
+import SignInModal from "@/components/SignInModal";
+import { Colors } from "@/constants/Colors";
+import { NOT_DOWNLOADED } from "@/constants/Constants";
+import { AppDispatch, RootState } from "@/context/store";
 import {
   downloadMicroApp,
   loadMicroAppDetails,
   removeMicroApp,
 } from "@/services/appStoreService";
-import { AppDispatch, RootState } from "@/context/store";
-import { Colors } from "@/constants/Colors";
 import { logout } from "@/services/authService";
-import { NOT_DOWNLOADED } from "@/constants/Constants";
-import SearchBar from "@/components/SearchBar";
-import SignInModal from "@/components/SignInModal";
-import { router } from "expo-router";
-import { ScreenPaths } from "@/constants/ScreenPaths";
-import SignInMessage from "@/components/SignInMessage";
+import { useEffect, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Keyboard,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  useColorScheme,
+  View,
+} from "react-native";
+import { useDispatch, useSelector } from "react-redux";
 
 const Store = () => {
   const dispatch = useDispatch();
@@ -52,10 +50,10 @@ const Store = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [filteredApps, setFilteredApps] = useState(apps);
   const [installationQueue, setInstallationQueue] = useState<
-    Array<{
+    {
       appId: string;
       downloadUrl: string;
-    }>
+    }[]
   >([]);
   const [isProcessingQueue, setIsProcessingQueue] = useState(false);
 
