@@ -240,6 +240,10 @@ export const logout = async () => {
     await AsyncStorage.removeItem(USER_INFO);
   } catch (error) {
     console.error("Error logging out from Asgardeo:", error);
+    Alert.alert(
+      "Error Logging Out",
+      "We could not log you out from Asgardeo at this moment. Please try again later."
+    );
     throw error;
   }
 };
