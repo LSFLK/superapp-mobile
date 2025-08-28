@@ -13,25 +13,27 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
-import { jwtDecode } from "jwt-decode";
+import { AUTH_CONFIG } from "@/config/authConfig";
 import {
   APPS,
   AUTH_DATA,
+  AUTHENTICATOR_APP_ID,
   CLIENT_ID,
   LOGOUT_URL,
+  REDIRECT_URI,
   SUCCESS,
   TOKEN_URL,
   USER_INFO,
-  AUTHENTICATOR_APP_ID,
 } from "@/constants/Constants";
-import createAuthRequestBody from "@/utils/authBody";
-import { Alert } from "react-native";
-import { AppDispatch } from "@/context/store";
 import { updateExchangedToken } from "@/context/slices/appSlice";
-import dayjs from "dayjs";
-import axios from "axios";
+import { AppDispatch } from "@/context/store";
+import createAuthRequestBody from "@/utils/authBody";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import qs from "qs";
+import axios from "axios";
+import dayjs from "dayjs";
+import { jwtDecode } from "jwt-decode";
+import { Alert } from "react-native";
+import { logout as appLogout, AuthorizeResult } from "react-native-app-auth";
 
 const GRANT_TYPE_AUTHORIZATION_CODE = "authorization_code";
 const GRANT_TYPE_REFRESH_TOKEN = "refresh_token";
@@ -228,30 +230,19 @@ export const logout = async () => {
     }
 
     // Perform logout request
-    const data = qs.stringify({
-      id_token_hint: idToken,
-      response_mode: "direct",
+    await appLogout(AUTH_CONFIG, {
+      idToken: idToken,
+      postLogoutRedirectUrl: REDIRECT_URI,
     });
 
-    const { status } = await axios.post(LOGOUT_URL, data, {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-    });
-
-    if (status === 200) {
-      await AsyncStorage.removeItem(AUTH_DATA);
-      await AsyncStorage.removeItem(APPS);
-      await AsyncStorage.removeItem(USER_INFO);
-    } else {
-      console.warn(`Logout canceled or failed with ${status}.`);
-      throw new Error(`Logout failed with status code ${status}.`);
-    }
+    await AsyncStorage.removeItem(AUTH_DATA);
+    await AsyncStorage.removeItem(APPS);
+    await AsyncStorage.removeItem(USER_INFO);
   } catch (error) {
     console.error("Error logging out from Asgardeo:", error);
     Alert.alert(
-      "Error",
-      "Something went wrong while logging out. Please try again."
+      "Error Logging Out",
+      "We could not log you out from Asgardeo at this moment. Please try again later."
     );
     throw error;
   }
@@ -393,5 +384,37 @@ const isAccessTokenExpired = (accessToken: string): boolean => {
     return dayjs.unix(decoded.exp).isBefore(dayjs());
   } catch {
     return true; // Assume expired if decoding fails
+  }
+};
+
+/**
+ * Process authentication data from react-native-app-auth
+ */
+export const processNativeAuthResult = async (
+  authResult: AuthorizeResult
+): Promise<AuthData | null> => {
+  try {
+    if (authResult.accessToken && authResult.idToken) {
+      const decodedIdToken = jwtDecode<DecodedIdToken>(authResult.idToken);
+      const exp = jwtDecode<{ exp: number }>(authResult.accessToken).exp || 0;
+      const { email } = decodedIdToken;
+
+      const authData: AuthData = {
+        accessToken: authResult.accessToken,
+        refreshToken: authResult.refreshToken,
+        idToken: authResult.idToken,
+        email: email,
+        expiresAt: exp * MILLISECONDS_IN_A_SECOND,
+      };
+
+      await AsyncStorage.setItem(AUTH_DATA, JSON.stringify(authData));
+      return authData;
+    } else {
+      console.error("Missing required tokens in auth result");
+      return null;
+    }
+  } catch (err) {
+    console.error("Error processing native auth result:", err);
+    return null;
   }
 };

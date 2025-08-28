@@ -13,6 +13,10 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
+import { Colors } from "@/constants/Colors";
+import { useSignInWithAsgardeo } from "@/hooks/useSignInWithAsgardeo";
+import { Ionicons } from "@expo/vector-icons";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -20,10 +24,6 @@ import {
   TouchableOpacity,
   useColorScheme,
 } from "react-native";
-import React from "react";
-import { Ionicons } from "@expo/vector-icons";
-import { Colors } from "@/constants/Colors";
-import { useSignInWithAsgardeo } from "@/hooks/useSignInWithAsgardeo";
 
 /**
  * SignInMessage is a presentational component displayed inside the sign-in modal.
@@ -39,8 +39,20 @@ const SignInMessage = React.memo(
   }) => {
     const colorScheme = useColorScheme();
     const styles = createStyles(colorScheme ?? "light");
+    const [isLoading, setIsLoading] = useState(false);
 
-    const { request, promptAsync } = useSignInWithAsgardeo();
+    const performSignIn = useSignInWithAsgardeo();
+
+    const handleSignInPress = async () => {
+      setIsLoading(true);
+      try {
+        await performSignIn();
+      } catch (error) {
+        console.error("Sign-in process failed:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
     return (
       <>
@@ -60,12 +72,12 @@ const SignInMessage = React.memo(
 
         {/* Sign-in button or loading indicator */}
         <TouchableOpacity
-          disabled={!request}
+          disabled={isLoading}
           style={styles.button}
-          onPress={() => promptAsync()}
+          onPress={handleSignInPress}
           activeOpacity={0.5}
         >
-          {!request ? (
+          {isLoading ? (
             <ActivityIndicator
               size="small"
               color={Colors[colorScheme ?? "light"].primaryBackgroundColor}

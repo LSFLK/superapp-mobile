@@ -13,51 +13,28 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
-import { useEffect } from "react";
-import { useDispatch } from "react-redux";
-import { useAuthRequest } from "expo-auth-session";
-import { CLIENT_ID, REDIRECT_URI, SUCCESS } from "@/constants/Constants";
-import { getAccessToken } from "@/services/authService";
+import { AUTH_CONFIG } from "@/config/authConfig";
 import { setAuth, setAuthWithCheck } from "@/context/slices/authSlice";
-import { useDiscovery } from "@/hooks/useDiscovery";
 import { AppDispatch } from "@/context/store";
-import { Platform } from "react-native";
+import { processNativeAuthResult } from "@/services/authService";
+import { AuthorizeResult, authorize } from "react-native-app-auth";
+import { useDispatch } from "react-redux";
 
 export const useSignInWithAsgardeo = () => {
-  const discovery = useDiscovery();
-  const redirectUri = REDIRECT_URI;
   const dispatch = useDispatch<AppDispatch>();
 
-  const [request, result, promptAsync] = useAuthRequest(
-    {
-      clientId: CLIENT_ID,
-      responseType: "code",
-      scopes: ["openid", "profile", "email", "groups"],
-      redirectUri,
-    },
-    discovery
-  );
-
-  // Automatically handle auth result
-  useEffect(() => {
-    const handleAuthResult = async () => {
-      if (result?.type === SUCCESS && request) {
-        const authData = await getAccessToken(request, result, redirectUri);
-        if (authData) {
-          dispatch(setAuth(authData));
-          dispatch(setAuthWithCheck(authData));
-        }
+  const signIn = async () => {
+    try {
+      const authState: AuthorizeResult = await authorize(AUTH_CONFIG);
+      const authData = await processNativeAuthResult(authState);
+      if (authData) {
+        dispatch(setAuth(authData));
+        dispatch(setAuthWithCheck(authData));
       }
-    };
-
-    handleAuthResult();
-  }, [result]);
-
-  return {
-    request,
-    promptAsync:
-      Platform.OS === "ios"
-        ? promptAsync
-        : () => promptAsync({ createTask: false, showInRecents: false }),
+    } catch (error) {
+      console.error("Authentication failed:", error);
+    }
   };
+
+  return signIn;
 };
