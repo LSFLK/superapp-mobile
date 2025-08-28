@@ -48,8 +48,9 @@ const SignInMessage = React.memo(
       try {
         await performSignIn();
       } catch (error) {
-        setIsLoading(false);
         console.error("Sign-in process failed:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
