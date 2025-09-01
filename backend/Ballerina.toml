@@ -1,5 +1,5 @@
 [package]
-org = "wso2_open_operations"
+org = "wso2"
 name = "superapp_mobile_service"
 version = "1.0.0"
 distribution = "2201.10.4"
