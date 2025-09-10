@@ -12,7 +12,7 @@
  * - Responsive design and accessibility
  */
 
-import React, { useState, useRef, useEffect } from "react";
+//import React, { useState, useRef, useEffect } from "react";
 import { Asset } from "expo-asset";
 import {
   View,
@@ -57,6 +57,21 @@ interface AppConfig {
   allowsFileAccess: boolean;
 }
 
+const fetchUserMicroApps = async () => {
+  const token = await AsyncStorage.getItem("superapp_token");
+  if (!token) return [];
+
+  const response = await fetch("https://superapp.example.com/api/microapps", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) throw new Error("Failed to fetch micro apps");
+  return await response.json(); // [{id, name, uri}]
+};
+
+
 /**
  * Production-ready micro-app viewer with comprehensive functionality
  */
@@ -96,6 +111,17 @@ export default function MicroAppViewer() {
       fetchAuthToken();
     }
   }, [exchangedToken, clientId]);
+
+  useEffect(() => {
+  if (exchangedToken) {
+    setAuthToken(exchangedToken);      // <--- store token in state
+    sendTokenToWebView(exchangedToken); // <--- send to WebView
+  } else {
+    // Optional: redirect if no token found
+    handleAlert("Unauthorized", "Please login to access micro-apps.");
+    router.replace("/login");
+  }
+  }, [exchangedToken]);
 
   /**
    * Set initial web URI - handle both remote URLs and local assets

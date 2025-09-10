@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage/lib/typescript/AsyncStorage";
 
 // Government services data
 const MICRO_APPS = [
@@ -48,27 +49,24 @@ const MICRO_APPS = [
  * Service card component
  */
 function ServiceCard({ app }: { app: typeof MICRO_APPS[0] }) {
-  const handlePress = () => {
-    if (app.working) {
-      // Navigate to any micro-app using local assets
-      router.push({
-        pathname: "/micro-app",
-        params: {
-          appId: app.id,
-          appName: app.name,
-          webViewUri: "local",
-          clientId: app.id,
-          exchangedToken: "demo_token_123"
-        },
-      });
-    } else {
-      Alert.alert(
-        "Coming Soon",
-        `${app.name} will be available in the next update.`,
-        [{ text: "OK" }]
-      );
-    }
-  };
+  const handlePress = async () => {
+  if (app.working) {
+    const token = await AsyncStorage.getItem("superapp_token");
+    router.push({
+      pathname: "/micro-app",
+      params: {
+        appId: app.id,
+        appName: app.name,
+        webViewUri: "local",
+        clientId: app.id,
+        exchangedToken: token || "",
+      },
+    });
+  } else {
+    Alert.alert("Coming Soon", `${app.name} will be available soon.`, [{ text: "OK" }]);
+  }
+};
+
 
   return (
     <TouchableOpacity style={styles.serviceCard} onPress={handlePress}>
