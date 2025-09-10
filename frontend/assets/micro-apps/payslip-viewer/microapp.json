@@ -1,0 +1,21 @@
+{
+  "id": "payslip-viewer",
+  "name": "Government Payslip",
+  "description": "View your government salary payslip with secure authentication",
+  "version": "1.0.0",
+  "icon": "💰",
+  "category": "finance",
+  "entryPoint": "index.html",
+  "permissions": ["camera", "storage", "network"],
+  "author": "Government IT Division",
+  "supportEmail": "support@gov.lk",
+  "requiresAuth": true,
+  "localAssets": true,
+  "bridgeVersion": "1.0",
+  "features": [
+    "AUTH_TOKEN",
+    "ALERTS", 
+    "FILE_OPERATIONS",
+    "LOCAL_STORAGE"
+  ]
+}
