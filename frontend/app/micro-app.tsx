@@ -115,7 +115,6 @@ export default function MicroAppViewer() {
 
   useEffect(() => {
   if (exchangedToken) {
-    console.log("🟢 Token received in microapp:", exchangedToken);
     setAuthToken(exchangedToken);      // <--- store token in state
     sendTokenToWebView(exchangedToken); // <--- send to WebView
   } else {
