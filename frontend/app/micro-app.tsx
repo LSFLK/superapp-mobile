@@ -12,7 +12,7 @@
  * - Responsive design and accessibility
  */
 
-//import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Asset } from "expo-asset";
 import {
   View,
@@ -35,6 +35,7 @@ import { Colors } from "@/constants/Colors";
 import { TOPIC, injectedJavaScript } from "@/utils/bridge";
 import NotFound from "@/components/NotFound";
 import Scanner from "@/components/Scanner";
+
 
 // Types for micro-app parameters and communication
 interface MicroAppParams {
@@ -114,6 +115,7 @@ export default function MicroAppViewer() {
 
   useEffect(() => {
   if (exchangedToken) {
+    console.log("🟢 Token received in microapp:", exchangedToken);
     setAuthToken(exchangedToken);      // <--- store token in state
     sendTokenToWebView(exchangedToken); // <--- send to WebView
   } else {
