@@ -4,7 +4,7 @@
  * Simple home screen with essential government services
  */
 
-import React from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   View,
@@ -95,18 +95,24 @@ function ServiceCard({ app }: { app: typeof MICRO_APPS[0] }) {
  * Main home screen
  */
 export default function HomeScreen() {
+  
+  const [token, setToken] = useState<string | null>(null);
+
   useEffect(() => {
-  const initDevToken = async () => {
-    const existing = await AsyncStorage.getItem("superapp_token");
-    if (!existing) {
-      // Create a dummy token with fake expiry (1 hour from now)
-      const fakeToken = `fake_jwt_${Date.now()}`;
-      await AsyncStorage.setItem("superapp_token", fakeToken);
-      console.log("✅ Fake token set:", fakeToken);
-    }
+    const checkLogin = async () => {
+      const token = await AsyncStorage.getItem("superapp_token");
+
+      if (!token) {
+        // Trigger Asgardeo login here
+        router.push("/login"); 
+      } else {
+        setToken(token);
+      }
     };
-    initDevToken();
+
+    checkLogin();
   }, []);
+
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
