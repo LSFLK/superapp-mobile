@@ -113,24 +113,24 @@ const SettingsScreen = () => {
     );
   }, [dispatch]);
 
-  if (!accessToken) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.signInContainer}>
-          <View style={styles.overlay}>
-            <View style={styles.modal}>
-              <SignInMessage />
-            </View>
-          </View>
-          <View style={styles.bottomContainer}>
-            <View style={styles.versionContainer}>
-              <Text style={styles.versionText}>version {version}</Text>
-            </View>
-          </View>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  // if (!accessToken) {
+  //   return (
+  //     <SafeAreaView style={styles.container}>
+  //       <View style={styles.signInContainer}>
+  //         <View style={styles.overlay}>
+  //           <View style={styles.modal}>
+  //             <SignInMessage />
+  //           </View>
+  //         </View>
+  //         <View style={styles.bottomContainer}>
+  //           <View style={styles.versionContainer}>
+  //             <Text style={styles.versionText}>version {version}</Text>
+  //           </View>
+  //         </View>
+  //       </View>
+  //     </SafeAreaView>
+  //   );
+  // }
 
   return (
     <SafeAreaView style={styles.container}>
