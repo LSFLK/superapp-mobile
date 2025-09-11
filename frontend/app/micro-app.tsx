@@ -25,10 +25,10 @@ import { useEffect, useRef, useState } from "react";
 import { WebView, WebViewMessageEvent } from "react-native-webview";
 import { Stack, useLocalSearchParams } from "expo-router";
 import NotFound from "@/components/NotFound";
-import Scanner from "@/components/Scanner";
+//import Scanner from "@/components/Scanner";
 import { useDispatch } from "react-redux";
 import { injectedJavaScript, TOPIC } from "@/utils/bridge";
-import { logout, tokenExchange } from "@/services/authService";
+//import { logout, tokenExchange } from "@/services/authService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { documentDirectory } from "expo-file-system";
 import { MicroAppParams } from "@/types/navigation";
@@ -43,12 +43,12 @@ import {
 } from "@/constants/Constants";
 import prompt from "react-native-prompt-android";
 import * as WebBrowser from "expo-web-browser";
-import googleAuthenticationService, {
+/* import googleAuthenticationService, {
   getGoogleUserInfo,
   isAuthenticatedWithGoogle,
   restoreGoogleDriveBackup,
   uploadToGoogleDrive,
-} from "@/services/googleService";
+} from "@/services/googleService"; */
 import * as Google from "expo-auth-session/providers/google";
 
 WebBrowser.maybeCompleteAuthSession();
@@ -82,7 +82,7 @@ const MicroApp = () => {
     );
   };
 
-  // Handle Google authentication response
+  /* Handle Google authentication response
   useEffect(() => {
     if (response) {
       googleAuthenticationService(response)
@@ -119,7 +119,7 @@ const MicroApp = () => {
     };
 
     fetchToken();
-  }, [clientId]);
+  }, [clientId]);*/
 
   // Function to send token to WebView
   const sendTokenToWebView = (token: string) => {
@@ -133,10 +133,10 @@ const MicroApp = () => {
     }
   };
 
-  // Function to send QR string to WebView
+  /* Function to send QR string to WebView
   const sendQrToWebView = (qrString: string) => {
     sendResponseToWeb("resolveQrCode", qrString);
-  };
+  };*/
 
   // Function to view alert from parent app
   const handleAlert = async (
@@ -195,18 +195,18 @@ const MicroApp = () => {
       sendResponseToWeb("rejectSaveLocalData", errMessage);
     }
   };
-
+/*
   // Function to migrate TOTP data
   const handleTotpQrMigrationData = () => {
     const mockData = "sample-data-1,sample-data-2";
     sendResponseToWeb("resolveTotpQrMigrationData", { data: mockData });
-  };
-
+  };*/
+/*
   // Fucntion to authenticate using google
   const authenticateWithGoogle = async () => {
     promptAsync();
-  };
-
+  };*/
+/*
   // Function to upload data to the Google Drive
   const handledUploadToGoogleDrive = async (data: any = {}) => {
     uploadToGoogleDrive(data)
@@ -270,7 +270,7 @@ const MicroApp = () => {
       console.error("Error getting Google user info:", error);
       sendResponseToWeb("rejectGoogleUserInfo", "Failed to get user info");
     }
-  };
+  };*/
 
   // Handle messages from WebView
   const onMessage = async (event: WebViewMessageEvent) => {
@@ -292,9 +292,9 @@ const MicroApp = () => {
         case TOPIC.GET_LOCAL_DATA:
           await handleGetLocalData(data.key);
           break;
-        case TOPIC.TOTP:
+        /* case TOPIC.TOTP:
           handleTotpQrMigrationData();
-          break;
+          break; */
         case TOPIC.ALERT:
           handleAlert(data.title, data.message, data.buttonText);
           break;
@@ -306,21 +306,21 @@ const MicroApp = () => {
             data.confirmButtonText
           );
           break;
-        case TOPIC.GOOGLE_LOGIN:
+        /* case TOPIC.GOOGLE_LOGIN:
           authenticateWithGoogle();
-          break;
-        case TOPIC.UPLOAD_TO_GOOGLE_DRIVE:
+          break; */
+        /* case TOPIC.UPLOAD_TO_GOOGLE_DRIVE:
           handledUploadToGoogleDrive(data);
-          break;
-        case TOPIC.RESTORE_GOOGLE_DRIVE_BACKUP:
+          break; */
+       /*  case TOPIC.RESTORE_GOOGLE_DRIVE_BACKUP:
           RestoreLatestFromGoogleDrive();
-          break;
-        case TOPIC.CHECK_GOOGLE_AUTH_STATE:
+          break; */
+        /* case TOPIC.CHECK_GOOGLE_AUTH_STATE:
           handleCheckGoogleAuthState();
-          break;
-        case TOPIC.GOOGLE_USER_INFO:
+          break; */
+        /* case TOPIC.GOOGLE_USER_INFO:
           handleGetGoogleUserInfo();
-          break;
+          break; */
         default:
           console.error("Unknown topic:", topic);
       }
@@ -464,7 +464,7 @@ const MicroApp = () => {
             ),
         }}
       />
-      <View style={styles.container}>
+      {/* <View style={styles.container}>
         {isScannerVisible && (
           <View style={styles.scannerOverlay}>
             <Scanner
@@ -489,7 +489,7 @@ const MicroApp = () => {
         >
           {renderWebView(isDeveloper ? webUri : webViewUri)}
         </View>
-      </View>
+      </View> */}
     </>
   );
 };
