@@ -15,7 +15,9 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage/lib/typescript/AsyncStorage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect } from "react";
+
 
 // Government services data
 const MICRO_APPS = [
@@ -93,6 +95,19 @@ function ServiceCard({ app }: { app: typeof MICRO_APPS[0] }) {
  * Main home screen
  */
 export default function HomeScreen() {
+  useEffect(() => {
+  const initDevToken = async () => {
+    const existing = await AsyncStorage.getItem("superapp_token");
+    if (!existing) {
+      // Create a dummy token with fake expiry (1 hour from now)
+      const fakeToken = `fake_jwt_${Date.now()}`;
+      await AsyncStorage.setItem("superapp_token", fakeToken);
+      console.log("✅ Fake token set:", fakeToken);
+    }
+    };
+    initDevToken();
+  }, []);
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header */}
