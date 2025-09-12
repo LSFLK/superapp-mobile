@@ -15,9 +15,9 @@
 // under the License.
 import ballerina/graphql;
 
-configurable string hrEntityBaseUrl = ?;
-configurable Oauth2Config oauth2Config = ?;
-configurable GraphQlRetryConfig retryConfig = ?;
+configurable string hrEntityBaseUrl = "test";
+// configurable Oauth2Config oauth2Config = ?;
+// configurable GraphQlRetryConfig retryConfig = ?;
 
 # Hr Entity -> GraphQL Service Credentials.
 @display {
@@ -26,9 +26,9 @@ configurable GraphQlRetryConfig retryConfig = ?;
 }
 final graphql:Client hrClient = check new (hrEntityBaseUrl, {
     auth: {
-        ...oauth2Config
+        // ...oauth2Config
     },
     retryConfig: {
-        ...retryConfig
+        // ...retryConfig
     }
 });
