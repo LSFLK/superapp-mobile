@@ -37,10 +37,10 @@ const MICRO_APPS = [
     working: false,
   },
   {
-    id: "directory",
-    name: "Employee Directory",
+    id: "Tax Filing",
+    name: "Tax Filing",
     description: "Find contacts",
-    icon: "people-outline",
+    icon: "cash-outline",
     color: "#7c3aed",
     working: false,
   },
@@ -68,24 +68,14 @@ function ServiceCard({ app }: { app: typeof MICRO_APPS[0] }) {
   };
 
   return (
-    <TouchableOpacity style={styles.serviceCard} onPress={handlePress}>
-      <View style={styles.iconContainer}>
-        <Ionicons name={app.icon as any} size={28} color="#2563EB" />
+    <TouchableOpacity style={styles.serviceCardBox} onPress={handlePress}>
+      <View style={styles.iconBox}>
+        <Ionicons name={app.icon as any} size={32} color="#2563EB" />
       </View>
-
-      <View style={styles.serviceInfo}>
-        <Text style={styles.serviceName}>{app.name}</Text>
-        <Text style={styles.serviceDescription}>{app.description}</Text>
-        {app.working && (
-          <View style={styles.workingBadge}>
-            <Text style={styles.workingText}>Available</Text>
-          </View>
-        )}
-      </View>
-
-      <Ionicons name="chevron-forward" size={20} color="#666" />
+      <Text style={styles.serviceNameBox}>{app.name}</Text>
     </TouchableOpacity>
   );
+
 }
 
 export default function Index() {
@@ -115,41 +105,31 @@ export default function Index() {
   }
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.welcomeText}>Welcome to</Text>
-          <Text style={styles.appTitle}>Government Services</Text>
-          <Text style={styles.subtitle}>Ministry of Technology</Text>
+    <View style={styles.container}>
+        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.appTitle}>John Doe</Text>
+            <Text style={styles.subtitle}>Education Department</Text>
+          </View>
+
+          <TouchableOpacity style={styles.notificationIcon}>
+            <Ionicons name="notifications-outline" size={24} color="#333" />
+          </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.notificationIcon}>
-          <Ionicons name="notifications-outline" size={24} color="#333" />
-        </TouchableOpacity>
-      </View>
+        <View style={styles.servicesSection}>
+          <Text style={styles.sectionTitle}>Available Services</Text>
 
-      <View style={styles.infoSection}>
-        <View style={styles.infoCard}>
-          <Ionicons name="apps-outline" size={20} color="#2563EB" />
-          <Text style={styles.infoText}>1 Services Available</Text>
+          <View style={styles.servicesGrid}>
+            {MICRO_APPS.map((app) => (
+              <ServiceCard key={app.id} app={app} />
+            ))}
+          </View>
         </View>
-        <View style={styles.infoCard}>
-          <Ionicons name="calendar-outline" size={20} color="#2563EB" />
-          <Text style={styles.infoText}>January 2025</Text>
-        </View>
-      </View>
 
-      <View style={styles.servicesSection}>
-        <Text style={styles.sectionTitle}>Available Services</Text>
-        <Text style={styles.sectionSubtitle}>
-          Access your government applications and services
-        </Text>
-
-        {MICRO_APPS.map((app) => (
-          <ServiceCard key={app.id} app={app} />
-        ))}
-      </View>
-
+        <View style={{ height: 100 }} />
+      </ScrollView>
       <View style={styles.demoNotice}>
         <Ionicons name="information-circle" size={20} color="#2563EB" />
         <Text style={styles.demoText}>
@@ -157,9 +137,8 @@ export default function Index() {
           micro-app.
         </Text>
       </View>
-
-      <View style={{ height: 100 }} />
-    </ScrollView>
+    </View>
+    
   );
 }
 
@@ -210,8 +189,8 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    padding: 16,
+    //backgroundColor: "#FFFFFF",
+    paddingBottom: 20,
     borderRadius: 12,
     gap: 12,
   },
@@ -221,13 +200,14 @@ const styles = StyleSheet.create({
     color: "#1E293B",
   },
   servicesSection: {
-    padding: 20,
+    paddingTop: 50,
+    padding: 30,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: "bold",
     color: "#1E293B",
-    marginBottom: 4,
+    marginBottom: 30,
   },
   sectionSubtitle: {
     fontSize: 14,
@@ -246,6 +226,32 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,
+  },
+  serviceCardBox: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: "33%",
+    marginBottom: 16,
+  },
+  iconBox: {
+    width: 64,
+    height: 64,
+    backgroundColor: "#EFF6FF",
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
+  },
+  serviceNameBox: {
+    fontSize: 14,
+    fontWeight: "400",
+    color: "#233552ff",
+    textAlign: "center",
+  },
+  servicesGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "flex-start",
   },
   iconContainer: {
     width: 48,
