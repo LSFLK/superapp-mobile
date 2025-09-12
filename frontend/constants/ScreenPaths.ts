@@ -22,3 +22,6 @@ export enum ScreenPaths {
   PROFILE = "/(tabs)/profile",
   UPDATE = "/update",
 }
+function getScreenPath(screen: ScreenPaths): string {
+  return screen;
+}

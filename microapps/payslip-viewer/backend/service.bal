@@ -1,5 +1,10 @@
 import ballerina/http;
+import ballerina/mime;
 import ballerina/log;
+import ballerina/io;
+
+// In-memory payslip store (replace with persistent storage for production)
+Payslip[] payslipStore = getMockPayslips();
 
 // Main payslip service
 service /api/v1/payslips on new http:Listener(serverPort) {
@@ -89,6 +94,61 @@ service /api/v1/payslips on new http:Listener(serverPort) {
         log:printInfo("Payslip retrieved successfully for employee: " + employeeId);
         return createSuccessResponse(payslip);
     }
+
+    // POST endpoint to upload CSV
+    resource function post upload(http:Request req) returns json|error {
+        mime:Entity|error fileEntity = req.getEntity();
+        if fileEntity is error {
+            return {"error": "No file uploaded"};
+        }
+
+        // Save uploaded CSV temporarily
+        string tempCsvPath = "./uploaded.csv";
+        byte[] fileContent = check fileEntity.getByteArray();
+        check io:fileWriteBytes(tempCsvPath, fileContent);
+
+        // Read CSV as a stream
+        stream<string[], io:Error?> csvStream = check io:fileReadCsvAsStream(tempCsvPath);
+
+        Payslip[] newPayslips = [];
+
+        // Iterate CSV rows and populate payslipStore
+        check csvStream.forEach(function(string[] row) {
+            // Skip header row if it exists
+            if row[0] == "employeeId" {
+                return;
+            }
+
+            // Convert numeric strings to float
+            float|error basicSalary = 'float:fromString(row[5]);
+            float|error allowances = 'float:fromString(row[6]);
+            float|error deductions = 'float:fromString(row[7]);
+            float|error netSalary = 'float:fromString(row[8]);
+
+            do {
+	
+	            newPayslips.push({
+	                employeeId: row[0],
+	                designation: row[1],
+	                name: row[2],
+	                department: row[3],
+	                payPeriod: row[4],
+	                basicSalary: check basicSalary,
+	                allowances: check allowances,
+	                deductions: check deductions,
+	                netSalary: check netSalary
+	            });
+            } on fail var e {
+                log:printError("Error processing row: " + e.toString());
+            }
+        });
+
+        // Replace global store
+        payslipStore = newPayslips;
+
+        return { message: "CSV uploaded successfully", count: payslipStore.length() };
+    }
+
 }
 
 // Mock data functions (replace with database integration)

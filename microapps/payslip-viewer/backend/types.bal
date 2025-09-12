@@ -4,10 +4,10 @@ public type Payslip record {|
     string name;
     string designation;
     string payPeriod; // Format: YYYY-MM
-    decimal basicSalary;
-    decimal allowances;
-    decimal deductions;
-    decimal netSalary;
+    float basicSalary;
+    float allowances;
+    float deductions;
+    float netSalary;
     string? department?; // Optional field for future expansion
     string? location?; // Optional field for future expansion
 |};
@@ -62,4 +62,7 @@ public type AuthConfig record {|
     int tokenExpirySeconds;
     string[] publicEndpoints; // Endpoints that don't require auth
 |};
+
+
+
 
