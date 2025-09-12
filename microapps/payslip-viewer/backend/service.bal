@@ -6,6 +6,15 @@ import ballerina/io;
 // In-memory payslip store (replace with persistent storage for production)
 Payslip[] payslipStore = getMockPayslips();
 
+// CORS configuration for frontend access
+@http:ServiceConfig {
+    cors: {
+        allowOrigins: ["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173"],
+        allowCredentials: false,
+        allowHeaders: ["Authorization", "Content-Type"],
+        allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    }
+}
 // Main payslip service
 service /api/v1/payslips on new http:Listener(serverPort) {
 
