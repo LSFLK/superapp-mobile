@@ -18,6 +18,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { SUPERAPP_BASE_URL, EMP_ID } from "@/constants/Constants";
 
 const MICRO_APPS = [
   {
@@ -80,6 +81,24 @@ function ServiceCard({ app }: { app: typeof MICRO_APPS[0] }) {
 
 export default function Index() {
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<{ name: string; department: string } | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch(`${SUPERAPP_BASE_URL}/users/mock/${EMP_ID}`);
+        console.log(res);
+        if (res.ok) {
+          const data = await res.json();
+          setUser({ name: data.name, department: data.department });
+        }
+      } catch (err) {
+        console.error("Failed to fetch user info", err);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     const checkToken = async () => {
@@ -109,8 +128,8 @@ export default function Index() {
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.appTitle}>John Doe</Text>
-            <Text style={styles.subtitle}>Education Department</Text>
+            <Text style={styles.appTitle}>{user ? user.name : "Loading..."}</Text>
+            <Text style={styles.subtitle}>{user ? user.department : ""}</Text>
           </View>
 
           <TouchableOpacity style={styles.notificationIcon}>
