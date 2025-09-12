@@ -105,7 +105,7 @@ export default function Index() {
       const token = await AsyncStorage.getItem("superapp_token");
       //const token = "sometoken";
 
-      if (token) { 
+      if (!token) { 
         console.log("From token");
         router.replace("/login"); // if not logged in, go to login
       } 
