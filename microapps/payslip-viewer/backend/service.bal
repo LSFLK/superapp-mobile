@@ -120,34 +120,60 @@ service /api/v1/payslips on new http:Listener(serverPort) {
         stream<string[], io:Error?> csvStream = check io:fileReadCsvAsStream(tempCsvPath);
 
         Payslip[] newPayslips = [];
+        int processed = 0;
+        int skipped = 0;
+        int errors = 0;
 
         // Iterate CSV rows and populate payslipStore
         check csvStream.forEach(function(string[] row) {
-            // Skip header row if it exists
-            if row[0] == "employeeId" {
+            // Skip completely empty or 1-field rows that are blank (e.g., trailing newline)
+            if row.length() == 0 {
+                skipped += 1;
+                return;
+            }
+            if row.length() == 1 {
+                string first = row[0].trim();
+                if first == "" {
+                    skipped += 1;
+                    return;
+                }
+            }
+
+            // Skip header row if present
+            string firstCol = row[0].toLowerAscii().trim();
+            if firstCol == "employeeid" {
+                skipped += 1;
                 return;
             }
 
-            // Convert numeric strings to float
-            float|error basicSalary = 'float:fromString(row[5]);
-            float|error allowances = 'float:fromString(row[6]);
-            float|error deductions = 'float:fromString(row[7]);
-            float|error netSalary = 'float:fromString(row[8]);
+            // Validate minimum columns (0..8 => 9 columns required)
+            if row.length() < 9 {
+                errors += 1;
+                log:printWarn("Skipping row due to insufficient columns (" + row.length().toString() + ")");
+                return;
+            }
+
+            // Convert numeric strings to float safely
+            float|error basicSalary = 'float:fromString(row[5].trim());
+            float|error allowances = 'float:fromString(row[6].trim());
+            float|error deductions = 'float:fromString(row[7].trim());
+            float|error netSalary = 'float:fromString(row[8].trim());
 
             do {
-	
-	            newPayslips.push({
-	                employeeId: row[0],
-	                designation: row[1],
-	                name: row[2],
-	                department: row[3],
-	                payPeriod: row[4],
-	                basicSalary: check basicSalary,
-	                allowances: check allowances,
-	                deductions: check deductions,
-	                netSalary: check netSalary
-	            });
+                newPayslips.push({
+                    employeeId: row[0].trim(),
+                    designation: row[1].trim(),
+                    name: row[2].trim(),
+                    department: row[3].trim(),
+                    payPeriod: row[4].trim(),
+                    basicSalary: check basicSalary,
+                    allowances: check allowances,
+                    deductions: check deductions,
+                    netSalary: check netSalary
+                });
+                processed += 1;
             } on fail var e {
+                errors += 1;
                 log:printError("Error processing row: " + e.toString());
             }
         });
@@ -155,7 +181,8 @@ service /api/v1/payslips on new http:Listener(serverPort) {
         // Replace global store
         payslipStore = newPayslips;
 
-        return { message: "CSV uploaded successfully", count: payslipStore.length() };
+    log:printInfo("CSV upload summary -> processed: " + processed.toString() + ", skipped: " + skipped.toString() + ", errors: " + errors.toString());
+    return { message: "CSV uploaded successfully", count: payslipStore.length(), processed, skipped, errors };
     }
 
 }
