@@ -23,7 +23,7 @@ import { SUPERAPP_BASE_URL, EMP_ID } from "@/constants/Constants";
 const MICRO_APPS = [
   {
     id: "payslip-viewer",
-    name: "Payslip Viewer",
+    name: "Payslip",
     description: "View your monthly payslips",
     icon: "document-text-outline",
     color: "#2563EB",
@@ -31,7 +31,7 @@ const MICRO_APPS = [
   },
   {
     id: "leave-management",
-    name: "Leave Management",
+    name: "Leave",
     description: "Apply for leave",
     icon: "calendar-outline",
     color: "#059669",
@@ -39,7 +39,7 @@ const MICRO_APPS = [
   },
   {
     id: "Tax Filing",
-    name: "Tax Filing",
+    name: "Tax",
     description: "Find contacts",
     icon: "cash-outline",
     color: "#7c3aed",
@@ -105,7 +105,7 @@ export default function Index() {
       const token = await AsyncStorage.getItem("superapp_token");
       //const token = "sometoken";
 
-      if (!token) { 
+      if (token) { 
         console.log("From token");
         router.replace("/login"); // if not logged in, go to login
       } 
