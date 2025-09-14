@@ -124,7 +124,11 @@ const MicroApp = () => {
 
   useEffect(() => {
     console.log("recieved emp ID ; " , empID);
-  });
+    // Send empID to WebView when it's available
+    if (empID) {
+      sendEmpIdToWebView(empID);
+    }
+  }, [empID]);
 
   // Function to send token to WebView
   const sendTokenToWebView = (token: string) => {
@@ -136,6 +140,12 @@ const MicroApp = () => {
       const resolve = pendingTokenRequests.shift();
       resolve?.(token);
     }
+  };
+
+  // Function to send empID to WebView
+  const sendEmpIdToWebView = (empId: string) => {
+    if (!empId) return;
+    sendResponseToWeb("resolveEmpId", empId);
   };
 
   /* Function to send QR string to WebView
@@ -287,6 +297,9 @@ const MicroApp = () => {
           token
             ? sendTokenToWebView(token)
             : pendingTokenRequests.push(sendTokenToWebView);
+          break;
+        case TOPIC.EMP_ID:
+          sendEmpIdToWebView(empID);
           break;
         case TOPIC.QR_REQUEST:
           setScannerVisible(true);
