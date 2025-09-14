@@ -20,7 +20,7 @@ export const CLIENT_ID = process.env.EXPO_PUBLIC_CLIENT_ID ?? "";
 export const REDIRECT_URI = process.env.EXPO_PUBLIC_REDIRECT_URI ?? "";
 export const TOKEN_URL = process.env.EXPO_PUBLIC_TOKEN_URL ?? "";
 export const LOGOUT_URL = process.env.EXPO_PUBLIC_LOGOUT_URL ?? "";
-export const BASE_URL = process.env.EXPO_PUBLIC_BACKEND_BASE_URL ?? "";
+export const BASE_URL = process.env.EXPO_PUBLIC_BACKEND_BASE_URL ?? "http://0.0.0.0:9090";
 
 export const GOOGLE_IOS_CLIENT_ID =
   process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? "";

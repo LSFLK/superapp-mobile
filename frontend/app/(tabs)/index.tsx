@@ -19,6 +19,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { SUPERAPP_BASE_URL, EMP_ID } from "@/constants/Constants";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/context/store";
+import { ScreenPaths } from "@/constants/ScreenPaths";
+
 
 const MICRO_APPS = [
   {
@@ -80,8 +84,10 @@ function ServiceCard({ app }: { app: typeof MICRO_APPS[0] }) {
 }
 
 export default function Index() {
-  const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<{ name: string; department: string } | null>(null);
+    const { accessToken } = useSelector((state: RootState) => state.auth);
+      const { userInfo } = useSelector((state: RootState) => state.userInfo);
+    
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -101,27 +107,17 @@ export default function Index() {
   }, []);
 
   useEffect(() => {
-    const checkToken = async () => {
-      const token = await AsyncStorage.getItem("superapp_token");
-      //const token = "sometoken";
+    if (!accessToken) {
+      // Use setTimeout to ensure navigation happens after component mount
+      const timer = setTimeout(() => {
+        router.replace(ScreenPaths.LOGIN);
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [accessToken]);
 
-      if (!token) { 
-        console.log("From token");
-        router.replace("/login"); // if not logged in, go to login
-      } 
-      setLoading(false);
-    };
 
-    checkToken();
-  }, []);
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2563EB" />
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>

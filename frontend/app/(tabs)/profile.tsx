@@ -23,19 +23,14 @@ import {
   Alert,
   Image,
 } from "react-native";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/context/store";
 import { Colors } from "@/constants/Colors";
 import Constants from "expo-constants";
 import ProfileListItem from "@/components/ProfileListItem";
-import { getUserInfo } from "@/context/slices/userInfoSlice";
-import { logout } from "@/services/authService";
 import Avatar from "@/components/Avatar";
-import { jwtDecode } from "jwt-decode";
-import { DecodedAccessToken } from "@/types/decodeAccessToken.types";
-import { BasicUserInfo } from "@/types/basicUserInfo.types";
 import { useTrackActiveScreen } from "@/hooks/useTrackActiveScreen";
 import { ScreenPaths } from "@/constants/ScreenPaths";
 import SignInMessage from "@/components/SignInMessage";
@@ -52,46 +47,34 @@ const SettingsScreen = () => {
   const colorScheme = useColorScheme();
   const styles = createStyles(colorScheme ?? "light");
   const version = Constants.expoConfig?.version;
-  const [basicUserInfo, setBasicUserInfo] = useState<BasicUserInfo>({
-    firstName: "",
-    lastName: "",
-    workEmail: "",
-    avatarUri: "",
-  });
 
   useTrackActiveScreen(ScreenPaths.PROFILE);
 
-  useEffect(() => {
-    if (userInfo) {
-      const qualityEmployeeThumbnail = userInfo.employeeThumbnail
-        ? userInfo.employeeThumbnail.split("=s100")[0]
-        : "";
-      setBasicUserInfo({
-        firstName: userInfo.firstName,
-        lastName: userInfo.lastName,
-        workEmail: userInfo.workEmail,
-        avatarUri: qualityEmployeeThumbnail,
-      });
+  // Get avatar URL from employeeThumbnail
+  const getAvatarUri = () => {
+    if (userInfo?.employeeThumbnail) {
+      return userInfo.employeeThumbnail.split("=s100")[0];
     }
-  }, [userInfo]);
+    return "";
+  };
 
-  useEffect(() => {
-    if (accessToken && !userInfo) {
-      dispatch(getUserInfo(logout));
+  // useEffect(() => {
+  //   if (accessToken && !userInfo) {
+  //     // dispatch(getUserInfo(logout));
 
-      try {
-        const decoded = jwtDecode<DecodedAccessToken>(accessToken);
-        setBasicUserInfo({
-          firstName: decoded.given_name || "",
-          lastName: decoded.family_name || "",
-          workEmail: decoded.email || "",
-          avatarUri: "",
-        });
-      } catch (error) {
-        console.error("Error decoding token", error);
-      }
-    }
-  }, [accessToken, dispatch]);
+  //     try {
+  //       const decoded = jwtDecode<DecodedAccessToken>(accessToken);
+  //       setBasicUserInfo({
+  //         firstName: decoded.given_name || "",
+  //         lastName: decoded.family_name || "",
+  //         workEmail: decoded.email || "",
+  //         avatarUri: "",
+  //       });
+  //     } catch (error) {
+  //       console.error("Error decoding token", error);
+  //     }
+  //   }
+  // }, [accessToken, dispatch]);
 
   /**
    * Handles user sign out with confirmation dialog.
@@ -113,79 +96,76 @@ const SettingsScreen = () => {
     );
   }, [dispatch]);
 
-  // if (!accessToken) {
-  //   return (
-  //     <SafeAreaView style={styles.container}>
-  //       <View style={styles.signInContainer}>
-  //         <View style={styles.overlay}>
-  //           <View style={styles.modal}>
-  //             <SignInMessage />
-  //           </View>
-  //         </View>
-  //         <View style={styles.bottomContainer}>
-  //           <View style={styles.versionContainer}>
-  //             <Text style={styles.versionText}>version {version}</Text>
-  //           </View>
-  //         </View>
-  //       </View>
-  //     </SafeAreaView>
-  //   );
-  // }
 
   return (
     <SafeAreaView style={styles.container}>
       {/* User info */}
-      <View style={styles.topContainer}>
-        <View style={styles.avatarWrapper}>
-          {basicUserInfo.avatarUri ? (
-            <Image
-              source={{ uri: basicUserInfo.avatarUri }}
-              style={styles.avatar}
+      {userInfo ? (
+        <>
+          <View style={styles.topContainer}>
+            <View style={styles.avatarWrapper}>
+              {getAvatarUri() ? (
+                <Image
+                  source={{ uri: getAvatarUri() }}
+                  style={styles.avatar}
+                />
+              ) : (
+                <Avatar
+                  initials={`${userInfo.firstName?.charAt(0) || ''}${userInfo.lastName?.charAt(0) || ''}`}
+                  size={180}
+                />
+              )}
+            </View>
+
+            <ProfileListItem
+              icon="person-outline"
+              title="Name"
+              value={`${userInfo.firstName} ${userInfo.lastName}`}
             />
-          ) : (
-            <Avatar
-              initials={`${basicUserInfo.firstName?.charAt(
-                0
-              )}${basicUserInfo.lastName?.charAt(0)}`}
-              size={180}
+
+            <ProfileListItem
+              icon="mail-outline"
+              title="Email"
+              value={userInfo.workEmail}
             />
-          )}
-        </View>
-
-        <ProfileListItem
-          icon="person-outline"
-          title="Name"
-          value={`${basicUserInfo.firstName} ${basicUserInfo.lastName}`}
-        />
-
-        <ProfileListItem
-          icon="mail-outline"
-          title="Email"
-          value={basicUserInfo.workEmail}
-        />
-      </View>
-
-      <View style={styles.bottomContainer}>
-        <View style={styles.versionContainer}>
-          <Text style={styles.versionText}>version {version}</Text>
-        </View>
-
-        <TouchableOpacity
-          activeOpacity={0.5}
-          style={styles.logoutButton}
-          onPress={handleLogout}
-        >
-          <View style={styles.logoutRow}>
-            <Ionicons
-              name="log-out-outline"
-              size={20}
-              color={Colors[colorScheme ?? "light"].primaryBackgroundColor}
-              style={styles.logoutIcon}
-            />
-            <Text style={styles.logoutText}>Sign Out</Text>
           </View>
-        </TouchableOpacity>
-      </View>
+
+          <View style={styles.bottomContainer}>
+            <View style={styles.versionContainer}>
+              <Text style={styles.versionText}>version {version}</Text>
+            </View>
+
+            <TouchableOpacity
+              activeOpacity={0.5}
+              style={styles.logoutButton}
+              onPress={handleLogout}
+            >
+              <View style={styles.logoutRow}>
+                <Ionicons
+                  name="log-out-outline"
+                  size={20}
+                  color={Colors[colorScheme ?? "light"].primaryBackgroundColor}
+                  style={styles.logoutIcon}
+                />
+                <Text style={styles.logoutText}>Sign Out</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </>
+      ) : (
+        <View style={styles.signInContainer}>
+          <View style={styles.overlay}>
+            <View style={styles.modal}>
+              <SignInMessage />
+            </View>
+          </View>
+          <View style={styles.bottomContainer}>
+            <View style={styles.versionContainer}>
+              <Text style={styles.versionText}>version {version}</Text>
+            </View>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
