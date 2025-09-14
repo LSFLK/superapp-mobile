@@ -92,5 +92,6 @@ export const NEWS_TIMESTAMP_KEY = "cached_news_timestamp";
 export const isAndroid = Platform.OS === "android";
 export const isIos = Platform.OS === "ios";
 
-export const SUPERAPP_BASE_URL = "http://192.168.1.103:9090";
+// Use environment variable with fallback for development
+export const SUPERAPP_BASE_URL = process.env.EXPO_PUBLIC_BACKEND_BASE_URL || "http://192.168.1.103:9090";
 export const EMP_ID = "EMP003";
