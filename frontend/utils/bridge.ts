@@ -17,6 +17,7 @@
 // Bridge event topics used for communication between the main app and micro apps.
 export const TOPIC = {
   TOKEN: "token",
+  EMP_ID: "emp_id",
   QR_REQUEST: "qr_request",
   SAVE_LOCAL_DATA: "save_local_data",
   GET_LOCAL_DATA: "get_local_data",
@@ -32,11 +33,45 @@ export const TOPIC = {
 
 // JavaScript code injected into the WebView to enable communication between
 // the micro app and the React Native app via the native bridge.
-export const injectedJavaScript = `window.nativebridge = {
+export const injectedJavaScript = `
+  // Initialize global variables
+  window.nativeToken = null;
+  window.nativeEmpId = null;
+  
+  window.nativebridge = {
     requestToken: () => {
       window.ReactNativeWebView.postMessage(JSON.stringify({
         topic: 'token'
       }));
+    },
+    resolveToken: (token) => {
+      // Store token globally for microapp access
+      window.nativeToken = token;
+      console.log("Token received from native app:", token);
+      
+      // Dispatch custom event for microapp to listen to
+      window.dispatchEvent(new CustomEvent('nativeTokenReceived', { detail: token }));
+    },
+    requestEmpId: () => {
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        topic: 'emp_id'
+      }));
+    },
+    resolveEmpId: (empId) => {
+      // Store empID globally for microapp access
+      window.nativeEmpId = empId;
+      console.log("Employee ID received from native app:", empId);
+      
+      // Dispatch custom event for microapp to listen to
+      window.dispatchEvent(new CustomEvent('nativeEmpIdReceived', { detail: empId }));
+    },
+    // Helper function for microapps to get empID
+    getEmpId: () => {
+      return window.nativeEmpId;
+    },
+    // Helper function for microapps to get token
+    getToken: () => {
+      return window.nativeToken;
     },
     requestQr: () => {
       window.ReactNativeWebView.postMessage(JSON.stringify({
