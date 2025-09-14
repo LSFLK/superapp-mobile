@@ -1,7 +1,7 @@
 import ballerina/time;
 
 // Service configuration
-configurable int serverPort = 8080;
+configurable int serverPort = 9090;
 configurable string environment = "development";
 configurable string serviceVersion = "1.0.0";
 
