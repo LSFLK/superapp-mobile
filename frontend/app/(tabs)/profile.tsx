@@ -178,6 +178,7 @@ const createStyles = (colorScheme: "light" | "dark") =>
       flex: 1,
       backgroundColor: Colors[colorScheme].primaryBackgroundColor,
       justifyContent: "space-between",
+      paddingTop:40,
     },
     signInContainer: {
       flex: 1,

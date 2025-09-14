@@ -209,10 +209,10 @@ export default function Store() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: '#F9FAFB' }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: '#F8FAFC' }]}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#2563EB" />
-          <Text style={[styles.loadingText, { color: '#1F2937' }]}>
+          <Text style={styles.loadingText}>
             Loading apps...
           </Text>
         </View>
@@ -221,12 +221,12 @@ export default function Store() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: '#F9FAFB' }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: '#F8FAFC' }]}>
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: '#1F2937' }]}>
+        <Text style={styles.headerTitle}>
           App Store
         </Text>
-        <Text style={[styles.headerSubtitle, { color: '#374151' }]}>
+        <Text style={styles.headerSubtitle}>
           Discover and install micro-apps
         </Text>
       </View>
@@ -275,20 +275,29 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
+    color: "#1F2937",
+    fontWeight: "500",
   },
   header: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "flex-start",
+    padding: 24,
+    paddingTop: 30,
+    backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
+    borderBottomColor: "#F1F5F9",
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: "bold",
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#1E293B",
+    marginBottom: 4,
   },
   headerSubtitle: {
-    fontSize: 16,
-    marginTop: 4,
+    fontSize: 14,
+    color: "#64748B",
+    fontWeight: "500",
   },
   listContainer: {
     padding: 16,
