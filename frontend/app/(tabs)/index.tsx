@@ -18,11 +18,10 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { SUPERAPP_BASE_URL, EMP_ID } from "@/constants/Constants";
+import { SUPERAPP_BASE_URL } from "@/constants/Constants";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/context/store";
 import { ScreenPaths } from "@/constants/ScreenPaths";
-
 
 const MICRO_APPS = [
   {
@@ -32,6 +31,7 @@ const MICRO_APPS = [
     icon: "document-text-outline",
     color: "#2563EB",
     working: true,
+    webviewuri:"http://192.168.1.103/"
   },
   {
     id: "leave-management",
@@ -40,29 +40,33 @@ const MICRO_APPS = [
     icon: "calendar-outline",
     color: "#059669",
     working: false,
+    webviewuri:"leave-management"
   },
   {
-    id: "Tax Filing",
+    id: "tax-filing",
     name: "Tax",
     description: "Find contacts",
     icon: "cash-outline",
     color: "#7c3aed",
     working: false,
+    webviewuri:"tax-filing"
   },
 ];
 
-function ServiceCard({ app }: { app: typeof MICRO_APPS[0] }) {
+function ServiceCard({ app, user }: { app: typeof MICRO_APPS[0]; user: { empID: string } | null }) {
+    const { accessToken } = useSelector((state: RootState) => state.auth);
+
   const handlePress = async () => {
     if (app.working) {
-      const token = await AsyncStorage.getItem("superapp_token");
       router.push({
         pathname: "/micro-app",
         params: {
           appId: app.id,
           appName: app.name,
-          webViewUri: "local",
+          webViewUri: app.webviewuri,
           clientId: app.id,
-          exchangedToken: token || "",
+          exchangedToken: accessToken || "",
+          empID: user?.empID
         },
       });
     } else {
@@ -84,7 +88,7 @@ function ServiceCard({ app }: { app: typeof MICRO_APPS[0] }) {
 }
 
 export default function Index() {
-  const [user, setUser] = useState<{ name: string; department: string } | null>(null);
+  const [user, setUser] = useState<{ name: string; department: string; empID:string } | null>(null);
     const { accessToken } = useSelector((state: RootState) => state.auth);
       const { userInfo } = useSelector((state: RootState) => state.userInfo);
     
@@ -92,11 +96,11 @@ export default function Index() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch(`${SUPERAPP_BASE_URL}/users/mock/${EMP_ID}`);
+        const res = await fetch(`${SUPERAPP_BASE_URL}/user-info?email=${userInfo?.workEmail}`);
         console.log(res);
         if (res.ok) {
           const data = await res.json();
-          setUser({ name: data.name, department: data.department });
+          setUser({ name: data.firstName, department: data.department, empID: data.employeeID });
         }
       } catch (err) {
         console.error("Failed to fetch user info", err);
@@ -137,7 +141,7 @@ export default function Index() {
 
           <View style={styles.servicesGrid}>
             {MICRO_APPS.map((app) => (
-              <ServiceCard key={app.id} app={app} />
+              <ServiceCard key={app.id} app={app} user={user}/>
             ))}
           </View>
         </View>
