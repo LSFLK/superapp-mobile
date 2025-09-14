@@ -32,7 +32,8 @@ type MockEmployee record {|
     string firstName;
     string lastName;
     string? employeeThumbnail;
-    string? location;
+    string department;
+    string employeeID;
 |};
 
 function getMockEmployees() returns MockEmployee[] {
@@ -42,42 +43,52 @@ function getMockEmployees() returns MockEmployee[] {
             "firstName": "John",
             "lastName": "Doe",
             "employeeThumbnail": "https://example.com/avatars/john.jpg",
-            "location": "Sri Lanka"
+            "department": "Ministry of Finance",
+            "employeeID": "EMP001"
         },
         {
             "workEmail": "jane@gov.com",
             "firstName": "Jane",
             "lastName": "Smith",
             "employeeThumbnail": "https://example.com/avatars/jane.jpg",
-            "location": "Sri Lanka"
+            "department": "Ministry of Health",
+                        "employeeID": "EMP002"
+
         },
         {
             "workEmail": "michael@gov.com",
             "firstName": "Michael",
             "lastName": "Brown",
             "employeeThumbnail": null,
-            "location": "Sri Lanka"
+            "department": "Ministry of Education",
+                        "employeeID": "EMP003"
+
         },
         {
             "workEmail": "sarah@gov.com",
             "firstName": "Sarah",
             "lastName": "Lee",
             "employeeThumbnail": "https://example.com/avatars/sarah.jpg",
-            "location": "Sri Lanka"
+            "department": "Ministry of Transport",
+                        "employeeID": "EMP004"
+
         },
         {
             "workEmail": "mark@gov.com",
             "firstName": "Mark",
             "lastName": "Town",
             "employeeThumbnail": null,
-            "location": "Sri Lanka"
+            "department": "Ministry of Defence",
+                        "employeeID": "EMP005"
+
         },
         {
             "workEmail": "mockuser@gov.com",
             "firstName": "Mock",
             "lastName": "User",
             "employeeThumbnail": null,
-            "location": "Sri Lanka"
+            "department": "Ministry of Public Administration",
+                        "employeeID": "EMP006"
         }
     ];
 }

@@ -19,4 +19,5 @@ export type MicroAppParams = {
   clientId: string;
   exchangedToken: string;
   appId: string;
+  empID: string;
 };
