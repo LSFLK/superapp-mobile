@@ -10,9 +10,9 @@ const profile =
   (process.env.NODE_ENV === "production" ? "production" : "development");
 
 // Allow forks to build by providing defaults, while letting you override via env.
-const APP_NAME = process.env.APP_NAME ?? "WSO2 SuperApp Mobile";
-const APP_SCHEME = process.env.APP_SCHEME ?? "lsfsuperapp";
-const APP_SLUG = process.env.APP_SLUG && process.env.APP_SLUG.length > 0 ? process.env.APP_SLUG : "govsupapp";
+const APP_NAME = process.env.APP_NAME ?? "";
+const APP_SCHEME = process.env.APP_SCHEME ?? "";
+const APP_SLUG = process.env.APP_SLUG && process.env.APP_SLUG.length > 0 ? process.env.APP_SLUG : "";
 const APP_OWNER = process.env.APP_OWNER ?? "";
 const APP_VERSION = process.env.APP_VERSION ?? "1.0.0";
 const BUNDLE_ID = process.env.BUNDLE_IDENTIFIER ?? "com.example";

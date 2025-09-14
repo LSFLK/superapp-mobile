@@ -21,6 +21,7 @@ export enum ScreenPaths {
   MICRO_APP = "/micro-app",
   PROFILE = "/(tabs)/profile",
   UPDATE = "/update",
+  LOGIN = "/login"
 }
 function getScreenPath(screen: ScreenPaths): string {
   return screen;
