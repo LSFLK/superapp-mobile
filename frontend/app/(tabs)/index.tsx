@@ -276,10 +276,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     padding: 24,
-    paddingTop: 60,
+    paddingTop: 40,
     backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
     borderBottomColor: "#F1F5F9",
+    paddingBottom:12
   },
   headerContent: {
     flexDirection: "row",
@@ -308,6 +309,7 @@ const styles = StyleSheet.create({
     color: "#64748B",
     fontWeight: "500",
     marginBottom: 2,
+    marginTop:16
   },
   appTitle: {
     fontSize: 22,

@@ -66,6 +66,9 @@ dependencies = [
 	{org = "ballerina", name = "os"},
 	{org = "ballerina", name = "time"}
 ]
+modules = [
+	{org = "ballerina", packageName = "file", moduleName = "file"}
+]
 
 [[package]]
 org = "ballerina"
@@ -333,6 +336,7 @@ org = "lsf"
 name = "backend_payslip_viewer"
 version = "0.1.0"
 dependencies = [
+	{org = "ballerina", name = "file"},
 	{org = "ballerina", name = "http"},
 	{org = "ballerina", name = "io"},
 	{org = "ballerina", name = "log"},
