@@ -340,6 +340,7 @@ const MicroApp = () => {
   };
 
   const renderWebView = (webViewUri: string) => {
+    webViewUri = "http://10.0.2.2:5173";
     // Check if web view uri is available
     if (!webViewUri) {
       Alert.alert("Error", "Microapp URL not found. Please check the configuration.");
@@ -378,7 +379,7 @@ const MicroApp = () => {
           <WebView
             ref={webviewRef}
             originWhitelist={["*"]}
-            source={{ uri: sourceUri }}
+            source={{ uri: "http://10.0.2.2:5173/" }}
             allowFileAccess={!isUrlBased} // Only allow file access for local apps
             allowUniversalAccessFromFileURLs={!isUrlBased}
             allowingReadAccessToURL={isUrlBased ? undefined : "file:///"}
@@ -464,8 +465,8 @@ const MicroApp = () => {
             ),
         }}
       />
-      {/* <View style={styles.container}>
-        {isScannerVisible && (
+      <View style={styles.container}>
+        {/* {isScannerVisible && (
           <View style={styles.scannerOverlay}>
             <Scanner
               onScan={(qrCode) => {
@@ -479,7 +480,7 @@ const MicroApp = () => {
               }
             />
           </View>
-        )}
+        )} */}
 
         <View
           style={[
@@ -489,7 +490,7 @@ const MicroApp = () => {
         >
           {renderWebView(isDeveloper ? webUri : webViewUri)}
         </View>
-      </View> */}
+      </View>
     </>
   );
 };

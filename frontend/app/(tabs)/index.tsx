@@ -27,7 +27,7 @@ import { ScreenPaths } from "@/constants/ScreenPaths";
 const MICRO_APPS = [
   {
     id: "payslip-viewer",
-    name: "Payslip Viewer",
+    name: "Payslip",
     description: "View your monthly payslips",
     icon: "document-text-outline",
     color: "#2563EB",
@@ -35,7 +35,7 @@ const MICRO_APPS = [
   },
   {
     id: "leave-management",
-    name: "Leave Management",
+    name: "Leave",
     description: "Apply for leave",
     icon: "calendar-outline",
     color: "#059669",
@@ -43,7 +43,7 @@ const MICRO_APPS = [
   },
   {
     id: "Tax Filing",
-    name: "Tax Filing",
+    name: "Tax",
     description: "Find contacts",
     icon: "cash-outline",
     color: "#7c3aed",
@@ -116,7 +116,6 @@ export default function Index() {
       return () => clearTimeout(timer);
     }
   }, [accessToken]);
-
 
 
   return (

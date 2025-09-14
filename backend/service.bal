@@ -33,24 +33,42 @@ type MockUser record {|
 |};
 
 function getMockUsers() returns MockUser[] {
-    return [
+    return [      
         {
-            employeeId: "EMP001",
-            name: "John Doe",
-            designation: "Software Engineer",
-            department: "Engineering"
+            "employeeId": "EMP001",
+            "name": "John Doe",
+            "designation": "Software Engineer",
+            "department": "IT"
         },
         {
-            employeeId: "EMP002",
-            name: "Jane Smith",
-            designation: "Data Analyst",
-            department: "Analytics"
+            "employeeId": "EMP002",
+            "name": "Jane Smith",
+            "designation": "Product Manager",
+            "department": "IT"
         },
         {
-            employeeId: "EMP003",
-            name: "Mike Johnson",
-            designation: "Software Engineer",
-            department: "Engineering"
+            "employeeId": "EMP003",
+            "name": "Michael Brown",
+            "designation": "Accountant",
+            "department": "Finance"
+        },
+        {
+            "employeeId": "EMP004",
+            "name": "Sarah Lee",
+            "designation": "HR Executive",
+            "department": "HR"
+        },
+        {
+            "employeeId": "EMP005",
+            "name": "Mark Town",
+            "designation": "Team Lead",
+            "department": "IT"
+        },
+        {
+            "employeeId": "EMP006",
+            "name": "Lisa Advani",
+            "designation": "Finance Manager",
+            "department": "Finance"
         }
     ];
 }
@@ -92,6 +110,7 @@ service http:InterceptableService / on new http:Listener(9090, config = {request
         MockUser[] users = getMockUsers();
         foreach MockUser user in users {
             if user.employeeId == employeeId {
+                log:printInfo("Found user: " + user.toString());
                 return user;
             }
         }
