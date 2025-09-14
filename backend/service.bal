@@ -19,56 +19,65 @@
 
 import ballerina/http;
 import ballerina/log;
+// import superapp_mobile_service.entity;
 
 configurable int maxHeaderSize = 16384; // 16KB header size for WSO2 Choreo support
 //configurable string[] restrictedAppsForNonLk = ?;
 configurable string lkLocation = "Sri Lanka";
 //configurable string mobileAppReviewerEmail = ?; // App store reviewer email
 
-type MockUser record {|
-    string employeeId;
-    string name;
-    string designation;
-    string department;
+// Mock Employee type matching the original entity:Employee
+type MockEmployee record {|
+    string workEmail;
+    string firstName;
+    string lastName;
+    string? employeeThumbnail;
+    string? location;
 |};
 
-function getMockUsers() returns MockUser[] {
+function getMockEmployees() returns MockEmployee[] {
     return [      
-        {
-            "employeeId": "EMP001",
-            "name": "John Doe",
-            "designation": "Software Engineer",
-            "department": "IT"
+        {   
+            "workEmail": "john@gov.com",
+            "firstName": "John",
+            "lastName": "Doe",
+            "employeeThumbnail": "https://example.com/avatars/john.jpg",
+            "location": "Sri Lanka"
         },
         {
-            "employeeId": "EMP002",
-            "name": "Jane Smith",
-            "designation": "Product Manager",
-            "department": "IT"
+            "workEmail": "jane@gov.com",
+            "firstName": "Jane",
+            "lastName": "Smith",
+            "employeeThumbnail": "https://example.com/avatars/jane.jpg",
+            "location": "Sri Lanka"
         },
         {
-            "employeeId": "EMP003",
-            "name": "Michael Brown",
-            "designation": "Accountant",
-            "department": "Finance"
+            "workEmail": "michael@gov.com",
+            "firstName": "Michael",
+            "lastName": "Brown",
+            "employeeThumbnail": null,
+            "location": "Sri Lanka"
         },
         {
-            "employeeId": "EMP004",
-            "name": "Sarah Lee",
-            "designation": "HR Executive",
-            "department": "HR"
+            "workEmail": "sarah@gov.com",
+            "firstName": "Sarah",
+            "lastName": "Lee",
+            "employeeThumbnail": "https://example.com/avatars/sarah.jpg",
+            "location": "Sri Lanka"
         },
         {
-            "employeeId": "EMP005",
-            "name": "Mark Town",
-            "designation": "Team Lead",
-            "department": "IT"
+            "workEmail": "mark@gov.com",
+            "firstName": "Mark",
+            "lastName": "Town",
+            "employeeThumbnail": null,
+            "location": "Sri Lanka"
         },
         {
-            "employeeId": "EMP006",
-            "name": "Lisa Advani",
-            "designation": "Finance Manager",
-            "department": "Finance"
+            "workEmail": "mockuser@gov.com",
+            "firstName": "Mock",
+            "lastName": "User",
+            "employeeThumbnail": null,
+            "location": "Sri Lanka"
         }
     ];
 }
@@ -96,29 +105,52 @@ service class ErrorInterceptor {
 
 service http:InterceptableService / on new http:Listener(9090, config = {requestLimits: {maxHeaderSize}}) {
 
-    # + return - authorization:JwtInterceptor, ErrorInterceptor
+    # + return - ErrorInterceptor
     public function createInterceptors() returns http:Interceptor[] =>
     [new ErrorInterceptor()];
 
-    // Get all mock users
-    resource function get users/mock(http:RequestContext ctx) returns MockUser[] {
-        return getMockUsers();
-    }
-
-    // Get a single mock user by employeeId
-    resource function get users/mock/[string employeeId](http:RequestContext ctx) returns MockUser|http:NotFound {
-        MockUser[] users = getMockUsers();
-        foreach MockUser user in users {
-            if user.employeeId == employeeId {
-                log:printInfo("Found user: " + user.toString());
-                return user;
+    // Mock user-info endpoint matching the original interface
+    # Fetch user information of the logged in users (mock version).
+    #
+    # + ctx - Request context
+    # + email - Email of the user to retrieve (query parameter for mock)
+    # + return - User information object or an error
+    resource function get user\-info(http:RequestContext ctx, string? email) returns MockEmployee|http:InternalServerError|http:NotFound {
+        string userEmail = email ?: "mockuser@gov.com"; // Default to mock user if no email provided
+        
+        MockEmployee[] employees = getMockEmployees();
+        foreach MockEmployee employee in employees {
+            if employee.workEmail == userEmail {
+                log:printInfo("Found employee: " + employee.toString());
+                return employee;
             }
         }
+        
         return <http:NotFound>{
-            body: { message: "User not found for employeeId: " + employeeId }
+            body: { message: "User not found for email: " + userEmail }
         };
     }
 
+    // Get all mock employees (for testing)
+    resource function get users/mock(http:RequestContext ctx) returns MockEmployee[] {
+        return getMockEmployees();
+    }
+
+    // Get a single mock employee by email
+    resource function get users/mock/[string email](http:RequestContext ctx) returns MockEmployee|http:NotFound {
+        MockEmployee[] employees = getMockEmployees();
+        foreach MockEmployee employee in employees {
+            if employee.workEmail == email {
+                log:printInfo("Found employee: " + employee.toString());
+                return employee;
+            }
+        }
+        return <http:NotFound>{
+            body: { message: "User not found for email: " + email }
+        };
+    }
+
+    // Original user-info endpoint (commented out - requires JWT authentication)
     // public function createInterceptors() returns http:Interceptor[] =>
     //     [new authorization:JwtInterceptor(), new ErrorInterceptor()];
 
