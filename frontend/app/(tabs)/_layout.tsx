@@ -43,6 +43,21 @@ export default function TabLayout() {
         }}
       />
       
+      {/* Apps Store Tab */}
+      <Tabs.Screen
+        name="store"
+        options={{
+          title: "Store",
+          tabBarIcon: ({ focused, color }) => (
+            <Ionicons
+              name={focused ? "apps" : "apps-outline"}
+              size={24}
+              color={color}
+            />
+          ),
+        }}
+      />
+      
       {/* Profile Tab */}
       <Tabs.Screen
         name="profile"

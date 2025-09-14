@@ -40,6 +40,7 @@ import {
   BASE_URL,
   DOWNLOADED,
   NOT_DOWNLOADED,
+  SUPERAPP_BASE_URL
 } from "@/constants/Constants";
 import { UpdateUserConfiguration } from "./userConfigService";
 
@@ -60,9 +61,13 @@ export const downloadMicroApp = async (
 
     await downloadAndSaveFile(appId, downloadUrl); // Download react production build
     await unzipFile(dispatch, appId); // Unzip downloaded zip file
-    await UpdateUserConfiguration(appId, DOWNLOADED, onLogout); // Update user configurations
+    // Skip user configuration update for now
+    // await UpdateUserConfiguration(appId, DOWNLOADED, onLogout);
+    console.log("Download completed for:", appId);
   } catch (error) {
-    await UpdateUserConfiguration(appId, NOT_DOWNLOADED, onLogout); // Update user configurations
+    // Skip user configuration update for now
+    // await UpdateUserConfiguration(appId, NOT_DOWNLOADED, onLogout);
+    console.error("Download failed for:", appId, error);
     Alert.alert("Error", "Failed to download or save the file.");
   } finally {
     dispatch(removeDownloading(appId));
@@ -143,10 +148,18 @@ const unzipFile = async (dispatch: AppDispatch, appId: string) => {
     );
 
     const indexPath = await getIndexPath(extractedDir);
-    if (!indexPath) throw new Error("Index file not found");
+    if (!indexPath) {
+      console.error("Index file not found in extracted directory:", extractedDir);
+      throw new Error("Index file not found");
+    }
 
     const clientId = await getClientId(extractedDir);
-    if (!clientId) throw new Error("Client id not found");
+    if (!clientId) {
+      console.error("Client ID not found, but continuing with default");
+      // Don't throw error, just use default client ID
+    }
+
+    console.log("Unzip successful. Index path:", indexPath, "Client ID:", clientId);
 
     const formattedUri = encodeURI(
       indexPath.startsWith("file://") ? indexPath : `file://${indexPath}`
@@ -159,7 +172,7 @@ const unzipFile = async (dispatch: AppDispatch, appId: string) => {
         appId,
         status: DOWNLOADED,
         webViewUri: relativeUri,
-        clientId: clientId,
+        clientId: clientId || "default-microapp-client-id",
       })
     );
   } catch (error: any) {
@@ -178,10 +191,12 @@ const getIndexPath = async (extractedDir: string) => {
     for (const path of possiblePaths) {
       const fileInfo = await getInfoAsync(path);
       if (fileInfo.exists) {
+        console.log("Found index.html at:", path);
         return path;
       }
     }
 
+    console.error("index.html not found in any expected location");
     Alert.alert("Error", "index.html not found after unzipping.");
     return null;
   } catch (error) {
@@ -212,11 +227,12 @@ const getClientId = async (extractedDir: string) => {
       }
     }
 
-    Alert.alert("Error", "microapp configs not found after unzipping.");
-    return null;
+    // If microapp.json is not found, return a default client ID
+    console.log("microapp.json not found, using default client ID");
+    return "default-microapp-client-id";
   } catch (error) {
     console.error("Error reading clientId:", error);
-    return null;
+    return "default-microapp-client-id";
   }
 };
 
@@ -243,8 +259,11 @@ export const removeMicroApp = async (
         exchangedToken: "",
       })
     );
-    await UpdateUserConfiguration(appId, NOT_DOWNLOADED, onLogout); // Update user configurations
+    // Skip user configuration update for now
+    // await UpdateUserConfiguration(appId, NOT_DOWNLOADED, onLogout);
+    console.log("App removed:", appId);
   } catch (error) {
+    console.error("Failed to remove app:", appId, error);
     Alert.alert("Error", "Failed to remove the app.");
   }
 };
@@ -267,7 +286,7 @@ export const loadMicroAppDetails = async (
 
     // Fetch latest micro apps list from API
     const response = await apiRequest(
-      { url: `${BASE_URL}/micro-apps`, method: "GET" },
+      { url: `${SUPERAPP_BASE_URL}/micro-apps`, method: "GET" },
       onLogout
     );
 

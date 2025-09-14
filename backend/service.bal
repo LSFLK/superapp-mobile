@@ -19,6 +19,8 @@
 
 import ballerina/http;
 import ballerina/log;
+import ballerina/io;
+// import ballerina/file;
 // import superapp_mobile_service.entity;
 
 configurable int maxHeaderSize = 16384; // 16KB header size for WSO2 Choreo support
@@ -93,6 +95,49 @@ function getMockEmployees() returns MockEmployee[] {
     ];
 }
 
+// Mock MicroApp types
+type MockMicroAppVersion record {|
+    string version;
+    int build;
+    string releaseNotes;
+    string iconUrl;
+    string downloadUrl;
+|};
+
+type MockMicroApp record {|
+    string name;
+    string description;
+    string promoText;
+    string appId;
+    string iconUrl;
+    string bannerImageUrl;
+    int isMandatory; // 0 or 1
+    MockMicroAppVersion[] versions; 
+|};
+
+function getMockMicroApps() returns MockMicroApp[] {
+    return [
+        {
+            "name": "Payslip Viewer",
+            "description": "View and download your monthly payslips",
+            "promoText": "Access your payslips anytime, anywhere",
+            "appId": "payslip-viewer",
+            "iconUrl": "http://localhost:9090/icons/payslip-viewer.png",
+            "bannerImageUrl": "http://localhost:9090/banners/payslip-viewer.png",
+            "isMandatory": 0,
+            "versions": [
+                {
+                    "version": "1.0.0",
+                    "build": 1,
+                    "releaseNotes": "Initial release of Payslip Viewer",
+                    "iconUrl": "http://localhost:9090/icons/payslip-viewer.png",
+                    "downloadUrl": "http://localhost:9090/micro-apps/payslip-viewer/download"
+                }
+            ]
+        }
+    ];
+}
+
 @display {
     label: "SuperApp Mobile Service",
     id: "wso2-open-operations/superapp-mobile-service"
@@ -159,6 +204,86 @@ service http:InterceptableService / on new http:Listener(9090, config = {request
         return <http:NotFound>{
             body: { message: "User not found for email: " + email }
         };
+    }
+
+    // Mock micro-apps endpoint
+    resource function get micro\-apps(http:RequestContext ctx) returns MockMicroApp[] {
+        log:printInfo("Fetching mock micro apps");
+        return getMockMicroApps();
+    }
+
+    // Mock micro-app by appId endpoint
+    resource function get micro\-apps/[string appId](http:RequestContext ctx) returns MockMicroApp|http:NotFound {
+        MockMicroApp[] microApps = getMockMicroApps();
+        foreach MockMicroApp app in microApps {
+            if app.appId == appId {
+                log:printInfo("Found micro app: " + app.toString());
+                return app;
+            }
+        }
+        return <http:NotFound>{
+            body: { message: "Micro app not found for app ID: " + appId }
+        };
+    }
+
+    // Download microapp zip file
+    resource function get micro\-apps/[string appId]/download(http:RequestContext ctx) returns http:Response|http:NotFound|http:InternalServerError {
+        string zipFileName = appId + ".zip";
+        string zipFilePath = "./microapps_store/" + zipFileName;
+        
+        log:printInfo("Attempting to download microapp: " + appId);
+        log:printInfo("Looking for file: " + zipFilePath);
+        
+        // Try to read file content to check if it exists
+        byte[]|io:Error fileContent = io:fileReadBytes(zipFilePath);
+        if fileContent is io:Error {
+            log:printError("Zip file not found or error reading: " + zipFilePath, fileContent);
+            return <http:NotFound>{
+                body: { message: "Microapp zip file not found for app ID: " + appId }
+            };
+        }
+        
+        // Create response with zip file
+        http:Response response = new;
+        response.setBinaryPayload(fileContent);
+        error? contentTypeResult = response.setContentType("application/zip");
+        if contentTypeResult is error {
+            log:printError("Error setting content type", contentTypeResult);
+        }
+        
+        error? headerResult = response.setHeader("Content-Disposition", "attachment; filename=\"" + zipFileName + "\"");
+        if headerResult is error {
+            log:printError("Error setting header", headerResult);
+        }
+        
+        log:printInfo("Successfully serving zip file: " + zipFileName);
+        return response;
+    }
+
+    // Serve static icons (placeholder endpoint)
+    resource function get icons/[string iconName](http:RequestContext ctx) returns http:Response|http:NotFound {
+        // For now, return a placeholder response
+        // In a real implementation, you would serve actual icon files
+        http:Response response = new;
+        response.setTextPayload("Icon placeholder for: " + iconName);
+        error? contentTypeResult = response.setContentType("text/plain");
+        if contentTypeResult is error {
+            log:printError("Error setting content type", contentTypeResult);
+        }
+        return response;
+    }
+
+    // Serve static banners (placeholder endpoint)
+    resource function get banners/[string bannerName](http:RequestContext ctx) returns http:Response|http:NotFound {
+        // For now, return a placeholder response
+        // In a real implementation, you would serve actual banner files
+        http:Response response = new;
+        response.setTextPayload("Banner placeholder for: " + bannerName);
+        error? contentTypeResult = response.setContentType("text/plain");
+        if contentTypeResult is error {
+            log:printError("Error setting content type", contentTypeResult);
+        }
+        return response;
     }
 
     // Original user-info endpoint (commented out - requires JWT authentication)
