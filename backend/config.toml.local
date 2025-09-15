@@ -27,3 +27,7 @@ maxWaitInterval=
 Lklocation = ""
 mobileAppReviewerEmail = ""
 appsToRemoveNonLk = [""]
+
+[ballerina.log]
+level = "INFO"
+format = "TEXT" 
