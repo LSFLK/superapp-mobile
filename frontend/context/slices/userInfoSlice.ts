@@ -1,42 +1,45 @@
-// Copyright (c) 2025 WSO2 LLC. (https://www.wso2.com).
-//
-// WSO2 LLC. licenses this file to you under the Apache License,
-// Version 2.0 (the "License"); you may not use this file except
-// in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { BASE_URL, USER_INFO } from "@/constants/Constants";
 import { apiRequest } from "@/utils/requestHandler";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+/**
+ * Interface representing user information/profile data
+ * Contains basic user details retrieved from the backend
+ */
 export type UserInfo = {
-  workEmail: string;
-  firstName: string;
-  lastName: string;
-  employeeThumbnail: string | null;
+  workEmail: string;              // User's work email address
+  firstName: string;              // User's first name
+  lastName: string;               // User's last name
+  employeeThumbnail: string | null; // URL to user's profile picture/thumbnail
 };
 
+/**
+ * State interface for the user info slice
+ * Manages user profile information and API call status
+ */
 interface AppsState {
-  loading: boolean;
-  userInfo: UserInfo | null;
-  error: string | null;
+  loading: boolean;        // Loading state for async operations
+  userInfo: UserInfo | null; // User information object or null if not loaded
+  error: string | null;    // Error message if user info fetch fails
 }
 
+/**
+ * Initial state for the user info slice
+ */
 const initialState: AppsState = {
   loading: false,
   userInfo: null,
   error: null,
 };
 
+/**
+ * Async thunk to fetch user information from the server
+ * Retrieves user profile data including name, email, and profile picture
+ * 
+ * @param onLogout - Callback function to handle logout on authentication failure
+ * @returns Promise<UserInfo> - User information object
+ */
 // Async function to fetch user info
 export const getUserInfo = createAsyncThunk(
   "userInfo/fetch",
@@ -58,6 +61,27 @@ export const getUserInfo = createAsyncThunk(
   }
 );
 
+/**
+ * User Info Redux Slice
+ * 
+ * This slice manages user profile information state and handles:
+ * - Fetching user information from the server
+ * - Managing loading states during API calls
+ * - Handling errors during user info fetching
+ * - Storing user data locally in AsyncStorage
+ * - Manually setting user info when needed
+ * 
+ * State Structure:
+ * - loading: Boolean indicating if a user info fetch is in progress
+ * - userInfo: UserInfo object containing user profile data or null
+ * - error: String containing error message if fetch fails, null otherwise
+ * 
+ * Actions:
+ * - setUserInfo: Manually set user information
+ * - getUserInfo.pending: Sets loading to true, clears errors
+ * - getUserInfo.fulfilled: Sets loading to false, stores user info, saves to AsyncStorage
+ * - getUserInfo.rejected: Sets loading to false, stores error message
+ */
 // Redux slice
 const userInfoSlice = createSlice({
   name: "userInfo",
