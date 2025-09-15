@@ -4,7 +4,7 @@
  */
 
 // API base URL - can be configured via environment variable
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://192.168.1.103:8080/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:9090/api/v1';
 
 /**
  * Generic API error class for better error handling

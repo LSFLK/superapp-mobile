@@ -6,3 +6,12 @@ distribution = "2201.12.9"
 
 [build-options]
 observabilityIncluded = true
+[[dependency]]
+org = "ballerinax"
+name = "sql"
+version = "1.10.0"
+
+[[dependency]]
+org = "ballerinax"
+name = "sqlite"
+version = "1.10.0"

@@ -7,69 +7,80 @@ import PayslipCard from './PayslipCard';
 
 export default function PayslipViewer() {
   const [payslip, setPayslip] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [employeeId, setEmployeeId] = useState('EMP003'); // Default fallback
+  const [employeeId, setEmployeeId] = useState(''); // Populated by super app
 
   useEffect(() => {
-    // Get empID from native bridge if available
-    const getNativeEmpId = () => {
-      if (window.nativebridge && window.nativebridge.getEmpId) {
-        const nativeEmpId = window.nativebridge.getEmpId();
-        if (nativeEmpId) {
-          console.log('Using empID from native app:', nativeEmpId);
-          setEmployeeId(nativeEmpId);
-          return nativeEmpId;
-        }
-      }
-      
-      // Fallback: Request empID from native app
-      if (window.nativebridge && window.nativebridge.requestEmpId) {
-        console.log('Requesting empID from native app...');
-        window.nativebridge.requestEmpId();
-      }
-      
-      console.log('Using default employeeId:', employeeId);
-      return employeeId;
-    };
-
     // Listen for empID from native app
     const handleEmpIdReceived = (event) => {
-      console.log('Received empID from native app:', event.detail);
-      setEmployeeId(event.detail);
-    };
-
-    // Add event listener for empID updates
-    window.addEventListener('nativeEmpIdReceived', handleEmpIdReceived);
-
-    // Get initial empID
-    const currentEmpId = getNativeEmpId();
-
-    const loadPayslip = async (empId) => {
-      try {
-        setLoading(true);
-        const response = await fetchPayslipByEmployee(empId);
-        console.log('Fetched employeeId:', empId);
-        console.log('API Response:', response);
-        setPayslip(response.data);
-      } catch (err) {
-        setError(getErrorMessage(err));
-      } finally {
-        setLoading(false);
+      const id = event?.detail;
+      if (id) {
+        console.log('Received empID from native app:', id);
+        setEmployeeId(id);
       }
     };
 
-    loadPayslip(currentEmpId);
+    window.addEventListener('nativeEmpIdReceived', handleEmpIdReceived);
+
+    // Also support window.postMessage from parent container
+    const handleWindowMessage = (event) => {
+      try {
+        const data = event?.data;
+        if (data && typeof data === 'object') {
+          const possibleId = data.employeeId || data.empId || (data.type === 'EMP_ID' ? data.value : null);
+          if (possibleId) {
+            console.log('Received empID via postMessage:', possibleId);
+            setEmployeeId(possibleId);
+          }
+        }
+      } catch (_) {
+        // ignore malformed messages
+      }
+    };
+    window.addEventListener('message', handleWindowMessage);
+
+    // Try to get immediately from native bridge; otherwise request it
+    try {
+      const getter = window?.nativebridge?.getEmpId;
+      if (typeof getter === 'function') {
+        const id = getter();
+        if (id) {
+          console.log('Using empID from native app:', id);
+          setEmployeeId(id);
+        }
+      }
+      const requester = window?.nativebridge?.requestEmpId;
+      if (typeof requester === 'function') {
+        console.log('Requesting empID from native app...');
+        requester();
+      }
+    } catch (_) {
+      // Ignore bridge access errors in web preview
+    }
+
+    // Fallback: read from URL query parameter ?empId=
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const qpId = params.get('empId') || params.get('employeeId');
+      if (qpId) {
+        console.log('Using empID from URL:', qpId);
+        setEmployeeId(qpId);
+      }
+    } catch (_) {
+      // ignore URL parsing issues
+    }
 
     // Cleanup event listener
     return () => {
       window.removeEventListener('nativeEmpIdReceived', handleEmpIdReceived);
+      window.removeEventListener('message', handleWindowMessage);
     };
   }, []);
 
   // Reload payslip when employeeId changes
   useEffect(() => {
-    if (employeeId && employeeId !== 'EMP003') {
+    if (employeeId) {
       const loadPayslip = async () => {
         try {
           setLoading(true);
@@ -93,7 +104,7 @@ export default function PayslipViewer() {
         {/* Header */}
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Payslip</h1>
-          <p className="text-gray-600 text-sm">Employee ID: {employeeId}</p>
+          <p className="text-gray-600 text-sm">Employee ID: {employeeId || '—'}</p>
         </div>
 
         {/* Loading */}
