@@ -8,7 +8,7 @@ import { AppDispatch, RootState } from "@/context/store";
 import { router } from "expo-router";
 import { jwtDecode } from "jwt-decode";
 import { DecodedAccessToken } from "@/types/decodeAccessToken.types";
-import { getUserInfo, setUserInfo } from "@/context/slices/userInfoSlice";
+import { setUserInfo } from "@/context/slices/userInfoSlice";
 import { logout } from "@/services/authService";
 
 
@@ -74,15 +74,20 @@ const LoginScreen = () => {
 
   return (
     <SafeAreaView style={styles(colorScheme).container}>
-      <View style={styles(colorScheme).overlay}>
-        <View style={styles(colorScheme).modal}>
-          <SignInMessage />
-          {/* log response from asgardio and saved tokens */}
-          {/* <Text>{JSON.stringify(userInfo, null, 2)}</Text> */}
-
+      <View style={styles(colorScheme).contentContainer}>
+        {/* Header */}
+        <View style={styles(colorScheme).header}>
+          <Text style={styles(colorScheme).welcomeTitle}>Welcome to</Text>
+          <Text style={styles(colorScheme).appTitle}>Gov Super App</Text>
+          <Text style={styles(colorScheme).subtitle}>Your gateway to government services</Text>
         </View>
-      </View>
-      <View style={styles(colorScheme).bottomContainer}>
+
+        {/* Sign In Card */}
+        <View style={styles(colorScheme).signInCard}>
+          <SignInMessage />
+        </View>
+
+        {/* Version */}
         <View style={styles(colorScheme).versionContainer}>
           <Text style={styles(colorScheme).versionText}>version {version}</Text>
         </View>
@@ -98,38 +103,69 @@ const styles = (colorScheme: "light" | "dark") =>
     container: {
       flex: 1,
       backgroundColor: Colors[colorScheme].primaryBackgroundColor,
-      justifyContent: "space-between",
     },
-    overlay: {
+    contentContainer: {
       flex: 1,
-      backgroundColor: Colors[colorScheme].primaryBackgroundColor,
-      justifyContent: "center",
-      alignItems: "center",
+      paddingHorizontal: 20,
+      paddingTop: 60,
+      justifyContent: 'space-between',
     },
-    modal: {
-      backgroundColor: Colors[colorScheme].primaryBackgroundColor,
-      padding: 30,
-      borderRadius: 16,
-      width: "90%",
-      alignItems: "center",
+    header: {
+      alignItems: 'center',
+      marginBottom: 40,
     },
-    bottomContainer: {
-      marginBottom: 80,
+    welcomeTitle: {
+      fontSize: 24,
+      fontWeight: '400',
+      color: Colors[colorScheme].secondaryTextColor,
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+    appTitle: {
+      fontSize: 36,
+      fontWeight: '700',
+      color: Colors[colorScheme].primaryTextColor,
+      marginBottom: 12,
+      textAlign: 'center',
+    },
+    subtitle: {
+      fontSize: 16,
+      color: Colors[colorScheme].secondaryTextColor,
+      textAlign: 'center',
+      lineHeight: 24,
+    },
+    signInCard: {
+      backgroundColor: Colors[colorScheme].secondaryBackgroundColor,
+      borderRadius: 20,
+      padding: 32,
+      marginHorizontal: 4,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 4,
+      },
+      shadowOpacity: 0.15,
+      shadowRadius: 12,
+      elevation: 8,
     },
     versionContainer: {
-      alignItems: "center",
+      alignItems: 'center',
+      paddingBottom: 40,
     },
     versionText: {
-      color: Colors[colorScheme].text,
+      fontSize: 14,
+      color: Colors[colorScheme].secondaryTextColor,
     },
     loadingContainer: {
       flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: Colors[colorScheme].primaryBackgroundColor,
     },
     loadingText: {
-      color: Colors[colorScheme].text,
+      color: Colors[colorScheme].primaryTextColor,
       marginTop: 16,
       fontSize: 16,
+      fontWeight: '500',
     },
   });
