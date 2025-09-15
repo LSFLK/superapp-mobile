@@ -12,12 +12,12 @@
 
 // export default App;
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import authClient from "./components/auth";
 import UploadExcel from "./components/UploadExcel";
 
 function App() {
-  const isAuthenticated = authClient.isAuthenticated();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     async function checkAuth() {
