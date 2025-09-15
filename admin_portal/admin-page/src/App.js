@@ -12,10 +12,24 @@
 
 // export default App;
 
-import React from "react";
+import React, { useEffect } from "react";
+import authClient from "./components/auth";
 import UploadExcel from "./components/UploadExcel";
 
 function App() {
+  const isAuthenticated = authClient.isAuthenticated();
+
+  useEffect(() => {
+    async function checkAuth() {
+      await authClient.signIn();
+      const loggedIn = authClient.isAuthenticated();
+      setIsAuthenticated(loggedIn);
+    }
+
+    checkAuth();
+  }, []);
+
+  if (!isAuthenticated) 
   return (
     <div style={styles.appContainer}>
       <header style={styles.header}>
