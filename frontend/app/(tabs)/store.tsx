@@ -21,7 +21,7 @@ import {
   loadMicroAppDetails,
   removeMicroApp,
 } from "@/services/appStoreService";
-import { DOWNLOADED, NOT_DOWNLOADED, SUPERAPP_BASE_URL } from "@/constants/Constants";
+import { DOWNLOADED, NOT_DOWNLOADED, BASE_URL } from "@/constants/Constants";
 
 export default function Store() {
   const dispatch = useDispatch<AppDispatch>();
@@ -109,7 +109,7 @@ export default function Store() {
     }
 
     // const downloadUrl = app.versions[0].downloadUrl;
-    const downloadUrl = `${SUPERAPP_BASE_URL}/micro-apps/`+app.appId+`/download`
+    const downloadUrl = `${BASE_URL}/micro-apps/`+app.appId+`/download`
 
     if (activeDownloadsRef.current.has(app.appId)) {
       Alert.alert("Info", "This app is already being downloaded.");

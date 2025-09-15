@@ -8,7 +8,7 @@ import { AppDispatch, RootState } from "@/context/store";
 import { router } from "expo-router";
 import { jwtDecode } from "jwt-decode";
 import { DecodedAccessToken } from "@/types/decodeAccessToken.types";
-import { getUserInfo, setUserInfo } from "@/context/slices/userInfoSlice";
+import { setUserInfo } from "@/context/slices/userInfoSlice";
 import { logout } from "@/services/authService";
 
 

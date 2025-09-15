@@ -31,7 +31,7 @@ import { Colors } from "@/constants/Colors";
 import Constants from "expo-constants";
 import ProfileListItem from "@/components/ProfileListItem";
 import Avatar from "@/components/Avatar";
-import { useTrackActiveScreen } from "@/hooks/useTrackActiveScreen";
+// import { useTrackActiveScreen } from "@/hooks/useTrackActiveScreen";
 import { ScreenPaths } from "@/constants/ScreenPaths";
 import SignInMessage from "@/components/SignInMessage";
 import { performLogout } from "@/utils/performLogout";
@@ -48,7 +48,7 @@ const SettingsScreen = () => {
   const styles = createStyles(colorScheme ?? "light");
   const version = Constants.expoConfig?.version;
 
-  useTrackActiveScreen(ScreenPaths.PROFILE);
+  // useTrackActiveScreen(ScreenPaths.PROFILE);
 
   // Get avatar URL from employeeThumbnail
   const getAvatarUri = () => {

@@ -31,6 +31,7 @@ export type MicroApp = {
   webViewUri?: string | ""; // URI for web view if applicable
   clientId?: string | ""; // OAuth client ID for authentication
   exchangedToken?: string | ""; // Token for authenticated requests
+  downloadedAt?: number; // Timestamp when app was downloaded (for "Ready" badge)
 };
 
 /**
@@ -105,6 +106,11 @@ const appsSlice = createSlice({
         if (exchangedToken) {
           app.exchangedToken = exchangedToken;
         } else app.exchangedToken = "";
+        
+        // Set downloadedAt timestamp when app is newly downloaded
+        if (status === "downloaded") {
+          app.downloadedAt = Date.now();
+        }
       }
 
       // Ensure state is saved in AsyncStorage immediately
@@ -121,6 +127,20 @@ const appsSlice = createSlice({
       // Ensure state is saved in AsyncStorage immediately
       AsyncStorage.setItem(APPS, JSON.stringify(state.apps));
     },
+    markAppAsViewed: (
+      state,
+      action: PayloadAction<{ appId: string }>
+    ) => {
+      const { appId } = action.payload;
+      const app = state.apps.find((app) => app.appId === appId);
+      if (app && app.downloadedAt) {
+        // Set downloadedAt to 25 hours ago to remove "Ready" badge
+        app.downloadedAt = Date.now() - (25 * 60 * 60 * 1000);
+      }
+
+      // Ensure state is saved in AsyncStorage immediately
+      AsyncStorage.setItem(APPS, JSON.stringify(state.apps));
+    },
   },
 });
 
@@ -130,5 +150,6 @@ export const {
   removeDownloading,
   updateAppStatus,
   updateExchangedToken,
+  markAppAsViewed,
 } = appsSlice.actions;
 export default appsSlice.reducer;
