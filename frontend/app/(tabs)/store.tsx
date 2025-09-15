@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   StyleSheet,
   RefreshControl,
+  ScrollView,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -22,10 +23,11 @@ import {
   removeMicroApp,
 } from "@/services/appStoreService";
 import { DOWNLOADED, NOT_DOWNLOADED, BASE_URL } from "@/constants/Constants";
+import { MicroAppIcon } from "@/components/MicroAppIcon";
 
 export default function Store() {
   const dispatch = useDispatch<AppDispatch>();
-  const colorScheme = useColorScheme();
+  const colorScheme = useColorScheme() ?? "light";
   const { apps, downloading } = useSelector((state: RootState) => state.apps);
   const { accessToken } = useSelector((state: RootState) => state.auth);
   
@@ -38,6 +40,8 @@ export default function Store() {
 
   const isMountedRef = useRef(true);
   const activeDownloadsRef = useRef(new Set<string>());
+  const styles = createStyles(colorScheme ?? "light");
+
 
   // Mock logout function
   const logout = async () => {
@@ -157,20 +161,25 @@ export default function Store() {
     const inQueue = installationQueue.some((qItem) => qItem.appId === item.appId);
 
     return (
-      <View style={[styles.appCard, { backgroundColor: '#FFFFFF' }]}>
+      <View style={[styles.appCard, { backgroundColor: Colors[colorScheme].secondaryBackgroundColor }]}>
         <View style={styles.appHeader}>
           <View style={styles.appIcon}>
-            <Ionicons name="apps" size={32} color="#2563EB" />
+            <MicroAppIcon
+              iconUrl={item.iconUrl}
+              appId={item.appId}
+              size={24}
+              color={isDownloaded ? Colors.actionButtonTextColor : Colors[colorScheme].icon}
+            />
           </View>
           <View style={styles.appInfo}>
-            <Text style={[styles.appName, { color: '#1F2937' }]}>
+            <Text style={[styles.appName, { color: Colors[colorScheme].primaryTextColor }]}>
               {item.name}
             </Text>
-            <Text style={[styles.appDescription, { color: '#374151' }]}>
+            <Text style={[styles.appDescription, { color: Colors[colorScheme].secondaryTextColor }]} numberOfLines={2}>
               {item.description}
             </Text>
             {item.versions?.[0] && (
-              <Text style={[styles.appVersion, { color: '#374151' }]}>
+              <Text style={[styles.appVersion, { color: Colors[colorScheme].ternaryTextColor }]}>
                 Version {item.versions[0].version}
               </Text>
             )}
@@ -180,15 +189,19 @@ export default function Store() {
         <View style={styles.actionContainer}>
           {isDownloading || inQueue ? (
             <View style={styles.downloadingContainer}>
-              <ActivityIndicator size="small" color="#2563EB" />
-              <Text style={[styles.downloadingText, { color: '#374151' }]}>
-                {inQueue ? "In Queue" : "Downloading..."}
+              <ActivityIndicator 
+                size="small" 
+                color={Colors.actionButtonTextColor} 
+              />
+              <Text style={[styles.downloadingText, { color: Colors[colorScheme].secondaryTextColor }]}>
+                {inQueue ? "In Queue" : "Installing..."}
               </Text>
             </View>
           ) : isDownloaded ? (
             <TouchableOpacity
               style={[styles.actionButton, styles.removeButton]}
               onPress={() => handleRemoveMicroApp(item.appId)}
+              activeOpacity={0.7}
             >
               <Ionicons name="trash-outline" size={16} color="#fff" />
               <Text style={styles.actionButtonText}>Remove</Text>
@@ -197,6 +210,7 @@ export default function Store() {
             <TouchableOpacity
               style={[styles.actionButton, styles.installButton]}
               onPress={() => handleInstallMicroApp(item)}
+              activeOpacity={0.7}
             >
               <Ionicons name="download-outline" size={16} color="#fff" />
               <Text style={styles.actionButtonText}>Install</Text>
@@ -209,10 +223,10 @@ export default function Store() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: '#F8FAFC' }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: Colors[colorScheme].ternaryBackgroundColor }]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#2563EB" />
-          <Text style={styles.loadingText}>
+          <ActivityIndicator size="large" color={Colors.actionButtonTextColor} />
+          <Text style={[styles.loadingText, { color: Colors[colorScheme].primaryTextColor }]}>
             Loading apps...
           </Text>
         </View>
@@ -221,51 +235,56 @@ export default function Store() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: '#F8FAFC' }]}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>
-          App Store
-        </Text>
-        <Text style={styles.headerSubtitle}>
-          Discover and install micro-apps
-        </Text>
-      </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.contentContainer}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>App Store</Text>
+          <Text style={styles.headerSubtitle}>Discover and install micro-apps</Text>
+        </View>
 
-      <FlatList
-        data={apps}
-        renderItem={renderMicroApp}
-        keyExtractor={(item) => item.appId}
-        contentContainerStyle={styles.listContainer}
+        <FlatList
+          data={apps}
+          renderItem={renderMicroApp}
+          keyExtractor={(item) => item.appId}
+          contentContainerStyle={styles.listContainer}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={['#2563EB']}
+            colors={[Colors.actionButtonTextColor]}
+            tintColor={Colors.actionButtonTextColor}
           />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Ionicons 
-              name="apps-outline" 
+              name="storefront-outline" 
               size={64} 
-              color="#9CA3AF" 
+              color={Colors[colorScheme].icon} 
             />
-            <Text style={[styles.emptyText, { color: '#9CA3AF' }]}>
+            <Text style={[styles.emptyText, { color: Colors[colorScheme].secondaryTextColor }]}>
               No apps available
             </Text>
-            <Text style={[styles.emptySubtext, { color: '#9CA3AF' }]}>
+            <Text style={[styles.emptySubtext, { color: Colors[colorScheme].ternaryTextColor }]}>
               Pull down to refresh
             </Text>
           </View>
         }
       />
+      </View>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colorScheme: "light" | "dark") => StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Colors[colorScheme].primaryBackgroundColor,
+  },
+  contentContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 15,
   },
   loadingContainer: {
     flex: 1,
@@ -275,32 +294,26 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: "#1F2937",
     fontWeight: "500",
   },
   header: {
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "flex-start",
-    padding: 24,
-    paddingTop: 30,
-    backgroundColor: "#FFFFFF",
+    marginBottom: 24,
+    paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
+    borderBottomColor: Colors[colorScheme].ternaryBackgroundColor,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#1E293B",
+    fontSize: 32,
+    fontWeight: '700',
+    color: Colors[colorScheme].primaryTextColor,
     marginBottom: 4,
   },
   headerSubtitle: {
-    fontSize: 14,
-    color: "#64748B",
-    fontWeight: "500",
+    fontSize: 16,
+    color: Colors[colorScheme].secondaryTextColor,
   },
   listContainer: {
-    padding: 16,
+    paddingTop: 0,
   },
   appCard: {
     borderRadius: 12,
@@ -322,7 +335,7 @@ const styles = StyleSheet.create({
   appIcon: {
     width: 48,
     height: 48,
-    borderRadius: 8,
+    borderRadius: 12,
     backgroundColor: "#F3F4F6",
     justifyContent: "center",
     alignItems: "center",
@@ -339,9 +352,11 @@ const styles = StyleSheet.create({
   appDescription: {
     fontSize: 14,
     marginBottom: 4,
+    lineHeight: 20,
   },
   appVersion: {
     fontSize: 12,
+    fontWeight: "500",
   },
   actionContainer: {
     alignItems: "flex-end",
@@ -351,14 +366,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 6,
+    borderRadius: 8,
     gap: 6,
   },
   installButton: {
-    backgroundColor: "#2563EB",
+    backgroundColor: Colors.actionButtonTextColor,
   },
   removeButton: {
-    backgroundColor: "#DC2626",
+    backgroundColor: Colors.removeButtonTextColor,
   },
   actionButtonText: {
     color: "#fff",
@@ -372,20 +387,23 @@ const styles = StyleSheet.create({
   },
   downloadingText: {
     fontSize: 14,
+    fontWeight: "500",
   },
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     paddingVertical: 80,
+    paddingHorizontal: 20,
   },
   emptyText: {
     fontSize: 18,
     fontWeight: "600",
     marginTop: 16,
+    marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    marginTop: 8,
+    textAlign: "center",
   },
 });

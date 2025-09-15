@@ -13,6 +13,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { AppDispatch, RootState } from '@/context/store';
 import { MicroApp, markAppAsViewed } from '@/context/slices/appSlice';
 import { DOWNLOADED } from '@/constants/Constants';
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { MicroAppIcon } from './MicroAppIcon';
 
 interface MicroAppCardProps {
@@ -25,6 +27,7 @@ export const MicroAppCard: React.FC<MicroAppCardProps> = ({
   onPress 
 }) => {
   const dispatch = useDispatch<AppDispatch>();
+  const colorScheme = useColorScheme() ?? "light";
   const { accessToken } = useSelector((state: RootState) => state.auth);
   const { userInfo } = useSelector((state: RootState) => state.userInfo);
 
@@ -74,6 +77,7 @@ export const MicroAppCard: React.FC<MicroAppCardProps> = ({
     <TouchableOpacity 
       style={[
         styles.card,
+        { backgroundColor: Colors[colorScheme].secondaryBackgroundColor },
         !isAvailable && styles.cardDisabled
       ]} 
       onPress={handlePress}
@@ -81,20 +85,22 @@ export const MicroAppCard: React.FC<MicroAppCardProps> = ({
     >
       <View style={[
         styles.iconContainer, 
+        { backgroundColor: Colors[colorScheme].overLayColor },
         !isAvailable && styles.iconContainerDisabled,
       ]}>
         <MicroAppIcon
           iconUrl={app.iconUrl}
           appId={app.appId}
           size={32}
-          color={isAvailable ? "#2563EB" : "#9CA3AF"}
+          color={isAvailable ? Colors.actionButtonTextColor : Colors[colorScheme].icon}
         />
       </View>
       
       <Text 
         style={[
           styles.appName, 
-          !isAvailable && styles.appNameDisabled
+          { color: Colors[colorScheme].primaryTextColor },
+          !isAvailable && { color: Colors[colorScheme].icon }
         ]}
         numberOfLines={2}
         ellipsizeMode="tail"
@@ -103,7 +109,7 @@ export const MicroAppCard: React.FC<MicroAppCardProps> = ({
       </Text>
       
       {isNewlyDownloaded && (
-        <View style={styles.badge}>
+        <View style={[styles.badge, { backgroundColor: Colors.actionButtonTextColor }]}>
           <Ionicons name="checkmark-circle" size={12} color="#FFFFFF" />
           <Text style={styles.badgeText}>Ready</Text>
         </View>
@@ -114,7 +120,6 @@ export const MicroAppCard: React.FC<MicroAppCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -136,29 +141,23 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
   },
   iconContainerDisabled: {
-    backgroundColor: '#F9FAFB',
+    opacity: 0.5,
   },
   appName: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1F2937',
     textAlign: 'center',
     lineHeight: 18,
     flex: 1,
   },
-  appNameDisabled: {
-    color: '#9CA3AF',
-  },
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#10B981',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 8,

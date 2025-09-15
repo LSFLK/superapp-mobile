@@ -11,6 +11,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { UserAvatar } from './UserAvatar';
 import { UserInfo } from '@/context/slices/userInfoSlice';
 import { getTimeOfDay } from '@/utils/timeofDay';
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 interface HomeHeaderProps {
   userInfo: UserInfo | null;
@@ -23,6 +25,8 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
   loading = false,
   onNotificationPress
 }) => {
+  const colorScheme = useColorScheme() ?? "light";
+
   const getDisplayName = (): string => {
     if (loading) return "Loading...";
     if (!userInfo) return "Guest User";
@@ -40,7 +44,7 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
   };
 
   return (
-    <View style={styles.header}>
+    <View style={[styles.header, { backgroundColor: Colors[colorScheme].secondaryBackgroundColor }]}>
       <View style={styles.headerContent}>
         <UserAvatar
           imageUrl={userInfo?.employeeThumbnail}
@@ -50,13 +54,13 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
         />
         
         <View style={styles.textContainer}>
-          <Text style={styles.greeting}>
+          <Text style={[styles.greeting, { color: Colors[colorScheme].secondaryTextColor }]}>
             Good {getTimeOfDay()}
           </Text>
-          <Text style={styles.userName} numberOfLines={1}>
+          <Text style={[styles.userName, { color: Colors[colorScheme].primaryTextColor }]} numberOfLines={1}>
             {getDisplayName()}
           </Text>
-          <Text style={styles.department} numberOfLines={1}>
+          <Text style={[styles.department, { color: Colors[colorScheme].ternaryTextColor }]} numberOfLines={1}>
             {getDepartment()}
           </Text>
         </View>
@@ -67,7 +71,7 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
         onPress={onNotificationPress}
         activeOpacity={0.7}
       >
-        <Ionicons name="notifications-outline" size={24} color="#1E293B" />
+        <Ionicons name="notifications-outline" size={24} color={Colors[colorScheme].icon} />
         <View style={styles.notificationBadge} />
       </TouchableOpacity>
     </View>
@@ -80,10 +84,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 20,
-    marginTop: 20,
+    paddingTop: 50,
     paddingBottom: 16,
-    backgroundColor: '#FFFFFF',
   },
   headerContent: {
     flexDirection: 'row',
@@ -98,18 +100,15 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontSize: 14,
-    color: '#6B7280',
     marginBottom: 2,
   },
   userName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1F2937',
     marginBottom: 2,
   },
   department: {
     fontSize: 14,
-    color: '#6B7280',
   },
   notificationButton: {
     padding: 8,
@@ -121,7 +120,7 @@ const styles = StyleSheet.create({
     right: 6,
     width: 8,
     height: 8,
-    backgroundColor: '#EF4444',
+    backgroundColor: Colors.removeButtonTextColor,
     borderRadius: 4,
   },
 });

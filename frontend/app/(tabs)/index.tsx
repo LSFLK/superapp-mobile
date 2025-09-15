@@ -37,6 +37,10 @@ import { ErrorState } from "@/components/ErrorState";
 // Constants
 import { ScreenPaths } from "@/constants/ScreenPaths";
 import { DOWNLOADED } from "@/constants/Constants";
+import { Colors } from "@/constants/Colors";
+
+// Hooks
+import { useColorScheme } from "@/hooks/useColorScheme";
 
 // Types
 interface HomeScreenState {
@@ -50,6 +54,7 @@ interface HomeScreenState {
  */
 export default function HomeScreen() {
   const dispatch = useDispatch<AppDispatch>();
+  const colorScheme = useColorScheme() ?? "light";
   
   // Local state
   const [state, setState] = useState<HomeScreenState>({
@@ -156,9 +161,9 @@ export default function HomeScreen() {
     if (downloadedApps.length === 0) {
       return (
         <View style={styles.emptyState}>
-          <Ionicons name="download-outline" size={48} color="#9CA3AF" />
-          <Text style={styles.emptyStateText}>No apps downloaded yet</Text>
-          <Text style={styles.emptyStateSubtext}>
+          <Ionicons name="download-outline" size={48} color={Colors[colorScheme].icon} />
+          <Text style={[styles.emptyStateText, { color: Colors[colorScheme].secondaryTextColor }]}>No apps downloaded yet</Text>
+          <Text style={[styles.emptyStateSubtext, { color: Colors[colorScheme].ternaryTextColor }]}>
             Visit the store to download and install applications
           </Text>
         </View>
@@ -195,7 +200,7 @@ export default function HomeScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: Colors[colorScheme].primaryBackgroundColor }]}>
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -203,8 +208,8 @@ export default function HomeScreen() {
           <RefreshControl
             refreshing={state.refreshing}
             onRefresh={handleRefresh}
-            tintColor="#2563EB"
-            colors={["#2563EB"]}
+            tintColor={Colors.actionButtonTextColor}
+            colors={[Colors.actionButtonTextColor]}
           />
         }
       >
@@ -216,14 +221,14 @@ export default function HomeScreen() {
 
         <View style={styles.content}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Your Applications</Text>
+            <Text style={[styles.sectionTitle, { color: Colors[colorScheme].primaryTextColor }]}>Your Applications</Text>
             <TouchableOpacity 
-              style={styles.storeButton} 
+              style={[styles.storeButton, { backgroundColor: Colors[colorScheme].ternaryBackgroundColor }]} 
               onPress={handleStorePress}
               activeOpacity={0.7}
             >
-              <Ionicons name="add-circle-outline" size={20} color="#2563EB" />
-              <Text style={styles.storeButtonText}>Store</Text>
+              <Ionicons name="add-circle-outline" size={20} color={Colors.actionButtonTextColor} />
+              <Text style={[styles.storeButtonText, { color: Colors.actionButtonTextColor }]}>Store</Text>
             </TouchableOpacity>
           </View>
 
@@ -239,7 +244,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: Colors.light.ternaryBackgroundColor,
   },
   scrollView: {
     flex: 1,
@@ -257,12 +262,10 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#1F2937",
   },
   storeButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#EFF6FF",
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
@@ -271,7 +274,6 @@ const styles = StyleSheet.create({
   storeButtonText: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#2563EB",
   },
   appsContainer: {
     flex: 1,
@@ -296,13 +298,11 @@ const styles = StyleSheet.create({
   emptyStateText: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#374151",
     marginTop: 16,
     marginBottom: 8,
   },
   emptyStateSubtext: {
     fontSize: 14,
-    color: "#6B7280",
     textAlign: "center",
   },
 });
