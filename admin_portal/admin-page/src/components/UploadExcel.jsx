@@ -58,24 +58,7 @@ export default function UploadExcel() {
   const [message, setMessage] = useState("");
 
   const handleFileUpload = async (event) => {
-<<<<<<< HEAD
-    const file = event.target.files[0];
-    if (!file) return;
 
-    const data = await file.arrayBuffer();
-    const workbook = XLSX.read(data, { type: "array" });
-
-    const firstSheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[firstSheetName];
-    const csv = XLSX.utils.sheet_to_csv(worksheet);
-
-    const csvBlob = new Blob([csv], { type: "text/csv" });
-    const formData = new FormData();
-    formData.append("file", csvBlob, "converted.csv");
-
-    try {
-      const response = await fetch("http://localhost:8080/api/v1/payslips/upload", {
-=======
     try {
       const file = event.target.files?.[0];
       if (!file) return;
@@ -119,25 +102,19 @@ export default function UploadExcel() {
       formData.append("file", csvBlob, "converted.csv");
 
       const response = await fetch("http://localhost:9090/api/v1/payslips/upload", {
->>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
+
         method: "POST",
         body: formData,
       });
 
       const result = await response.json();
-<<<<<<< HEAD
-      console.log("Upload successful:", result);
-      setMessage(result.message + " | Rows: " + result.count);
-    } catch (error) {
-      console.error("Upload failed:", error);
-      setMessage("Upload failed: " + error.message);
-=======
+
       if (!response.ok) throw new Error(result?.message || "Upload failed");
       setMessage(`${result.message} | Rows: ${result.count}`);
     } catch (error) {
       console.error("Upload failed:", error);
       setMessage(`Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`);
->>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
+
     }
   };
 
