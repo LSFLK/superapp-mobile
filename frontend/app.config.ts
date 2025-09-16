@@ -81,15 +81,6 @@ const config: ExpoConfig = {
   },
   android: {
     package: ANDROID_PACKAGE,
-    // Note: manifestPlaceholders not part of ExpoConfig typings; library plugin will inject placeholder internally.
-    intentFilters: [
-      {
-        action: "VIEW",
-        autoVerify: true,
-        data: [{ scheme: APP_SCHEME }],
-        category: ["BROWSABLE", "DEFAULT"],
-      },
-    ],
     // googleServicesFile: androidJson, // Uncomment this if you use Firebase for Android
     permissions: [
       "android.permission.CAMERA",
@@ -111,7 +102,7 @@ const config: ExpoConfig = {
       { redirectScheme: APP_SCHEME, enableUniversalLinks: false },
     ],
   // Inject manifest placeholder for appAuthRedirectScheme early.
-  [require.resolve("./plugins/app-auth-placeholder.js")],
+  // [require.resolve("./plugins/app-auth-placeholder.js")],
     [
       "expo-build-properties",
       { android: { compileSdkVersion: 35, targetSdkVersion: 35, minSdkVersion: 24 } },
