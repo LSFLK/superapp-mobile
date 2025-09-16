@@ -1,0 +1,8 @@
+# Example config (do NOT commit real secrets)
+# Copy to config.toml locally and fill in your credentials, or set environment variables.
+
+DB_HOST = "127.0.0.1"
+DB_PORT = 3306
+DB_NAME = "payslip_db"
+DB_USER = "root"
+DB_PASSWORD = ""
