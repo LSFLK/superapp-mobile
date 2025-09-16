@@ -12,24 +12,16 @@
 
 // export default App;
 
-import React, { useEffect, useState } from "react";
-import authClient from "./components/auth";
+import React from "react";
 import UploadExcel from "./components/UploadExcel";
+import { useAuthContext } from "@asgardeo/auth-react";
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { state, signIn, signOut } = useAuthContext();
 
-  useEffect(() => {
-    async function checkAuth() {
-      await authClient.signIn();
-      const loggedIn = authClient.isAuthenticated();
-      setIsAuthenticated(loggedIn);
-    }
+  const isAuthed = state?.isAuthenticated;
+  const username = state?.username;
 
-    checkAuth();
-  }, []);
-
-  if (!isAuthenticated) 
   return (
     <div style={styles.appContainer}>
       <header style={styles.header}>
@@ -38,7 +30,19 @@ function App() {
       </header>
 
       <main style={styles.main}>
-        <UploadExcel />
+        {!isAuthed ? (
+          <button onClick={signIn}>Login</button>
+        ) : (
+          <div style={{ width: "100%" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
+              <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+                <li>{username}</li>
+              </ul>
+              <button onClick={signOut}>Logout</button>
+            </div>
+            <UploadExcel />
+          </div>
+        )}
       </main>
     </div>
   );

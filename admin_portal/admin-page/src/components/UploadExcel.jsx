@@ -58,32 +58,59 @@ export default function UploadExcel() {
   const [message, setMessage] = useState("");
 
   const handleFileUpload = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const data = await file.arrayBuffer();
-    const workbook = XLSX.read(data, { type: "array" });
-
-    const firstSheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[firstSheetName];
-    const csv = XLSX.utils.sheet_to_csv(worksheet);
-
-    const csvBlob = new Blob([csv], { type: "text/csv" });
-    const formData = new FormData();
-    formData.append("file", csvBlob, "converted.csv");
-
     try {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      // If it's already a CSV, pass-through directly
+      const isCSV = /\.csv$/i.test(file.name) || file.type.includes("csv");
+      let csvText = "";
+
+      if (isCSV) {
+        csvText = await file.text();
+      } else {
+        // Parse Excel with safe options
+        const data = await file.arrayBuffer();
+        const workbook = XLSX.read(data, {
+          type: "array",
+          cellText: false,
+          cellDates: true,
+          raw: false,
+          WTF: false,
+        });
+
+        if (!workbook.SheetNames?.length) {
+          setMessage("No sheets found in the uploaded file.");
+          return;
+        }
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        if (!worksheet) {
+          setMessage("First worksheet is empty.");
+          return;
+        }
+        csvText = XLSX.utils.sheet_to_csv(worksheet, { FS: ",", RS: "\n" }) || "";
+        if (!csvText.trim()) {
+          setMessage("Parsed sheet is empty.");
+          return;
+        }
+      }
+
+      const csvBlob = new Blob([csvText], { type: "text/csv" });
+      const formData = new FormData();
+      formData.append("file", csvBlob, "converted.csv");
+
       const response = await fetch("http://localhost:9090/api/v1/payslips/upload", {
         method: "POST",
         body: formData,
       });
 
       const result = await response.json();
-      console.log("Upload successful:", result);
-      setMessage(result.message + " | Rows: " + result.count);
+      if (!response.ok) throw new Error(result?.message || "Upload failed");
+      setMessage(`${result.message} | Rows: ${result.count}`);
     } catch (error) {
       console.error("Upload failed:", error);
-      setMessage("Upload failed: " + error.message);
+      setMessage(`Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   };
 

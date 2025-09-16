@@ -6,7 +6,7 @@ import ballerinax/mysql;
 import ballerina/sql;
 import ballerinax/mysql.driver as _; // bundle driver
 
-// Create mysql client (use named args)
+// Create MySQL client bound to the configured database
 final mysql:Client db = check new(
     host = DB_HOST,
     port = DB_PORT,
@@ -17,7 +17,7 @@ final mysql:Client db = check new(
 
 // Initialize DB - create table if not exists
 public function initDB() returns error? {
-    // Use a VARCHAR primary key (employeeId) to match your CSV keys
+    // Create table if not exists in the selected DB
     _ = check db->execute(`
         CREATE TABLE IF NOT EXISTS payslips (
             employeeId   VARCHAR(64) PRIMARY KEY,
@@ -31,6 +31,11 @@ public function initDB() returns error? {
             netSalary    DECIMAL(18,2) NOT NULL
         )
     `);
+    return ();
+}
+
+// No-op; kept for compatibility in case of future multi-database usage
+isolated function ensureDatabaseSelected() returns error? {
     return ();
 }
 
@@ -65,6 +70,8 @@ service /api/v1/payslips on new http:Listener(serverPort) {
     
 // POST endpoint to upload CSV and save to MySQL DB
     resource function post upload(http:Request req) returns json|error {
+    // Ensure DB selected (no-op in current setup)
+    check ensureDatabaseSelected();
         mime:Entity|error fileEntity = req.getEntity();
         if fileEntity is error {
             return <json>{ "error": "No file uploaded" };
@@ -85,7 +92,7 @@ service /api/v1/payslips on new http:Listener(serverPort) {
     // We'll use REPLACE INTO to upsert by primary key (employeeId)
 
         // Iterate CSV rows and insert into DB
-        check csvStream.forEach(function(string[] row) {
+    check csvStream.forEach(function(string[] row) {
             // Skip empty or invalid rows
             if row.length() == 0 {
                 skipped += 1;
@@ -123,14 +130,17 @@ service /api/v1/payslips on new http:Listener(serverPort) {
             }
 
             do {
-// Create the parameterized query
-sql:ParameterizedQuery pq = `REPLACE INTO payslips
-    (employeeId, designation, name, department, payPeriod, basicSalary, allowances, deductions, netSalary)
-    VALUES (${row[0].trim()}, ${row[1].trim()}, ${row[2].trim()}, ${row[3].trim()}, ${row[4].trim()},
-            ${basicSalary}, ${allowances}, ${deductions}, ${netSalary})`;
+                // Ensure DB selected (no-op in current setup)
+                check ensureDatabaseSelected();
 
-// Then execute
-_ = check db->execute(pq);
+                // Create the parameterized upsert query
+                sql:ParameterizedQuery pq = `REPLACE INTO payslips
+                    (employeeId, designation, name, department, payPeriod, basicSalary, allowances, deductions, netSalary)
+                    VALUES (${row[0].trim()}, ${row[1].trim()}, ${row[2].trim()}, ${row[3].trim()}, ${row[4].trim()},
+                            ${basicSalary}, ${allowances}, ${deductions}, ${netSalary})`;
+
+                // Execute
+                _ = check db->execute(pq);
 
 
                 // (optional) you can inspect affectedRowCount if needed:
@@ -161,6 +171,7 @@ _ = check db->execute(pq);
 
     // Get payslips from uploaded CSV as a map keyed by employeeId
     resource function get all() returns json|error {
+    check ensureDatabaseSelected();
         // Prefer DB, but handle empty table gracefully
         sql:ParameterizedQuery q = `SELECT 
                 employeeId,
@@ -192,6 +203,8 @@ _ = check db->execute(pq);
     // GET a single payslip by EmployeeId
     resource function get [string employeeId](http:Caller caller, http:Request req) returns error? {
         logRequest("GET", "/payslips/" + employeeId, employeeId);
+
+    check ensureDatabaseSelected();
 
         // Query DB for the payslip
         sql:ParameterizedQuery q = `SELECT 
