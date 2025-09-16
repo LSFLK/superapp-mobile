@@ -1,14 +1,6 @@
-// import ballerina/io;
-
-// public function main() {
-//     io:println("Hello, World!");
-// }
-
 import ballerina/http;
 import ballerina/log;
 import ballerina/io;
-
-configurable int maxHeaderSize = 16384;
 
 // Mock Employee type matching the original entity:Employee
 type MockEmployee record {|
@@ -19,6 +11,33 @@ type MockEmployee record {|
     string department;
     string employeeID;
 |};
+
+public function main() returns error? {
+    // fetch all users
+    check fetchAllUsers();
+
+    // fetch user with usr-email
+    string targetEmail = "sarah@gov.com";
+
+    User user = check fetchUserByEmail(targetEmail);
+    log:printInfo("User found: " + user.first_name + " " + user.last_name);
+
+    // Fetch all micro-apps
+    check fetchAllMicroApps();
+
+    // Fetch a specific micro-app by ID
+    string targetId = "payslip-viewer";
+    MicroApp app = check fetchMicroAppById(targetId);
+    log:printInfo(
+        "MicroApp by ID: " + app.name + 
+        " | App ID: " + app.app_id + 
+        " | Version: " + app.version
+    );
+
+    // Insert Payslip Viewer micro-app
+    // string zipPath = "C:/Users/Sandamini/Documents/Microapps/payslip-viewer.zip";
+    // check insertMicroAppWithZip("Payslip Viewer", "1.0.0", zipPath, "payslip-viewer");
+}
 
 function getMockEmployees() returns MockEmployee[] {
     return [      
@@ -119,11 +138,6 @@ function getMockMicroApps() returns MockMicroApp[] {
         }
     ];
 }
-// service / on new http:Listener(serverPort) {
-//     resource function get health() returns string {
-//         return "ok";
-//     }
-// }
 
 service class ErrorInterceptor {
     *http:ResponseErrorInterceptor;
