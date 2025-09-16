@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Copyright (c) 2025 WSO2 LLC. (https://www.wso2.com).
 //
 // WSO2 LLC. licenses this file to you under the Apache License,
@@ -13,4 +14,6 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
+=======
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 export { useColorScheme } from "react-native";

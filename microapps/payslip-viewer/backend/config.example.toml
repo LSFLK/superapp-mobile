@@ -1,0 +1,10 @@
+# Example config (do NOT commit real secrets)
+## Copy to Config.toml locally and fill in your credentials, or set environment variables.
+
+[databaseConfig]
+# Required MySQL connection settings used by backend/service.bal
+DB_HOST = "127.0.0.1"
+DB_PORT = 3306
+DB_NAME = "payslip_db"
+DB_USER = "root"
+DB_PASSWORD = ""

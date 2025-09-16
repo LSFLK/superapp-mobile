@@ -4,8 +4,14 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+<<<<<<< HEAD
     "dev": "vite",
     "build": "vite build",
+=======
+  "dev": "vite",
+  "build": "vite build",
+  "start": "vite",
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -13,8 +19,13 @@
     "@tailwindcss/vite": "^4.1.13",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.544.0",
+<<<<<<< HEAD
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+=======
+  "react": "^19.1.1",
+  "react-dom": "^19.1.1",
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
     "tailwindcss": "^4.1.13"
   },
   "devDependencies": {

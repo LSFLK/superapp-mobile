@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Copyright (c) 2025 WSO2 LLC. (https://www.wso2.com).
 //
 // WSO2 LLC. licenses this file to you under the Apache License,
@@ -13,6 +14,36 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
+=======
+/**
+ * Represents the authentication state slice for the application.
+ *
+ * @remarks
+ * This slice manages authentication-related state, including tokens and user email.
+ * It provides reducers for setting authentication data and resetting the state,
+ * as well as handling asynchronous actions via extra reducers.
+ *
+ * @interface AuthState
+ * @property {string | null} accessToken - The access token for authenticated requests.
+ * @property {string | null} refreshToken - The refresh token for renewing access.
+ * @property {string | null} idToken - The ID token for user identification.
+ * @property {string | null} email - The authenticated user's email address.
+ * @property {boolean} isLoading - Indicates if authentication state is being loaded.
+ *
+ * @function setAuth
+ * Sets authentication tokens and user email in the state, and marks loading as complete.
+ *
+ * @function resetAll
+ * Resets the authentication state to its initial values.
+ *
+ * @function restoreAuth.fulfilled
+ * Handles successful restoration of authentication state from persisted storage.
+ *
+ * @function setAuthWithCheck.fulfilled
+ * Marks authentication loading as complete after a check.
+ */
+
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import {
   AuthData,
@@ -73,6 +104,10 @@ export const setAuthWithCheck = createAsyncThunk(
   }
 );
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 const authSlice = createSlice({
   name: "auth",
   initialState,

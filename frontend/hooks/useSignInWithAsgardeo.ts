@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Copyright (c) 2025 WSO2 LLC. (https://www.wso2.com).
 //
 // WSO2 LLC. licenses this file to you under the Apache License,
@@ -13,6 +14,8 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
+=======
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 import { AUTH_CONFIG } from "@/config/authConfig";
 import { setAuth, setAuthWithCheck } from "@/context/slices/authSlice";
 import { AppDispatch } from "@/context/store";
@@ -27,6 +30,10 @@ export const useSignInWithAsgardeo = () => {
 
   const signIn = async () => {
     try {
+<<<<<<< HEAD
+=======
+      
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
       // TEMPORARY MOCK DATA - Replace with real OAuth flow once fixed
       console.log("Using mock authentication data for development");
       

@@ -1,7 +1,21 @@
+<<<<<<< HEAD
+=======
+// import ballerina/io;
+
+// public function main() {
+//     io:println("Hello, World!");
+// }
+
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 import ballerina/http;
 import ballerina/log;
 import ballerina/io;
 
+<<<<<<< HEAD
+=======
+configurable int maxHeaderSize = 16384;
+
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 // Mock Employee type matching the original entity:Employee
 type MockEmployee record {|
     string workEmail;
@@ -12,6 +26,7 @@ type MockEmployee record {|
     string employeeID;
 |};
 
+<<<<<<< HEAD
 public function main() returns error? {
     // fetch all users
     check fetchAllUsers();
@@ -39,6 +54,8 @@ public function main() returns error? {
     // check insertMicroAppWithZip("Payslip Viewer", "1.0.0", zipPath, "payslip-viewer");
 }
 
+=======
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 function getMockEmployees() returns MockEmployee[] {
     return [      
         {   
@@ -138,6 +155,14 @@ function getMockMicroApps() returns MockMicroApp[] {
         }
     ];
 }
+<<<<<<< HEAD
+=======
+// service / on new http:Listener(serverPort) {
+//     resource function get health() returns string {
+//         return "ok";
+//     }
+// }
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 
 service class ErrorInterceptor {
     *http:ResponseErrorInterceptor;

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Copyright (c) 2025 WSO2 LLC. (https://www.wso2.com).
 //
 // WSO2 LLC. licenses this file to you under the Apache License,
@@ -14,6 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
+=======
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 /**
  * Below are the colors that are used in the app. The colors are defined for light and dark modes.
  * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Copyright (c) 2025 WSO2 LLC. (https://www.wso2.com).
 //
 // WSO2 LLC. licenses this file to you under the Apache License,
@@ -14,13 +15,19 @@
 // specific language governing permissions and limitations
 // under the License.
 
+=======
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 import { Platform } from "react-native";
 
 export const CLIENT_ID = process.env.EXPO_PUBLIC_CLIENT_ID ?? "";
 export const REDIRECT_URI = process.env.EXPO_PUBLIC_REDIRECT_URI ?? "";
 export const TOKEN_URL = process.env.EXPO_PUBLIC_TOKEN_URL ?? "";
 export const LOGOUT_URL = process.env.EXPO_PUBLIC_LOGOUT_URL ?? "";
+<<<<<<< HEAD
 export const BASE_URL = process.env.EXPO_PUBLIC_BACKEND_BASE_URL ?? "";
+=======
+export const BASE_URL = process.env.EXPO_PUBLIC_BACKEND_BASE_URL ?? "https://41200aa1-4106-4e6c-babf-311dce37c04a-dev.e1-us-east-azure.choreoapis.dev/gov-superapp/superapp-backend-auth-les/v1.0";
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 
 export const GOOGLE_IOS_CLIENT_ID =
   process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? "";
@@ -42,17 +49,24 @@ export const USER_CONFIGURATIONS = "user-configurations";
 export const APP_LIST_CONFIG_KEY = "superapp.apps.list";
 export const USER_INFO = "user-info";
 export const LAST_ACTIVE_PATH_KEY = "last-active-path";
+<<<<<<< HEAD
 export const BASE_URL_WEB = "https://wso2.com/";
+=======
+export const BASE_URL_WEB = "https://opensource.lk/";
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 export const LIBRARY_ARTICLE_FALLBACK_IMAGE =
   process.env.EXPO_PUBLIC_LIBRARY_ARTICLE_FALLBACK_IMAGE ?? "";
 export const DEVELOPER_APP_DEFAULT_URL =
   process.env.EXPO_PUBLIC_DEVELOPER_APP_DEFAULT_URL ?? "";
 
+<<<<<<< HEAD
 export const LIBRARY_URL = "https://wso2.com/library";
 export const LIBRARY_STORAGE_KEY = "cached_library_feed";
 export const LIBRARY_TIMESTAMP_KEY = "cached_library_timestamp";
 export const LIBRARY_ARTICLE_FETCH_LIMIT = 12;
 
+=======
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 export const GOOGLE_ACCESS_TOKEN_KEY =
   process.env.EXPO_PUBLIC_GOOGLE_ACCESS_TOKEN_KEY ?? "";
 export const GOOGLE_REFRESH_TOKEN_KEY =
@@ -81,6 +95,7 @@ export const GOOGLE_DRIVE_FILE_DOWNLOAD_URL = (fileId: string) =>
 export const GOOGLE_TOKEN_INFO_URL = (accessToken: string) =>
   `${process.env.EXPO_PUBLIC_GOOGLE_TOKEN_INFO_URL ?? ""}${accessToken}`;
 
+<<<<<<< HEAD
 export const EVENTS_URL = process.env.EXPO_PUBLIC_EVENTS_URL ?? "";
 export const EVENTS_STORAGE_KEY = "cached_events_feed";
 export const EVENTS_TIMESTAMP_KEY = "cached_events_timestamp";
@@ -95,3 +110,15 @@ export const isIos = Platform.OS === "ios";
 // Use environment variable with fallback for development
 export const SUPERAPP_BASE_URL = process.env.EXPO_PUBLIC_BACKEND_BASE_URL || "http://192.168.1.103:9090";
 export const EMP_ID = "EMP003";
+=======
+// export const EVENTS_URL = process.env.EXPO_PUBLIC_EVENTS_URL ?? "";
+// export const EVENTS_STORAGE_KEY = "cached_events_feed";
+// export const EVENTS_TIMESTAMP_KEY = "cached_events_timestamp";
+
+// export const NEWS_URL = process.env.EXPO_PUBLIC_NEWS_URL ?? "";
+// export const NEWS_STORAGE_KEY = "cached_news_feed";
+// export const NEWS_TIMESTAMP_KEY = "cached_news_timestamp";
+
+export const isAndroid = Platform.OS === "android";
+export const isIos = Platform.OS === "ios";
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564

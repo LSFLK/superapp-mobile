@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Copyright (c) 2025 WSO2 LLC. (https://www.wso2.com).
 //
 // WSO2 LLC. licenses this file to you under the Apache License,
@@ -19,6 +20,8 @@
  * https://docs.expo.dev/guides/color-schemes/
  */
 
+=======
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 

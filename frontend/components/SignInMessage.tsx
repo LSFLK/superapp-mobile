@@ -103,17 +103,30 @@ const createStyles = (colorScheme: "light" | "dark") =>
   StyleSheet.create({
     icon: {
       marginBottom: 8,
+<<<<<<< HEAD
+=======
+      paddingLeft:3
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
     },
     title: {
       fontSize: 18,
       fontWeight: "bold",
       color: Colors[colorScheme].text,
+<<<<<<< HEAD
       marginBottom: 10,
+=======
+      marginBottom: 30,
+      paddingLeft:8
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
     },
     message: {
       fontSize: 16,
       textAlign: "center",
+<<<<<<< HEAD
       marginBottom: 30,
+=======
+      marginBottom: 15,
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
       color: Colors[colorScheme].primaryTextColor,
     },
     button: {
@@ -122,7 +135,11 @@ const createStyles = (colorScheme: "light" | "dark") =>
       justifyContent: "center",
       borderRadius: 12,
       paddingVertical: 12,
+<<<<<<< HEAD
       width: "80%",
+=======
+      width: "100%",
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
       marginBottom: 10,
     },
     buttonText: {

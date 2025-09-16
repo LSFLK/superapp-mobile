@@ -31,7 +31,11 @@ import { Colors } from "@/constants/Colors";
 import Constants from "expo-constants";
 import ProfileListItem from "@/components/ProfileListItem";
 import Avatar from "@/components/Avatar";
+<<<<<<< HEAD
 import { useTrackActiveScreen } from "@/hooks/useTrackActiveScreen";
+=======
+// import { useTrackActiveScreen } from "@/hooks/useTrackActiveScreen";
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 import { ScreenPaths } from "@/constants/ScreenPaths";
 import SignInMessage from "@/components/SignInMessage";
 import { performLogout } from "@/utils/performLogout";
@@ -48,7 +52,11 @@ const SettingsScreen = () => {
   const styles = createStyles(colorScheme ?? "light");
   const version = Constants.expoConfig?.version;
 
+<<<<<<< HEAD
   useTrackActiveScreen(ScreenPaths.PROFILE);
+=======
+  // useTrackActiveScreen(ScreenPaths.PROFILE);
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 
   // Get avatar URL from employeeThumbnail
   const getAvatarUri = () => {
@@ -99,10 +107,23 @@ const SettingsScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+<<<<<<< HEAD
       {/* User info */}
       {userInfo ? (
         <>
           <View style={styles.topContainer}>
+=======
+      {userInfo ? (
+        <View style={styles.contentContainer}>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>Profile</Text>
+            <Text style={styles.headerSubtitle}>Manage your account settings</Text>
+          </View>
+
+          {/* Profile Card */}
+          <View style={styles.profileCard}>
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
             <View style={styles.avatarWrapper}>
               {getAvatarUri() ? (
                 <Image
@@ -112,19 +133,40 @@ const SettingsScreen = () => {
               ) : (
                 <Avatar
                   initials={`${userInfo.firstName?.charAt(0) || ''}${userInfo.lastName?.charAt(0) || ''}`}
+<<<<<<< HEAD
                   size={180}
+=======
+                  size={120}
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
                 />
               )}
             </View>
 
+<<<<<<< HEAD
             <ProfileListItem
               icon="person-outline"
               title="Name"
+=======
+            <Text style={styles.userName}>
+              {`${userInfo.firstName} ${userInfo.lastName}`}
+            </Text>
+            <Text style={styles.userEmail}>
+              {userInfo.workEmail}
+            </Text>
+          </View>
+
+          {/* Profile Details */}
+          <View style={styles.detailsContainer}>
+            <ProfileListItem
+              icon="person-outline"
+              title="Full Name"
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
               value={`${userInfo.firstName} ${userInfo.lastName}`}
             />
 
             <ProfileListItem
               icon="mail-outline"
+<<<<<<< HEAD
               title="Email"
               value={userInfo.workEmail}
             />
@@ -137,6 +179,33 @@ const SettingsScreen = () => {
 
             <TouchableOpacity
               activeOpacity={0.5}
+=======
+              title="Work Email"
+              value={userInfo.workEmail}
+            />
+
+            {userInfo.department && (
+              <ProfileListItem
+                icon="business-outline"
+                title="Department"
+                value={userInfo.department}
+              />
+            )}
+
+            {userInfo.employeeID && (
+              <ProfileListItem
+                icon="id-card-outline"
+                title="Employee ID"
+                value={userInfo.employeeID}
+              />
+            )}
+          </View>
+
+          {/* Actions */}
+          <View style={styles.actionsContainer}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
               style={styles.logoutButton}
               onPress={handleLogout}
             >
@@ -144,14 +213,27 @@ const SettingsScreen = () => {
                 <Ionicons
                   name="log-out-outline"
                   size={20}
+<<<<<<< HEAD
                   color={Colors[colorScheme ?? "light"].primaryBackgroundColor}
+=======
+                  color="#FFFFFF"
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
                   style={styles.logoutIcon}
                 />
                 <Text style={styles.logoutText}>Sign Out</Text>
               </View>
             </TouchableOpacity>
           </View>
+<<<<<<< HEAD
         </>
+=======
+
+          {/* Version */}
+          <View style={styles.versionContainer}>
+            <Text style={styles.versionText}>version {version}</Text>
+          </View>
+        </View>
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
       ) : (
         <View style={styles.signInContainer}>
           <View style={styles.overlay}>
@@ -159,10 +241,15 @@ const SettingsScreen = () => {
               <SignInMessage />
             </View>
           </View>
+<<<<<<< HEAD
           <View style={styles.bottomContainer}>
             <View style={styles.versionContainer}>
               <Text style={styles.versionText}>version {version}</Text>
             </View>
+=======
+          <View style={styles.versionContainer}>
+            <Text style={styles.versionText}>version {version}</Text>
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
           </View>
         </View>
       )}
@@ -177,6 +264,7 @@ const createStyles = (colorScheme: "light" | "dark") =>
     container: {
       flex: 1,
       backgroundColor: Colors[colorScheme].primaryBackgroundColor,
+<<<<<<< HEAD
       justifyContent: "space-between",
       paddingTop:40,
     },
@@ -234,14 +322,145 @@ const createStyles = (colorScheme: "light" | "dark") =>
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
+=======
+    },
+    contentContainer: {
+      flex: 1,
+      paddingHorizontal: 20,
+      paddingTop: 40,
+    },
+    header: {
+      marginBottom: 24,
+      paddingBottom: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: Colors[colorScheme].ternaryBackgroundColor,
+    },
+    headerTitle: {
+      fontSize: 32,
+      fontWeight: '700',
+      color: Colors[colorScheme].primaryTextColor,
+      marginBottom: 4,
+    },
+    headerSubtitle: {
+      fontSize: 16,
+      color: Colors[colorScheme].secondaryTextColor,
+    },
+    profileCard: {
+      backgroundColor: Colors[colorScheme].secondaryBackgroundColor,
+      borderRadius: 16,
+      padding: 24,
+      alignItems: 'center',
+      marginBottom: 24,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    avatarWrapper: {
+      marginBottom: 16,
+    },
+    avatar: {
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+    },
+    userName: {
+      fontSize: 24,
+      fontWeight: '600',
+      color: Colors[colorScheme].primaryTextColor,
+      marginBottom: 4,
+      textAlign: 'center',
+    },
+    userEmail: {
+      fontSize: 16,
+      color: Colors[colorScheme].secondaryTextColor,
+      textAlign: 'center',
+    },
+    detailsContainer: {
+      backgroundColor: Colors[colorScheme].secondaryBackgroundColor,
+      borderRadius: 16,
+      overflow: 'hidden',
+      marginBottom: 24,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    actionsContainer: {
+      marginBottom: 24,
+    },
+    logoutButton: {
+      backgroundColor: '#E53E3E',
+      paddingVertical: 16,
+      paddingHorizontal: 24,
+      borderRadius: 12,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+    },
+    logoutRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
     },
     logoutIcon: {
       marginRight: 8,
     },
     logoutText: {
+<<<<<<< HEAD
       fontSize: 16,
       lineHeight: 20,
       color: Colors[colorScheme].primaryBackgroundColor,
       fontWeight: "600",
+=======
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    versionContainer: {
+      paddingBottom: 20,
+      alignItems: 'center',
+    },
+    versionText: {
+      fontSize: 14,
+      color: Colors[colorScheme].secondaryTextColor,
+    },
+    signInContainer: {
+      flex: 1,
+    },
+    overlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    modal: {
+      margin: 20,
+      borderRadius: 20,
+      padding: 35,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      elevation: 5,
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
     },
   });

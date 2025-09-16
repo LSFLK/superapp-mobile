@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Copyright (c) 2025 WSO2 LLC. (https://www.wso2.com).
 //
 // WSO2 LLC. licenses this file to you under the Apache License,
@@ -17,6 +18,9 @@ export enum ScreenPaths {
   FEED = "/(tabs)",
   LIBRARY = "/library",
   MY_APPS = "/(tabs)/apps",
+=======
+export enum ScreenPaths {
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
   STORE = "/(tabs)/apps/store",
   MICRO_APP = "/micro-app",
   PROFILE = "/(tabs)/profile",

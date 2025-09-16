@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ------WebKitFormBoundaryuiuVPDI0P7RvwA4u
 Content-Disposition: form-data; name="file"; filename="converted.csv"
 Content-Type: text/csv
@@ -11,3 +12,15 @@ EMP005,Team Lead,Mark Town,IT,8/1/2025,6000,600,250,6350
 EMP006,Finance Manager,Lisa Advani,Finance,8/1/2025,4500,500,200,4800
 ,,,,,,,,
 ------WebKitFormBoundaryuiuVPDI0P7RvwA4u--
+=======
+------WebKitFormBoundaryrEz60p5OKSlLu7vp
+Content-Disposition: form-data; name="file"; filename="converted.csv"
+Content-Type: text/csv
+
+employeeId,designation,name,department,payPeriod,basicSalary,allowances,deductions,netSalary
+EMP001,Software Engineer,Alice Johnson,IT,2025-09,80000,5000,3000,82000
+EMP002,QA Engineer,Bob Smith,QA,2025-09,60000,4000,2000,62000
+EMP003,HR Manager,Charlie Brown,HR,2025-09,70000,6000,2500,73500
+EMP004,Finance Analyst,Dana White,Finance,2025-09,65000,4500,1500,68000
+------WebKitFormBoundaryrEz60p5OKSlLu7vp--
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
