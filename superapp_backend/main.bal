@@ -1,80 +1,32 @@
-// import ballerina/io;
-
-// public function main() {
-//     io:println("Hello, World!");
-// }
-
 import ballerina/http;
 import ballerina/log;
 import ballerina/io;
 
-configurable int maxHeaderSize = 16384;
 
-// Mock Employee type matching the original entity:Employee
-type MockEmployee record {|
-    string workEmail;
-    string firstName;
-    string lastName;
-    string? employeeThumbnail;
-    string department;
-    string employeeID;
-|};
+public function main() returns error? {
+    // fetch all users
+    check fetchAllUsers();
 
-function getMockEmployees() returns MockEmployee[] {
-    return [      
-        {   
-            "workEmail": "john@gov.com",
-            "firstName": "John",
-            "lastName": "Doe",
-            "employeeThumbnail": "https://example.com/avatars/john.jpg",
-            "department": "Ministry of Finance",
-            "employeeID": "EMP001"
-        },
-        {
-            "workEmail": "jane@gov.com",
-            "firstName": "Jane",
-            "lastName": "Smith",
-            "employeeThumbnail": "https://example.com/avatars/jane.jpg",
-            "department": "Ministry of Health",
-                        "employeeID": "EMP002"
+    string targetEmail = "sarah@gov.com";
 
-        },
-        {
-            "workEmail": "michael@gov.com",
-            "firstName": "Michael",
-            "lastName": "Brown",
-            "employeeThumbnail": null,
-            "department": "Ministry of Education",
-                        "employeeID": "EMP003"
+    User user = check fetchUserByEmail(targetEmail);
+    log:printInfo("User found: " + user.first_name + " " + user.last_name);
 
-        },
-        {
-            "workEmail": "sarah@gov.com",
-            "firstName": "Sarah",
-            "lastName": "Lee",
-            "employeeThumbnail": "https://example.com/avatars/sarah.jpg",
-            "department": "Ministry of Transport",
-                        "employeeID": "EMP004"
+    // Fetch all micro-apps
+    check fetchAllMicroApps();
 
-        },
-        {
-            "workEmail": "mark@gov.com",
-            "firstName": "Mark",
-            "lastName": "Town",
-            "employeeThumbnail": null,
-            "department": "Ministry of Defence",
-                        "employeeID": "EMP005"
+    // Fetch a specific micro-app by ID
+    string targetId = "payslip-viewer";
+    MicroApp app = check fetchMicroAppById(targetId);
+    log:printInfo(
+        "MicroApp by ID: " + app.name + 
+        " | App ID: " + app.app_id + 
+        " | Version: " + app.version
+    );
 
-        },
-        {
-            "workEmail": "mockuser@gov.com",
-            "firstName": "Mock",
-            "lastName": "User",
-            "employeeThumbnail": null,
-            "department": "Ministry of Public Administration",
-                        "employeeID": "EMP006"
-        }
-    ];
+    // Insert Payslip Viewer micro-app
+    // string zipPath = "C:/Users/Sandamini/Documents/Microapps/payslip-viewer.zip";
+    // check insertMicroAppWithZip("Payslip Viewer", "1.0.0", zipPath, "payslip-viewer");
 }
 
 // Mock MicroApp types
@@ -119,11 +71,6 @@ function getMockMicroApps() returns MockMicroApp[] {
         }
     ];
 }
-// service / on new http:Listener(serverPort) {
-//     resource function get health() returns string {
-//         return "ok";
-//     }
-// }
 
 service class ErrorInterceptor {
     *http:ResponseErrorInterceptor;
@@ -156,13 +103,13 @@ service http:InterceptableService / on new http:Listener(serverPort, config = {r
     resource function get user\-info(http:RequestContext ctx, string? email) returns MockEmployee|http:InternalServerError|http:NotFound {
         string userEmail = email ?: "mockuser@gov.com"; // Default to mock user if no email provided
         
-        MockEmployee[] employees = getMockEmployees();
-        foreach MockEmployee employee in employees {
-            if employee.workEmail == userEmail {
-                log:printInfo("Found employee: " + employee.toString());
-                return employee;
-            }
-        }
+        // MockEmployee[] employees = getMockEmployees();
+        // foreach MockEmployee employee in employees {
+        //     if employee.workEmail == userEmail {
+        //         log:printInfo("Found employee: " + employee.toString());
+        //         return employee;
+        //     }
+        // }
         
         return <http:NotFound>{
             body: { message: "User not found for email: " + userEmail }
@@ -171,24 +118,24 @@ service http:InterceptableService / on new http:Listener(serverPort, config = {r
 
     
     // Get all mock employees (for testing)
-    resource function get users/mock(http:RequestContext ctx) returns MockEmployee[] {
-        return getMockEmployees();
-    }
+    // resource function get users/mock(http:RequestContext ctx) returns MockEmployee[] {
+    //     // return getMockEmployees();
+    // }
 
 
     // Get a single mock employee by email
-    resource function get users/mock/[string email](http:RequestContext ctx) returns MockEmployee|http:NotFound {
-        MockEmployee[] employees = getMockEmployees();
-        foreach MockEmployee employee in employees {
-            if employee.workEmail == email {
-                log:printInfo("Found employee: " + employee.toString());
-                return employee;
-            }
-        }
-        return <http:NotFound>{
-            body: { message: "User not found for email: " + email }
-        };
-    }
+    // resource function get users/mock/[string email](http:RequestContext ctx) returns MockEmployee|http:NotFound {
+    //     MockEmployee[] employees = getMockEmployees();
+    //     foreach MockEmployee employee in employees {
+    //         if employee.workEmail == email {
+    //             log:printInfo("Found employee: " + employee.toString());
+    //             return employee;
+    //         }
+    //     }
+    //     return <http:NotFound>{
+    //         body: { message: "User not found for email: " + email }
+    //     };
+    // }
 
 
     // Mock micro-apps endpoint

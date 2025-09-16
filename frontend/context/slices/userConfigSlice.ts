@@ -1,8 +1,46 @@
+<<<<<<< HEAD
+// Copyright (c) 2025 WSO2 LLC. (https://www.wso2.com).
+//
+// WSO2 LLC. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+=======
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 import { BASE_URL, USER_CONFIGURATIONS } from "@/constants/Constants";
 import { apiRequest } from "@/utils/requestHandler";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
+<<<<<<< HEAD
+interface AppArrangement {
+  name: string;
+  isDirectory: boolean;
+  apps: string[];
+}
+
+export interface UserConfig {
+  email: string;
+  configKey: string;
+  configValue: string[] | AppArrangement[];
+  isActive: number;
+}
+
+interface UserConfigState {
+  configurations: UserConfig[];
+  loading: boolean;
+}
+
+=======
 /**
  * Interface representing the arrangement of apps in user's custom layout
  * Used for organizing apps in folders or custom arrangements
@@ -36,11 +74,14 @@ interface UserConfigState {
 /**
  * Initial state for the user configuration slice
  */
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 const initialState: UserConfigState = {
   configurations: [],
   loading: false,
 };
 
+<<<<<<< HEAD
+=======
 /**
  * Async thunk to fetch user configurations from the server
  * Retrieves user-specific settings like app arrangements, preferences, etc.
@@ -48,6 +89,7 @@ const initialState: UserConfigState = {
  * @param onLogout - Callback function to handle logout on authentication failure
  * @returns Promise<UserConfig[]> - Array of user configurations
  */
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 // Async function to fetch user configurations
 export const getUserConfigurations = createAsyncThunk(
   "userConfig/fetch",
@@ -73,6 +115,8 @@ export const getUserConfigurations = createAsyncThunk(
   }
 );
 
+<<<<<<< HEAD
+=======
 /**
  * User Configuration Redux Slice
  * 
@@ -91,6 +135,7 @@ export const getUserConfigurations = createAsyncThunk(
  * - getUserConfigurations.fulfilled: Sets loading to false, stores configurations
  * - getUserConfigurations.rejected: Sets loading to false on error
  */
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 // Redux slice
 const userConfigSlice = createSlice({
   name: "userConfig",

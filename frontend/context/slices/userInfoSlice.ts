@@ -1,8 +1,41 @@
+<<<<<<< HEAD
+// Copyright (c) 2025 WSO2 LLC. (https://www.wso2.com).
+//
+// WSO2 LLC. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+=======
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { BASE_URL, USER_INFO } from "@/constants/Constants";
 import { apiRequest } from "@/utils/requestHandler";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+<<<<<<< HEAD
+export type UserInfo = {
+  workEmail: string;
+  firstName: string;
+  lastName: string;
+  employeeThumbnail: string | null;
+};
+
+interface AppsState {
+  loading: boolean;
+  userInfo: UserInfo | null;
+  error: string | null;
+}
+
+=======
 /**
  * Interface representing user information/profile data
  * Contains comprehensive user details retrieved from the backend
@@ -38,12 +71,30 @@ interface AppsState {
 /**
  * Initial state for the user info slice
  */
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 const initialState: AppsState = {
   loading: false,
   userInfo: null,
   error: null,
 };
 
+<<<<<<< HEAD
+// Async function to fetch user info
+export const getUserInfo = createAsyncThunk(
+  "userInfo/fetch",
+  async (onLogout: () => Promise<void>, { rejectWithValue }) => {
+    try {
+      const response = await apiRequest(
+        {
+          url: `${BASE_URL}/user-info`,
+          method: "GET",
+        },
+        onLogout
+      );
+
+      if (response?.status === 200) return response.data;
+      else return rejectWithValue("User info not found");
+=======
 /**
  * Async thunk to fetch user information from the server
  * Retrieves user profile data including name, email, department, employee ID, and other details
@@ -98,12 +149,15 @@ export const getDetailedUserInfo = createAsyncThunk(
       } else {
         return rejectWithValue("Detailed user info not found");
       }
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
     } catch (error) {
       return rejectWithValue(error);
     }
   }
 );
 
+<<<<<<< HEAD
+=======
 /**
  * User Info Redux Slice
  * 
@@ -128,6 +182,7 @@ export const getDetailedUserInfo = createAsyncThunk(
  * - getDetailedUserInfo.fulfilled: Sets loading to false, stores detailed user info, saves to AsyncStorage
  * - getDetailedUserInfo.rejected: Sets loading to false, stores error message
  */
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 // Redux slice
 const userInfoSlice = createSlice({
   name: "userInfo",
@@ -139,18 +194,30 @@ const userInfoSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+<<<<<<< HEAD
+      .addCase(getUserInfo.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getUserInfo.fulfilled, (state, action) => {
+=======
 
       .addCase(getDetailedUserInfo.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(getDetailedUserInfo.fulfilled, (state, action) => {
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
         state.loading = false;
         state.userInfo = action.payload;
 
         AsyncStorage.setItem(USER_INFO, JSON.stringify(state.userInfo));
       })
+<<<<<<< HEAD
+      .addCase(getUserInfo.rejected, (state, action) => {
+=======
       .addCase(getDetailedUserInfo.rejected, (state, action) => {
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
         state.loading = false;
         state.error = action.payload as string;
       });

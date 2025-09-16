@@ -1,6 +1,10 @@
 import ballerina/time;
 
+<<<<<<< HEAD
+// Service configuration
+=======
 // Service configuration (override via Config.toml or env vars)
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 configurable int serverPort = 9090;
 configurable string environment = "development";
 configurable string serviceVersion = "1.0.0";
@@ -13,7 +17,11 @@ configurable int tokenExpirySeconds = 3600; // 1 hour
 // Public endpoints that don't require authentication
 public string[] publicEndpoints = ["/api/v1/payslips/health"];
 
+<<<<<<< HEAD
+// Authentication configuration
+=======
 // Authentication configuration object used across the service
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 public AuthConfig authConfig = {
     enabled: authEnabled,
     jwtSecret: authEnabled ? jwtSecret : (),
@@ -23,6 +31,8 @@ public AuthConfig authConfig = {
 
 // Service start time for uptime calculation
 public time:Utc serviceStartTime = time:utcNow();
+<<<<<<< HEAD
+=======
 
 // Database configuration
 public type DatabaseConfig record {
@@ -41,3 +51,4 @@ public type DatabaseConfig record {
 // DB_USER = "root"
 // DB_PASSWORD = ""
 public configurable DatabaseConfig databaseConfig = ?;
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564

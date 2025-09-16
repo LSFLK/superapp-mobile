@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // Copyright (c) 2025 WSO2 LLC. (https://www.wso2.com).
 //
 // WSO2 LLC. licenses this file to you under the Apache License,
@@ -14,10 +13,31 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
-=======
->>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
-export type DecodedAccessToken = {
-  email?: string;
-  given_name?: string;
-  family_name?: string;
+
+/**
+ * Represents a single article in the WSO2 Library.
+ */
+export type LibraryArticle = {
+  nid: string;
+  title: string;
+  url: string;
+  date: string;
+  featured_image: string;
+  teaser: string;
+  content_name: string;
+  productNames: string | null;
+  productAreaNames: string | null;
+  industriesNames: string | null;
+  regionNames: string | null;
+  choreo_tag: string;
+  product_cls: string[];
+  productArea_cls: string[];
+  industry_cls: string[];
+  region_cls: string[];
+  content_cls: string;
+  author: string;
+  author_img: string;
+  author_profile: string | null;
+  author_designation: string;
+  author_company: string;
 };

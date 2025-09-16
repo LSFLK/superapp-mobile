@@ -8,7 +8,11 @@ import { AppDispatch, RootState } from "@/context/store";
 import { router } from "expo-router";
 import { jwtDecode } from "jwt-decode";
 import { DecodedAccessToken } from "@/types/decodeAccessToken.types";
+<<<<<<< HEAD
+import { getUserInfo, setUserInfo } from "@/context/slices/userInfoSlice";
+=======
 import { setUserInfo } from "@/context/slices/userInfoSlice";
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 import { logout } from "@/services/authService";
 
 
@@ -74,6 +78,17 @@ const LoginScreen = () => {
 
   return (
     <SafeAreaView style={styles(colorScheme).container}>
+<<<<<<< HEAD
+      <View style={styles(colorScheme).overlay}>
+        <View style={styles(colorScheme).modal}>
+          <SignInMessage />
+          {/* log response from asgardio and saved tokens */}
+          {/* <Text>{JSON.stringify(userInfo, null, 2)}</Text> */}
+
+        </View>
+      </View>
+      <View style={styles(colorScheme).bottomContainer}>
+=======
       <View style={styles(colorScheme).contentContainer}>
         {/* Header */}
         <View style={styles(colorScheme).header}>
@@ -88,6 +103,7 @@ const LoginScreen = () => {
         </View>
 
         {/* Version */}
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
         <View style={styles(colorScheme).versionContainer}>
           <Text style={styles(colorScheme).versionText}>version {version}</Text>
         </View>
@@ -103,6 +119,41 @@ const styles = (colorScheme: "light" | "dark") =>
     container: {
       flex: 1,
       backgroundColor: Colors[colorScheme].primaryBackgroundColor,
+<<<<<<< HEAD
+      justifyContent: "space-between",
+    },
+    overlay: {
+      flex: 1,
+      backgroundColor: Colors[colorScheme].primaryBackgroundColor,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    modal: {
+      backgroundColor: Colors[colorScheme].primaryBackgroundColor,
+      padding: 30,
+      borderRadius: 16,
+      width: "90%",
+      alignItems: "center",
+    },
+    bottomContainer: {
+      marginBottom: 80,
+    },
+    versionContainer: {
+      alignItems: "center",
+    },
+    versionText: {
+      color: Colors[colorScheme].text,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    loadingText: {
+      color: Colors[colorScheme].text,
+      marginTop: 16,
+      fontSize: 16,
+=======
     },
     contentContainer: {
       flex: 1,
@@ -167,5 +218,6 @@ const styles = (colorScheme: "light" | "dark") =>
       marginTop: 16,
       fontSize: 16,
       fontWeight: '500',
+>>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
     },
   });

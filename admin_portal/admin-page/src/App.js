@@ -14,6 +14,7 @@
 
 import React from "react";
 import UploadExcel from "./components/UploadExcel";
+
 import { useAuthContext } from "@asgardeo/auth-react";
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
 
   const isAuthed = state.isAuthenticated;
   const username = state.username;
+
 
   return (
     <div style={styles.appContainer}>
@@ -30,6 +32,7 @@ function App() {
       </header>
 
       <main style={styles.main}>
+
         {!isAuthed ? (
           <button onClick={() => signIn()}>Login</button>
         ) : (
@@ -43,6 +46,7 @@ function App() {
             <UploadExcel />
           </div>
         )}
+
       </main>
     </div>
   );
