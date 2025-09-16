@@ -6,13 +6,13 @@ import ballerinax/mysql;
 import ballerina/sql;
 import ballerinax/mysql.driver as _; // bundle driver
 
-// Create MySQL client bound to the configured database
-final mysql:Client db = check new(
-    host = DB_HOST,
-    port = DB_PORT,
-    user = DB_USER,
-    password = DB_PASSWORD,
-    database = DB_NAME
+
+mysql:Client db = check new(
+    host = databaseConfig.DB_HOST,
+    port = databaseConfig.DB_PORT,
+    user = databaseConfig.DB_USER,
+    password = databaseConfig.DB_PASSWORD,
+    database = databaseConfig.DB_NAME
 );
 
 // Initialize DB - create table if not exists
