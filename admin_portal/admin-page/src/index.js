@@ -9,12 +9,13 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
   <AuthProvider 
-  config={ {
-      signInRedirectURL: window.location.origin,
-      signOutRedirectURL: window.location.origin,
+      config={ {
+  signInRedirectURL: process.env.REDIRECT_URL,
+  signOutRedirectURL: process.env.REDIRECT_URL,
       clientID: "s89UtsqQ0_rTfwO783jZw51vHxoa",
       baseUrl: "https://api.asgardeo.io/t/jayathunga",
-      scope: [ "openid","profile" ]
+      // storage: "sessionStorage",
+          scope: [ "openid","profile" ]
     } }
   >
       <App />
