@@ -15,17 +15,17 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
 
-  {/* <AuthProvider
+  <AuthProvider
   config={ {
-            signInRedirectURL: "https://b9852c74-bc78-48f6-9b02-bbd2da8fd972.e1-us-east-azure.choreoapps.dev",
-            signOutRedirectURL: "https://b9852c74-bc78-48f6-9b02-bbd2da8fd972.e1-us-east-azure.choreoapps.dev",
-            clientID: "Hza4f1SMGU1t6SiB8mRGm0jyoTYa",
+            signInRedirectURL: "https://a96477cc-362b-4509-95ad-fcdb6507c34a.e1-us-east-azure.choreoapps.dev",
+            signOutRedirectURL: "https://a96477cc-362b-4509-95ad-fcdb6507c34a.e1-us-east-azure.choreoapps.dev",
+            clientID: "Bj8K5_LUYGGGy8lvc2xtSvfbj3ca",
             baseUrl: "https://api.asgardeo.io/t/jayathunga",
             scope: [ "openid","profile" ]
         } }
-  > */}
+  >
       <App />
-    {/* </AuthProvider> */}
+    </AuthProvider>
     
 
   </React.StrictMode>
