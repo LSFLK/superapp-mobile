@@ -124,7 +124,6 @@ body {
   padding: 10px 16px;
   border-radius: 10px;
   font-weight: 600;
-  font-size: 1rem;
   cursor: pointer;
   transition: transform 0.05s ease, background 0.2s ease, border-color 0.2s ease;
 }
@@ -159,3 +158,31 @@ body {
 .message { margin-top: 16px; font-size: 0.95rem; }
 .message.success { color: #059669; }
 .message.error { color: #dc2626; }
+
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+.modal {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  width: 100%;
+  max-width: 520px;
+}
+.modal__header, .modal__footer {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.modal__header { font-weight: 700; }
+.modal__body { padding: 18px; }
+.modal__footer { border-top: 1px solid var(--border); border-bottom: 0; display:flex; justify-content:flex-end; gap:8px; }

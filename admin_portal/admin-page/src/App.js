@@ -24,8 +24,9 @@ function App() {
 
   const isAuthed = Boolean(state?.isAuthenticated);
   const username = state?.username || "";
-  // Try best-effort first name: given_name -> displayName -> first token of username
-  const firstName = (state?.given_name || state?.displayName || username || "").split(" ")[0];
+  // Prefer email local-part (before @) if username is an email; otherwise fall back to displayName/given_name
+  const emailLocalPart = username.includes("@") ? username.split("@")[0] : "";
+  const firstName = ( state?.displayName || emailLocalPart || state?.given_name || username || "").split(" ")[0];
 
   useEffect(() => {
     if (isAuthed) {
@@ -53,7 +54,7 @@ function App() {
       )}
 
       <header className="hero container">
-        <h1>Upload and Manage Payslips</h1>
+        <h1></h1>
         
       </header>
 
@@ -64,12 +65,12 @@ function App() {
           </section>
         ) : (
           <section className="card" style={{ textAlign: "center" }}>
-            <h2 style={{ marginTop: 0 }}>Please sign in</h2>
+            <h2 style={{ marginTop: 0 }}>Please Sign In</h2>
             <p style={{ color: "var(--muted)", marginTop: 0 }}>
               You must be logged in to upload payslips.
             </p>
             <button className="btn btn--primary" onClick={() => signIn && signIn()}>
-              Login
+              Sign In
             </button>
           </section>
         )}
