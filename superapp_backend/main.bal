@@ -2,6 +2,20 @@ import ballerina/http;
 import ballerina/log;
 //import ballerina/io;
 
+// public function main() returns error? {
+//     // Example parameters for insertMicroAppWithZip
+//     string name = "Payslip Viewer";
+//     string version = "1.0.0";
+//     string zipFilePath = "C:/Users/Sandamini/Documents/WORK/payslip-viewer.zip"; // Path to the ZIP file
+//     string appId = "payslip-viewer";
+//     string iconUrlPath = "";
+
+//     // Call the insertMicroAppWithZip function
+//     check insertMicroAppWithZip(name, version, zipFilePath, appId, iconUrlPath);
+//     io:println("Micro-app insertion completed successfully.");
+// }
+
+
 service class ErrorInterceptor {
     *http:ResponseErrorInterceptor;
 
