@@ -32,10 +32,10 @@ function App() {
 
   return (
     <div style={styles.appContainer}>
-      <header style={styles.header}>
+      {/* <header style={styles.header}>
         <h1 style={styles.title}>Payslip Management</h1>
         <p style={styles.subtitle}>Upload and manage employee payslips with ease</p>
-      </header>
+      </header> */}
 
       <main style={styles.main}>
 
