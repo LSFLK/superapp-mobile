@@ -83,8 +83,8 @@ export async function fetchPayslipByEmployee(employeeId, payPeriod = null) {
   }
   
   const endpoint = payPeriod 
-    ? `/payslips/${encodeURIComponent(employeeId)}?payPeriod=${encodeURIComponent(payPeriod)}`
-    : `/payslips/${encodeURIComponent(employeeId)}`;
+    ? `/${encodeURIComponent(employeeId)}?payPeriod=${encodeURIComponent(payPeriod)}`
+    : `/${encodeURIComponent(employeeId)}`;
     
   return apiRequest(endpoint);
 }
@@ -94,7 +94,7 @@ export async function fetchPayslipByEmployee(employeeId, payPeriod = null) {
  * @returns {Promise<Object>} Health status response
  */
 export async function checkApiHealth() {
-  return apiRequest('/payslips/health');
+  return apiRequest('/health');
 }
 
 /**

@@ -1,0 +1,210 @@
+// Copyright (c) 2025 WSO2 LLC. (https://www.wso2.com).
+//
+// WSO2 LLC. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Alert } from "react-native";
+
+/**
+ * SINGLE PLACE TO ADD/MODIFY BRIDGE FUNCTIONS
+ * 
+ * This registry defines all bridge functions in one place.
+ * To add a new bridge function:
+ * 1. Add it to this registry
+ * 2. That's it! Everything else is auto-generated.
+ */
+
+export interface BridgeFunction {
+  topic: string;
+  handler: (params: any, context: BridgeContext) => Promise<void> | void;
+  webViewMethods: {
+    request?: string;
+    resolve?: string;
+    reject?: string;
+    helper?: string;
+  };
+}
+
+export interface BridgeContext {
+  empID: string;
+  token: string | null;
+  setScannerVisible: (visible: boolean) => void;
+  sendResponseToWeb: (method: string, data?: any) => void;
+  pendingTokenRequests: ((token: string) => void)[];
+}
+
+// 🎯 THE ONLY PLACE DEVS NEED TO MODIFY TO ADD BRIDGE FUNCTIONS
+export const BRIDGE_REGISTRY: BridgeFunction[] = [
+  {
+    topic: "token",
+    handler: async (params, context) => {
+      if (context.token) {
+        context.sendResponseToWeb("resolveToken", context.token);
+        
+        // Resolve any pending token requests
+        while (context.pendingTokenRequests.length > 0) {
+          const resolve = context.pendingTokenRequests.shift();
+          resolve?.(context.token);
+        }
+      } else {
+        context.pendingTokenRequests.push((token) => {
+          context.sendResponseToWeb("resolveToken", token);
+        });
+      }
+    },
+    webViewMethods: {
+      request: "requestToken",
+      resolve: "resolveToken",
+      helper: "getToken"
+    }
+  },
+
+  {
+    topic: "emp_id", 
+    handler: async (params, context) => {
+      context.sendResponseToWeb("resolveEmpId", context.empID);
+    },
+    webViewMethods: {
+      request: "requestEmpId",
+      resolve: "resolveEmpId", 
+      helper: "getEmpId"
+    }
+  },
+
+  {
+    topic: "qr_request",
+    handler: async (params, context) => {
+      context.setScannerVisible(true);
+    },
+    webViewMethods: {
+      request: "requestQr"
+    }
+  },
+
+  {
+    topic: "alert",
+    handler: async (params, context) => {
+      const { title, message, buttonText } = params;
+      Alert.alert(title, message, [{ text: buttonText }], { cancelable: false });
+    },
+    webViewMethods: {
+      request: "requestAlert"
+    }
+  },
+
+  {
+    topic: "confirm_alert",
+    handler: async (params, context) => {
+      const { title, message, cancelButtonText, confirmButtonText } = params;
+      Alert.alert(
+        title,
+        message,
+        [
+          {
+            text: cancelButtonText,
+            style: "cancel",
+            onPress: () => context.sendResponseToWeb("resolveConfirmAlert", "cancel"),
+          },
+          {
+            text: confirmButtonText,
+            onPress: () => context.sendResponseToWeb("resolveConfirmAlert", "confirm"),
+          },
+        ],
+        { cancelable: false }
+      );
+    },
+    webViewMethods: {
+      request: "requestConfirmAlert",
+      resolve: "resolveConfirmAlert"
+    }
+  },
+
+  {
+    topic: "save_local_data",
+    handler: async (params, context) => {
+      try {
+        const { key, value } = params;
+        await AsyncStorage.setItem(key, value);
+        context.sendResponseToWeb("resolveSaveLocalData");
+      } catch (error) {
+        const errMessage = error instanceof Error ? error.message : "Unknown error";
+        context.sendResponseToWeb("rejectSaveLocalData", errMessage);
+      }
+    },
+    webViewMethods: {
+      request: "requestSaveLocalData",
+      resolve: "resolveSaveLocalData",
+      reject: "rejectSaveLocalData"
+    }
+  },
+
+  {
+    topic: "get_local_data",
+    handler: async (params, context) => {
+      try {
+        const { key } = params;
+        const value = await AsyncStorage.getItem(key);
+        context.sendResponseToWeb("resolveGetLocalData", { value });
+      } catch (error) {
+        const errMessage = error instanceof Error ? error.message : "Unknown error";
+        context.sendResponseToWeb("rejectGetLocalData", errMessage);
+      }
+    },
+    webViewMethods: {
+      request: "requestGetLocalData",
+      resolve: "resolveGetLocalData",
+      reject: "rejectGetLocalData"
+    }
+  },
+
+  // 🚀 EXAMPLE: Adding a new bridge function is as simple as adding it here
+  // {
+  //   topic: "get_device_info",
+  //   handler: async (params, context) => {
+  //     const deviceInfo = {
+  //       platform: Platform.OS,
+  //       version: Platform.Version,
+  //     };
+  //     context.sendResponseToWeb("resolveDeviceInfo", deviceInfo);
+  //   },
+  //   webViewMethods: {
+  //     request: "requestDeviceInfo",
+  //     resolve: "resolveDeviceInfo"
+  //   }
+  // },
+
+  // 🚀 EXAMPLE: Bridge function with custom logic
+  // {
+  //   topic: "calculate_something",
+  //   handler: async (params, context) => {
+  //     const { a, b } = params;
+  //     const result = a + b;
+  //     context.sendResponseToWeb("resolveCalculation", { result });
+  //   },
+  //   webViewMethods: {
+  //     request: "requestCalculation",
+  //     resolve: "resolveCalculation"
+  //   }
+  // }
+];
+
+// Utility functions to work with the registry
+export const getBridgeTopics = () => BRIDGE_REGISTRY.map(fn => fn.topic);
+
+export const getBridgeHandler = (topic: string) => 
+  BRIDGE_REGISTRY.find(fn => fn.topic === topic)?.handler;
+
+export const getBridgeFunction = (topic: string) =>
+  BRIDGE_REGISTRY.find(fn => fn.topic === topic);

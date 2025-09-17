@@ -27,9 +27,9 @@ import { Stack, useLocalSearchParams } from "expo-router";
 import NotFound from "@/components/NotFound";
 //import Scanner from "@/components/Scanner";
 import { useDispatch } from "react-redux";
-import { injectedJavaScript, TOPIC } from "@/utils/bridge";
+import { getBridgeHandler, BridgeContext } from "@/utils/bridgeRegistry";
+import { injectedJavaScript } from "@/utils/bridge";
 //import { logout, tokenExchange } from "@/services/authService";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { documentDirectory } from "expo-file-system";
 import { MicroAppParams } from "@/types/navigation";
 import { Colors } from "@/constants/Colors";
@@ -65,8 +65,9 @@ const MicroApp = () => {
   const [webUri, setWebUri] = useState<string>(DEVELOPER_APP_DEFAULT_URL);
   const colorScheme = useColorScheme();
   const styles = createStyles(colorScheme ?? "light");
-  const isDeveloper: boolean = appId.includes("developer");
-  const isTotp: boolean = appId.includes("totp");
+  // const isDeveloper: boolean = appId.includes("developer");
+  const isDeveloper: boolean = false; // Temporarily disable developer mode
+  // const isTotp: boolean = appId.includes("totp");
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     iosClientId: GOOGLE_IOS_CLIENT_ID,
@@ -126,222 +127,34 @@ const MicroApp = () => {
     console.log("recieved emp ID ; " , empID);
     // Send empID to WebView when it's available
     if (empID) {
-      sendEmpIdToWebView(empID);
+      sendResponseToWeb("resolveEmpId", empID);
     }
   }, [empID]);
 
-  // Function to send token to WebView
-  const sendTokenToWebView = (token: string) => {
-    if (!token) return;
-    sendResponseToWeb("resolveToken", token);
-
-    // Resolve any pending token requests
-    while (pendingTokenRequests.length > 0) {
-      const resolve = pendingTokenRequests.shift();
-      resolve?.(token);
-    }
-  };
-
-  // Function to send empID to WebView
-  const sendEmpIdToWebView = (empId: string) => {
-    if (!empId) return;
-    sendResponseToWeb("resolveEmpId", empId);
-  };
-
-  /* Function to send QR string to WebView
-  const sendQrToWebView = (qrString: string) => {
-    sendResponseToWeb("resolveQrCode", qrString);
-  };*/
-
-  // Function to view alert from parent app
-  const handleAlert = async (
-    title: string,
-    message: string,
-    buttonText: string
-  ) => {
-    Alert.alert(title, message, [{ text: buttonText }], { cancelable: false });
-  };
-
-  // Function to get confirmation from parent app
-  const handleConfirmAlert = async (
-    title: string,
-    message: string,
-    cancelButtonText: string,
-    confirmButtonText: string
-  ) => {
-    Alert.alert(
-      title,
-      message,
-      [
-        {
-          text: cancelButtonText,
-          style: "cancel",
-          onPress: () => sendResponseToWeb("resolveConfirmAlert", "cancel"),
-        },
-        {
-          text: confirmButtonText,
-          onPress: () => sendResponseToWeb("resolveConfirmAlert", "confirm"),
-        },
-      ],
-      { cancelable: false }
-    );
-  };
-
-  // Function to save data in device
-  const handleSaveLocalData = async (key: string, value: string) => {
-    try {
-      await AsyncStorage.setItem(key, value);
-      sendResponseToWeb("resolveSaveLocalData");
-    } catch (error) {
-      const errMessage =
-        error instanceof Error ? error.message : "Unknown error";
-      sendResponseToWeb("rejectSaveLocalData", errMessage);
-    }
-  };
-
-  // Function to get data from device
-  const handleGetLocalData = async (key: string) => {
-    try {
-      const value = await AsyncStorage.getItem(key);
-      sendResponseToWeb("resolveGetLocalData", { value });
-    } catch (error) {
-      const errMessage =
-        error instanceof Error ? error.message : "Unknown error";
-      sendResponseToWeb("rejectSaveLocalData", errMessage);
-    }
-  };
-/*
-  // Function to migrate TOTP data
-  const handleTotpQrMigrationData = () => {
-    const mockData = "sample-data-1,sample-data-2";
-    sendResponseToWeb("resolveTotpQrMigrationData", { data: mockData });
-  };*/
-/*
-  // Fucntion to authenticate using google
-  const authenticateWithGoogle = async () => {
-    promptAsync();
-  };*/
-/*
-  // Function to upload data to the Google Drive
-  const handledUploadToGoogleDrive = async (data: any = {}) => {
-    uploadToGoogleDrive(data)
-      .then((res) => {
-        if (res.id) {
-          sendResponseToWeb("resolveUploadToGoogleDrive", res);
-        } else {
-          sendResponseToWeb("rejectUploadToGoogleDrive", res.error);
-        }
-      })
-      .catch((err) => {
-        sendResponseToWeb("rejectUploadToGoogleDrive", err.message);
-      });
-  };
-
-  // Function to check Google authentication state
-  const handleCheckGoogleAuthState = async () => {
-    isAuthenticatedWithGoogle()
-      .then((res) => {
-        if (res) {
-          sendResponseToWeb("resolveGoogleAuthState", res);
-        } else {
-          sendResponseToWeb("rejectGoogleAuthState", "Not authenticated");
-        }
-      })
-      .catch((err) => {
-        sendResponseToWeb("rejectGoogleAuthState", err.message);
-      });
-  };
-
-  // Function to restore the latest backup from Google Drive
-  const RestoreLatestFromGoogleDrive = async () => {
-    restoreGoogleDriveBackup()
-      .then((res) => {
-        if (res) {
-          sendResponseToWeb("resolveRestoreGoogleDriveBackup", res.data);
-        } else {
-          sendResponseToWeb("rejectRestoreGoogleDriveBackup", res.error);
-        }
-      })
-      .catch((err) => {
-        sendResponseToWeb("rejectRestoreGoogleDriveBackup", err.message);
-      });
-  };
-
-  // Function to get Google user info
-  const handleGetGoogleUserInfo = async () => {
-    try {
-      getGoogleUserInfo()
-        .then((res) => {
-          if (res) {
-            sendResponseToWeb("resolveGoogleUserInfo", res);
-          } else {
-            sendResponseToWeb("rejectGoogleUserInfo", "No user info found");
-          }
-        })
-        .catch((err) => {
-          sendResponseToWeb("rejectGoogleUserInfo", err.message);
-        });
-    } catch (error) {
-      console.error("Error getting Google user info:", error);
-      sendResponseToWeb("rejectGoogleUserInfo", "Failed to get user info");
-    }
-  };*/
-
-  // Handle messages from WebView
+  // Handle messages from WebView - Now using registry-based approach
   const onMessage = async (event: WebViewMessageEvent) => {
     try {
       const { topic, data } = JSON.parse(event.nativeEvent.data);
       if (!topic) throw new Error("Invalid message format: Missing topic");
-      switch (topic) {
-        case TOPIC.TOKEN:
-          token
-            ? sendTokenToWebView(token)
-            : pendingTokenRequests.push(sendTokenToWebView);
-          break;
-        case TOPIC.EMP_ID:
-          sendEmpIdToWebView(empID);
-          break;
-        case TOPIC.QR_REQUEST:
-          setScannerVisible(true);
-          break;
-        case TOPIC.SAVE_LOCAL_DATA:
-          await handleSaveLocalData(data.key, data.value);
-          break;
-        case TOPIC.GET_LOCAL_DATA:
-          await handleGetLocalData(data.key);
-          break;
-        /* case TOPIC.TOTP:
-          handleTotpQrMigrationData();
-          break; */
-        case TOPIC.ALERT:
-          handleAlert(data.title, data.message, data.buttonText);
-          break;
-        case TOPIC.CONFIRM_ALERT:
-          handleConfirmAlert(
-            data.title,
-            data.message,
-            data.cancelButtonText,
-            data.confirmButtonText
-          );
-          break;
-        /* case TOPIC.GOOGLE_LOGIN:
-          authenticateWithGoogle();
-          break; */
-        /* case TOPIC.UPLOAD_TO_GOOGLE_DRIVE:
-          handledUploadToGoogleDrive(data);
-          break; */
-       /*  case TOPIC.RESTORE_GOOGLE_DRIVE_BACKUP:
-          RestoreLatestFromGoogleDrive();
-          break; */
-        /* case TOPIC.CHECK_GOOGLE_AUTH_STATE:
-          handleCheckGoogleAuthState();
-          break; */
-        /* case TOPIC.GOOGLE_USER_INFO:
-          handleGetGoogleUserInfo();
-          break; */
-        default:
-          console.error("Unknown topic:", topic);
+      
+      // Get handler from registry
+      const handler = getBridgeHandler(topic);
+      if (!handler) {
+        console.error("Unknown topic:", topic);
+        return;
       }
+
+      // Create bridge context
+      const bridgeContext: BridgeContext = {
+        empID,
+        token: token || null,
+        setScannerVisible,
+        sendResponseToWeb,
+        pendingTokenRequests
+      };
+
+      // Execute handler
+      await handler(data, bridgeContext);
     } catch (error) {
       console.error("Error handling WebView message:", error);
     }
@@ -358,7 +171,7 @@ const MicroApp = () => {
   };
 
   const renderWebView = (webViewUri: string) => {
-    // webViewUri = "http://10.0.2.2:5173";
+    // webViewUri = "http://10.100.5.83:5173/";
     // Check if web view uri is available
     if (!webViewUri) {
       Alert.alert("Error", "Microapp URL not found. Please check the configuration.");
