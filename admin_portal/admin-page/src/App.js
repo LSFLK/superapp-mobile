@@ -14,7 +14,6 @@
 
 import React, { useEffect } from "react";
 import UploadExcel from "./components/UploadExcel";
-
 import { useAuthContext } from "@asgardeo/auth-react";
 
 function App() {
@@ -25,73 +24,58 @@ function App() {
 
   const isAuthed = Boolean(state?.isAuthenticated);
   const username = state?.username || "";
+  // Try best-effort first name: given_name -> displayName -> first token of username
+  const firstName = (state?.given_name || state?.displayName || username || "").split(" ")[0];
 
   useEffect(() => {
     if (isAuthed) {
-      // User is authenticated, you can perform actions here
       console.log("User is authenticated:", username);
     }
   }, [isAuthed, username]);
 
   return (
-    <div style={styles.appContainer}>
-      <header style={styles.header}>
-        <h1 style={styles.title}>Payslip Management</h1>
-        <p style={styles.subtitle}>Upload and manage employee payslips with ease</p>
+    <div>
+      <nav className="navbar">
+        <div className="container navbar__inner">
+          <div className="brand">Payslip Management</div>
+          <div className="actions">
+            {isAuthed ? (
+              <button className="btn btn--ghost" onClick={() => signOut && signOut()}>Logout</button>
+            ) : null}
+          </div>
+        </div>
+      </nav>
+
+      {isAuthed && (
+        <div className="container" style={{ marginTop: 16, marginBottom: 8 }}>
+          <div className="greeting">Hi {firstName}</div>
+        </div>
+      )}
+
+      <header className="hero container">
+        <h1>Upload and Manage Payslips</h1>
+        
       </header>
 
-      <main style={styles.main}>
-        {!isAuthed ? (
-          <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>
-            <button onClick={() => signIn && signIn()}>Login</button>
-          </div>
-        ) : (
-          <div style={{ width: "100%" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
-              <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
-                <li>{username}</li>
-              </ul>
-              <button onClick={() => signOut && signOut()}>Logout</button>
-            </div>
+      <main className="container" style={{ paddingBottom: 48 }}>
+        {isAuthed ? (
+          <section className="card">
             <UploadExcel />
-          </div>
+          </section>
+        ) : (
+          <section className="card" style={{ textAlign: "center" }}>
+            <h2 style={{ marginTop: 0 }}>Please sign in</h2>
+            <p style={{ color: "var(--muted)", marginTop: 0 }}>
+              You must be logged in to upload payslips.
+            </p>
+            <button className="btn btn--primary" onClick={() => signIn && signIn()}>
+              Login
+            </button>
+          </section>
         )}
       </main>
     </div>
   );
 }
-
-const styles = {
-  appContainer: {
-    minHeight: "100vh",
-    background: "linear-gradient(135deg, #f4f7fb, #e9eef5)",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    fontFamily: "Segoe UI, sans-serif",
-    padding: "40px 20px",
-  },
-  header: {
-    textAlign: "center",
-    marginTop: "40px",
-    marginBottom: "40px",
-  },
-  title: {
-    fontSize: "36px",
-    fontWeight: "700",
-    color: "#2c3e50",
-    marginBottom: "10px",
-  },
-  subtitle: {
-    fontSize: "16px",
-    color: "#555",
-    marginTop: "0",
-  },
-  main: {
-    display: "flex",
-    justifyContent: "center",
-    width: "100%",
-  },
-};
 
 export default App;

@@ -17,162 +17,148 @@
 //     // Convert first sheet to CSV
 //     const firstSheetName = workbook.SheetNames[0];
 //     const worksheet = workbook.Sheets[firstSheetName];
-//     const csv = XLSX.utils.sheet_to_csv(worksheet);
-
-//     // Convert CSV string to a Blob for uploading
-//     const csvBlob = new Blob([csv], { type: "text/csv" });
-
-//     // Prepare FormData
-//     const formData = new FormData();
-//     formData.append("file", csvBlob, "converted.csv");
-
-//     try {
-//       const response = await fetch("http://localhost:8080/api/v1/payslips/upload", {
-//         method: "POST",
-//         body: formData,
-//       });
-
-//       const result = await response.json();
-//       console.log("Upload successful:", result);
-//       setMessage(result.message + " | Rows: " + result.count);
-//     } catch (error) {
-//       console.error("Upload failed:", error);
-//       setMessage("Upload failed: " + error.message);
-//     }
-//   };
-
-//   return (
-//     <div style={{ padding: "20px" }}>
-//       <h2>Upload Excel / CSV for Payslips</h2>
-//       <input type="file" accept=".xlsx, .xls, .csv" onChange={handleFileUpload} />
-//       {message && <p>{message}</p>}
-//     </div>
-//   );
-// }
-
-
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import * as XLSX from "xlsx";
 
 export default function UploadExcel() {
   const [message, setMessage] = useState("");
+  const [isError, setIsError] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const [fileName, setFileName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const inputRef = useRef(null);
 
-  const handleFileUpload = async (event) => {
+  const parseToCSV = async (file) => {
+    const isCSV = /.csv$/i.test(file.name) || (file.type && file.type.includes("csv"));
+    if (isCSV) return file.text();
+    const data = await file.arrayBuffer();
+    const workbook = XLSX.read(data, {
+      type: "array",
+      cellText: false,
+      cellDates: true,
+      raw: false,
+      WTF: false,
+    });
+    if (!workbook.SheetNames?.length) throw new Error("No sheets found in the uploaded file.");
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+    if (!worksheet) throw new Error("First worksheet is empty.");
+    const csv = XLSX.utils.sheet_to_csv(worksheet, { FS: ",", RS: "\n" }) || "";
+    if (!csv.trim()) throw new Error("Parsed sheet is empty.");
+    return csv;
+  };
 
+  const handleUpload = async () => {
     try {
-      const file = event.target.files?.[0];
-      if (!file) return;
+      if (!selectedFile) return;
+      setIsError(false);
+      setMessage("");
+      setLoading(true);
 
-      // If it's already a CSV, pass-through directly
-      const isCSV = /\.csv$/i.test(file.name) || file.type.includes("csv");
-      let csvText = "";
-
-      if (isCSV) {
-        csvText = await file.text();
-      } else {
-        // Parse Excel with safe options
-        const data = await file.arrayBuffer();
-        const workbook = XLSX.read(data, {
-          type: "array",
-          cellText: false,
-          cellDates: true,
-          raw: false,
-          WTF: false,
-        });
-
-        if (!workbook.SheetNames?.length) {
-          setMessage("No sheets found in the uploaded file.");
-          return;
-        }
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
-        if (!worksheet) {
-          setMessage("First worksheet is empty.");
-          return;
-        }
-        csvText = XLSX.utils.sheet_to_csv(worksheet, { FS: ",", RS: "\n" }) || "";
-        if (!csvText.trim()) {
-          setMessage("Parsed sheet is empty.");
-          return;
-        }
-      }
-
+      const csvText = await parseToCSV(selectedFile);
       const csvBlob = new Blob([csvText], { type: "text/csv" });
       const formData = new FormData();
       formData.append("file", csvBlob, "converted.csv");
 
       const response = await fetch("http://localhost:9090/api/v1/payslips/upload", {
-
         method: "POST",
         body: formData,
       });
-
       const result = await response.json();
-
       if (!response.ok) throw new Error(result?.message || "Upload failed");
-      setMessage(`${result.message} | Rows: ${result.count}`);
+      setMessage(`${result.message}`);
+      setIsError(false);
     } catch (error) {
       console.error("Upload failed:", error);
       setMessage(`Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`);
-
+      setIsError(true);
+    } finally {
+      setLoading(false);
     }
   };
 
+  const onInputChange = (e) => {
+    const file = e.target.files?.[0] || null;
+    setMessage("");
+    setIsError(false);
+    setSelectedFile(file);
+    setFileName(file?.name || "");
+    if (inputRef.current) inputRef.current.value = "";
+  };
+
+  const onDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragging(false);
+    const file = e.dataTransfer.files?.[0] || null;
+    setMessage("");
+    setIsError(false);
+    setSelectedFile(file);
+    setFileName(file?.name || "");
+  };
+
+  const onDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!dragging) setDragging(true);
+  };
+  const onDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragging(false);
+  };
+
   return (
-    <div style={styles.card}>
-      <h2 style={styles.heading}>Upload Excel / CSV</h2>
-      <p style={styles.description}>
-        Select an Excel or CSV file to upload employee payslips.
+    <div>
+      <h2 style={{ marginTop: 0, marginBottom: 8 }}>Upload Excel / CSV</h2>
+      <p style={{ marginTop: 0, color: "var(--muted)", marginBottom: 16 }}>
+        Drag & drop a file here, or choose a file from your computer.
       </p>
-      <label style={styles.uploadLabel}>
-        <input
-          type="file"
-          accept=".xlsx, .xls, .csv"
-          onChange={handleFileUpload}
-          style={{ display: "none" }}
-        />
-        Choose File
-      </label>
-      {message && <p style={styles.message}>{message}</p>}
+
+      <div
+        className={`dropzone ${dragging ? "is-dragging" : ""}`}
+        onDrop={onDrop}
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+      >
+        <p className="dropzone__hint">.xlsx, .xls, .csv</p>
+        {fileName && <div className="dropzone__filename">{fileName}</div>}
+        <div style={{ marginTop: 14, display: "flex", gap: 8, justifyContent: "center" }}>
+          <label
+            className="btn btn--primary"
+            style={{
+              cursor: loading ? "not-allowed" : "pointer",
+              opacity: loading ? 0.8 : 1,
+              pointerEvents: loading ? "none" : "auto",
+            }}
+          >
+            Choose File
+            <input
+              ref={inputRef}
+              type="file"
+              accept=".xlsx, .xls, .csv"
+              onChange={onInputChange}
+              style={{ display: "none" }}
+              disabled={loading}
+            />
+          </label>
+          <button
+            className="btn btn--primary"
+            onClick={handleUpload}
+            disabled={!selectedFile || loading}
+            style={{ cursor: (!selectedFile || loading) ? "not-allowed" : "pointer", opacity: (!selectedFile || loading) ? 0.8 : 1 }}
+          >
+            {loading ? "Uploading…" : "Upload File"}
+          </button>
+        </div>
+      </div>
+
+      {message && (
+        <div className={`message ${isError ? "error" : "success"}`}>{message}</div>
+      )}
     </div>
   );
 }
-
-const styles = {
-  card: {
-    background: "#fff",
-    padding: "30px",
-    borderRadius: "12px",
-    boxShadow: "0 6px 16px rgba(0,0,0,0.08)",
-    width: "100%",
-    maxWidth: "500px",
-    textAlign: "center",
-  },
-  heading: {
-    fontSize: "24px",
-    fontWeight: "600",
-    marginBottom: "10px",
-    color: "#2c3e50",
-  },
-  description: {
-    fontSize: "14px",
-    color: "#666",
-    marginBottom: "20px",
-  },
-  uploadLabel: {
-    display: "inline-block",
-    padding: "12px 24px",
-    borderRadius: "8px",
-    background: "linear-gradient(135deg, #3498db, #2980b9)",
-    color: "#fff",
-    fontWeight: "500",
-    cursor: "pointer",
-    transition: "background 0.3s ease",
-  },
-  message: {
-    marginTop: "20px",
-    fontSize: "14px",
-    color: "#27ae60",
-  },
-};
+ 
 
