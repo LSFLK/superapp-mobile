@@ -54,7 +54,12 @@ function AppInitializer({ onReady }: { onReady: () => void }) {
         ]);
 
         if (savedApps) dispatch(setApps(JSON.parse(savedApps)));
-        if (savedUserInfo) dispatch(setUserInfo(JSON.parse(savedUserInfo)));
+        if (savedUserInfo) {
+          console.log("Restoring userInfo from AsyncStorage:", savedUserInfo);
+          dispatch(setUserInfo(JSON.parse(savedUserInfo)));
+        } else {
+          console.log("No userInfo found in AsyncStorage");
+        }
 
         dispatch(getVersions(handleLogout));
         dispatch(getUserConfigurations(handleLogout));

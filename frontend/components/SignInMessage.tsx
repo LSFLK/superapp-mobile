@@ -103,17 +103,19 @@ const createStyles = (colorScheme: "light" | "dark") =>
   StyleSheet.create({
     icon: {
       marginBottom: 8,
+      paddingLeft:3
     },
     title: {
       fontSize: 18,
       fontWeight: "bold",
       color: Colors[colorScheme].text,
-      marginBottom: 10,
+      marginBottom: 30,
+      paddingLeft:8
     },
     message: {
       fontSize: 16,
       textAlign: "center",
-      marginBottom: 30,
+      marginBottom: 15,
       color: Colors[colorScheme].primaryTextColor,
     },
     button: {
@@ -122,7 +124,7 @@ const createStyles = (colorScheme: "light" | "dark") =>
       justifyContent: "center",
       borderRadius: 12,
       paddingVertical: 12,
-      width: "80%",
+      width: "100%",
       marginBottom: 10,
     },
     buttonText: {

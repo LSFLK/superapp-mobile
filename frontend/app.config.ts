@@ -15,8 +15,8 @@ const APP_SCHEME = process.env.APP_SCHEME ?? "";
 const APP_SLUG = process.env.APP_SLUG && process.env.APP_SLUG.length > 0 ? process.env.APP_SLUG : "";
 const APP_OWNER = process.env.APP_OWNER ?? "";
 const APP_VERSION = process.env.APP_VERSION ?? "1.0.0";
-const BUNDLE_ID = process.env.BUNDLE_IDENTIFIER ?? "com.example";
-const ANDROID_PACKAGE = process.env.ANDROID_PACKAGE ?? "com.manodya.wso2superappmobile";
+const BUNDLE_ID = process.env.BUNDLE_IDENTIFIER ?? "";
+const ANDROID_PACKAGE = process.env.ANDROID_PACKAGE ?? "";
 // Google Sign-In without Firebase requires iosUrlScheme to start with "com.googleusercontent.apps.".
 // Provide a safe fallback pattern; override via IOS_URL_SCHEME env for real builds.
 const IOS_URL_SCHEME =
@@ -57,7 +57,7 @@ const config: ExpoConfig = {
   slug: APP_SLUG,
   scheme: APP_SCHEME,
   version: APP_VERSION,
-  owner: APP_OWNER || "govsupapp",
+  owner: APP_OWNER,
   newArchEnabled: true,
   userInterfaceStyle: "automatic",
   ios: {
@@ -81,7 +81,9 @@ const config: ExpoConfig = {
   },
   android: {
     package: ANDROID_PACKAGE,
-    // Note: manifestPlaceholders not part of ExpoConfig typings; library plugin will inject placeholder internally.
+
+    // googleServicesFile: androidJson, // Uncomment this if you use Firebase for Android
+        // Note: manifestPlaceholders not part of ExpoConfig typings; library plugin will inject placeholder internally.
     intentFilters: [
       {
         action: "VIEW",
@@ -90,7 +92,8 @@ const config: ExpoConfig = {
         category: ["BROWSABLE", "DEFAULT"],
       },
     ],
-    // googleServicesFile: androidJson, // Uncomment this if you use Firebase for Android
+
+    
     permissions: [
       "android.permission.CAMERA",
       "android.permission.RECORD_AUDIO",
@@ -111,7 +114,7 @@ const config: ExpoConfig = {
       { redirectScheme: APP_SCHEME, enableUniversalLinks: false },
     ],
   // Inject manifest placeholder for appAuthRedirectScheme early.
-  [require.resolve("./plugins/app-auth-placeholder.js")],
+  // [require.resolve("./plugins/app-auth-placeholder.js")],
     [
       "expo-build-properties",
       { android: { compileSdkVersion: 35, targetSdkVersion: 35, minSdkVersion: 24 } },
