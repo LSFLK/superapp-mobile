@@ -2,12 +2,6 @@ import ballerina/http;
 import ballerina/mime;
 import ballerina/log;
 import ballerina/io;
-<<<<<<< HEAD
-import ballerina/file;
-
-map<Payslip> uploadedPayslips = {};
-
-=======
 import ballerinax/mysql;
 import ballerina/sql;
 import ballerinax/mysql.driver as _; // bundle driver
@@ -48,9 +42,6 @@ isolated function ensureDatabaseSelected() returns error? {
 map<Payslip> uploadedPayslips = {};
 
 
-
-
->>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
 // CORS configuration for frontend access
 @http:ServiceConfig {
     cors: {
@@ -63,27 +54,17 @@ map<Payslip> uploadedPayslips = {};
 // Main payslip service
 service /api/v1/payslips on new http:Listener(serverPort) {
 
-<<<<<<< HEAD
-=======
+
     // run DB init on service start
     public function init() returns error? {
         check initDB();
     }
-
->>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
     // Health check endpoint (always public)
     resource function get health() returns HealthResponse {
         logRequest("GET", "/health");
         return createHealthResponse();
     }
 
-<<<<<<< HEAD
-    // POST endpoint to upload CSV
-    resource function post upload(http:Request req) returns json|error {
-        mime:Entity|error fileEntity = req.getEntity();
-        if fileEntity is error {
-            return {"error": "No file uploaded"};
-=======
     
 // POST endpoint to upload CSV and save to MySQL DB
     resource function post upload(http:Request req) returns json|error {
@@ -92,7 +73,6 @@ service /api/v1/payslips on new http:Listener(serverPort) {
         mime:Entity|error fileEntity = req.getEntity();
         if fileEntity is error {
             return <json>{ "error": "No file uploaded" };
->>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
         }
 
         // Save uploaded CSV temporarily
@@ -103,51 +83,24 @@ service /api/v1/payslips on new http:Listener(serverPort) {
         // Read CSV as a stream
         stream<string[], io:Error?> csvStream = check io:fileReadCsvAsStream(tempCsvPath);
 
-<<<<<<< HEAD
-        Payslip[] newPayslips = [];
-=======
->>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
         int processed = 0;
         int skipped = 0;
         int errors = 0;
 
-<<<<<<< HEAD
-        // Iterate CSV rows and populate payslipStore
-        check csvStream.forEach(function(string[] row) {
-            // Skip completely empty or 1-field rows that are blank (e.g., trailing newline)
-=======
+
     // We'll use REPLACE INTO to upsert by primary key (employeeId)
 
         // Iterate CSV rows and insert into DB
     check csvStream.forEach(function(string[] row) {
-            // Skip empty or invalid rows
->>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
             if row.length() == 0 {
                 skipped += 1;
                 return;
             }
-<<<<<<< HEAD
-            if row.length() == 1 {
-                string first = row[0].trim();
-                if first == "" {
-                    skipped += 1;
-                    return;
-                }
-            }
-
-            // Skip header row if present
-            string firstCol = row[0].toLowerAscii().trim();
-            if firstCol == "employeeid" {
-=======
             if row.length() == 1 && row[0].trim() == "" {
->>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
                 skipped += 1;
                 return;
             }
 
-<<<<<<< HEAD
-            // Validate minimum columns (0..8 => 9 columns required)
-=======
             // Skip header row (case-insensitive)
             string firstCol = row[0].toLowerAscii().trim();
             if firstCol == "employeeid" || firstCol == "employee_id" {
@@ -156,45 +109,12 @@ service /api/v1/payslips on new http:Listener(serverPort) {
             }
 
             // Validate minimum columns
->>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
+
             if row.length() < 9 {
                 errors += 1;
                 log:printWarn("Skipping row due to insufficient columns (" + row.length().toString() + ")");
                 return;
             }
-
-<<<<<<< HEAD
-            // Convert numeric strings to float safely
-            float|error basicSalary = 'float:fromString(row[5].trim());
-            float|error allowances = 'float:fromString(row[6].trim());
-            float|error deductions = 'float:fromString(row[7].trim());
-            float|error netSalary = 'float:fromString(row[8].trim());
-
-            do {
-                newPayslips.push({
-                    employeeId: row[0].trim(),
-                    designation: row[1].trim(),
-                    name: row[2].trim(),
-                    department: row[3].trim(),
-                    payPeriod: row[4].trim(),
-                    basicSalary: check basicSalary,
-                    allowances: check allowances,
-                    deductions: check deductions,
-                    netSalary: check netSalary
-                });
-                processed += 1;
-            } on fail var e {
-                errors += 1;
-                log:printError("Error processing row: " + e.toString());
-            }
-        });
-
-        // Replace global store
-        //payslipStore = newPayslips;
-
-    log:printInfo("CSV upload summary -> processed: " + processed.toString() + ", skipped: " + skipped.toString() + ", errors: " + errors.toString());
-    return { message: "CSV uploaded successfully", count: newPayslips.length(), processed, skipped, errors };
-=======
             // Parse numeric values safely (use decimal for money)
             decimal|error basicSalary = decimal:fromString(row[5].trim());
             decimal|error allowances = decimal:fromString(row[6].trim());
@@ -244,62 +164,9 @@ service /api/v1/payslips on new http:Listener(serverPort) {
             skipped: skipped,
             errors: errors
         };
->>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
     }
-
-
     // Get payslips from uploaded CSV as a map keyed by employeeId
     resource function get all() returns json|error {
-<<<<<<< HEAD
-        string csvPath = "./uploaded.csv";
-
-        // Check if file exists
-        // Check if file exists using ballerina/file
-        boolean exists = check file:test(csvPath, file:EXISTS);
-        if !exists {
-            return { message: "No uploaded CSV found", payslips: {} };
-        }
-
-        // Read CSV as a stream
-        stream<string[], io:Error?> csvStream = check io:fileReadCsvAsStream(csvPath);
-
-        Payslip[] payslips = [];
-
-        check csvStream.forEach(function(string[] row) {
-            // Skip empty or invalid rows
-            if row.length() < 9 || row[0].toLowerAscii().trim() == "employeeid" {
-                return;
-            }
-
-            float|error basicSalary = float:fromString(row[5].trim());
-            float|error allowances = float:fromString(row[6].trim());
-            float|error deductions = float:fromString(row[7].trim());
-            float|error netSalary = float:fromString(row[8].trim());
-
-            // Skip row if numeric parsing fails
-            if basicSalary is error || allowances is error || deductions is error || netSalary is error {
-                return;
-            }
-
-            payslips.push({
-                employeeId: row[0].trim(),
-                designation: row[1].trim(),
-                name: row[2].trim(),
-                department: row[3].trim(),
-                payPeriod: row[4].trim(),
-                basicSalary: basicSalary,
-                allowances: allowances,
-                deductions: deductions,
-                netSalary: netSalary
-            });
-        });
-
-        return {
-            status: "success",
-            message: "Fetched payslips from CSV",
-            count: payslips.length(),
-            data: payslips
-=======
     check ensureDatabaseSelected();
         // Prefer DB, but handle empty table gracefully
         sql:ParameterizedQuery q = `SELECT 
@@ -326,7 +193,6 @@ service /api/v1/payslips on new http:Listener(serverPort) {
             message: "Fetched payslips from database",
             count: rows.length(),
             data: rows
->>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
         };
     }
 
@@ -334,60 +200,6 @@ service /api/v1/payslips on new http:Listener(serverPort) {
     resource function get [string employeeId](http:Caller caller, http:Request req) returns error? {
         logRequest("GET", "/payslips/" + employeeId, employeeId);
 
-<<<<<<< HEAD
-        string csvFilePath = "./uploaded.csv";
-        boolean exists = check file:test(csvFilePath, file:EXISTS);
-        if !exists {
-            check caller->respond({
-                status: "error",
-                message: "CSV file not found",
-                errorCode: "FILE_NOT_FOUND"
-            });
-            return ();
-        }
-
-        Payslip? foundPayslip = ();
-
-        stream<string[], io:Error?> csvStream = check io:fileReadCsvAsStream(csvFilePath);
-        check csvStream.forEach(function(string[] row) {
-            if row.length() < 9 || row[0].toLowerAscii().trim() == "employeeid" {
-                return;
-            }
-
-            if row[0].trim() != employeeId {
-                return;
-            }
-
-            float|error basicSalary = float:fromString(row[5].trim());
-            float|error allowances = float:fromString(row[6].trim());
-            float|error deductions = float:fromString(row[7].trim());
-            float|error netSalary = float:fromString(row[8].trim());
-
-            if basicSalary is error || allowances is error || deductions is error || netSalary is error {
-                return;
-            }
-
-            foundPayslip = {
-                employeeId: row[0].trim(),
-                designation: row[1].trim(),
-                name: row[2].trim(),
-                department: row[3].trim(),
-                payPeriod: row[4].trim(),
-                basicSalary: basicSalary,
-                allowances: allowances,
-                deductions: deductions,
-                netSalary: netSalary
-            };
-        });
-
-        if foundPayslip is Payslip {
-            check caller->respond({
-                status: "success",
-                message: "Payslip retrieved successfully",
-                data: foundPayslip
-            });
-        } else {
-=======
     check ensureDatabaseSelected();
 
         // Query DB for the payslip
@@ -412,15 +224,14 @@ service /api/v1/payslips on new http:Listener(serverPort) {
                 data: row
             });
     } else if row is sql:NoRowsError {
->>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
+
             check caller->respond({
                 status: "error",
                 message: "Payslip not found",
                 errorCode: "RESOURCE_NOT_FOUND",
                 details: "No payslip found for employeeId: " + employeeId
             });
-<<<<<<< HEAD
-=======
+
         } else {
             // Unexpected DB error
             check caller->respond({
@@ -429,7 +240,6 @@ service /api/v1/payslips on new http:Listener(serverPort) {
                 errorCode: "DB_ERROR",
                 details: row.toString()
             });
->>>>>>> 5b8687358412d7783d27a172e47e38deb9ccc564
         }
 
         return ();

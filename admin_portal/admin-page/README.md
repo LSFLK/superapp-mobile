@@ -14,6 +14,32 @@ Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 The page will reload when you make changes.\
 You may also see any lint errors in the console.
 
+## Asgardeo setup (fix callback mismatch)
+
+If you see "Your application's callback URL does not match with the registered redirect URLs" when logging in, ensure the following:
+
+1) Configure environment variables. Copy `.env.example` to `.env.local` and fill in values:
+
+	- `REACT_APP_ASGARDEO_CLIENT_ID`
+	- `REACT_APP_ASGARDEO_BASE_URL` (e.g., `https://api.asgardeo.io/t/<org_name>`)
+	- `REACT_APP_SIGN_IN_REDIRECT_URL` (e.g., `http://localhost:3000/`)
+	- `REACT_APP_SIGN_OUT_REDIRECT_URL` (e.g., `http://localhost:3000/`)
+
+	Restart `npm start` after changes.
+
+2) In Asgardeo Console for your application, add EXACTLY these URLs:
+
+	- Allowed redirect URLs: `http://localhost:3000/`
+	- Authorized post-logout redirect URLs: `http://localhost:3000/`
+
+	Include any deployed URLs you will use in production as well (with the exact scheme, host, port, and path).
+
+Notes:
+
+- This app is served at the root path `/` in development. If you host it under a sub-path in production (e.g., `/admin/`), update both the env vars and the Asgardeo URLs accordingly (e.g., `https://example.com/admin/`).
+- Create React App only exposes env vars prefixed with `REACT_APP_`.
+- After updating env vars, stop and restart the dev server.
+
 ### `npm test`
 
 Launches the test runner in the interactive watch mode.\
