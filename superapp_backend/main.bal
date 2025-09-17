@@ -7,7 +7,7 @@ import ballerina/uuid; // For optional jti claim
 //import ballerina/io;
 
 
-////////////
+//////////// DEBUG
 
 // public function main() returns error? {
 //     string token_recieved = check createMicroappJWT("EMP004","payslip-viewer");
@@ -18,10 +18,10 @@ import ballerina/uuid; // For optional jti claim
 
 
 // Configurations (add these to your Config.toml or set as environment variables)
-configurable string superappIssuer = "superapp-issuer"; // e.g., "https://your-superapp.com"
-configurable string microappAudience = "microapp-backend"; // Audience for microapp JWTs
-configurable decimal tokenTTLSeconds = 300; // 5 minutes default TTL
-configurable string privateKeyPath = "./private.pem"; // Path to RS256 private key file
+configurable string superappIssuer = "superapp-issuer"; 
+//configurable string microappAudience = "microapp-backend"; 
+configurable decimal tokenTTLSeconds = 300; 
+configurable string privateKeyPath = "./private.pem"; 
 
 // Standalone function to create the microapp-specific JWT
 // Usage: string|error token = createMicroappJWT("emp-123", "app-456");
@@ -29,7 +29,7 @@ public function createMicroappJWT(string empId, string microAppId) returns strin
     // Build IssuerConfig for JWT
     jwt:IssuerConfig issuerConfig = {
         issuer: superappIssuer, // Issuer (your superapp backend)
-        audience: [microappAudience], // Audience as a string array for microapp backend
+        audience: microAppId, // Audience as a string array for microapp backend
         //sub: empId, // User emp_id as subject
         expTime: tokenTTLSeconds, // Expiry in seconds (relative to iat)
         customClaims: {
@@ -77,6 +77,39 @@ service http:InterceptableService / on new http:Listener(serverPort, config = {r
     # + return - ErrorInterceptor
     public function createInterceptors() returns http:Interceptor[] =>
     [new ErrorInterceptor()];
+
+
+    // Endpoint to generate and return a microapp-specific JWT
+    # Generate a microapp-specific JWT based on emp_id and micro_app_id.
+    #
+    # + ctx - Request context
+    # + emp_id - Employee ID (passed as query parameter)
+    # + micro_app_id - Microapp ID (passed as query parameter)
+    # + return - JSON with JWT or an error
+    resource function get micro\-app\-token(http:RequestContext ctx, string emp_id, string micro_app_id) returns json|http:BadRequest|http:InternalServerError {
+        // Validate input parameters
+        if emp_id.trim() == "" || micro_app_id.trim() == "" {
+            log:printError("Missing or empty emp_id or micro_app_id");
+            return <http:BadRequest>{
+                body: { "error": "Bad Request: emp_id and micro_app_id are required" }
+            };
+        }
+
+        // Generate the microapp-specific JWT
+        string|error token = createMicroappJWT(emp_id, micro_app_id);
+        if token is error {
+            log:printError("Failed to generate JWT for emp_id: " + emp_id + ", micro_app_id: " + micro_app_id, 'error = token);
+            return <http:InternalServerError>{
+                body: { "error": "Internal server error" }
+            };
+        }
+
+        // Return the token in JSON response
+        json response = { "token": token };
+        log:printInfo("Successfully generated JWT for emp_id: " + emp_id + ", micro_app_id: " + micro_app_id);
+        return response;
+    }
+
 
 
     // Endpoint to retrieve all users from the database
