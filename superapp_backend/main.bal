@@ -21,7 +21,6 @@ import ballerina/uuid; // For optional jti claim
 configurable string superappIssuer = "superapp-issuer"; 
 //configurable string microappAudience = "microapp-backend"; 
 configurable decimal tokenTTLSeconds = 300; 
-//configurable string privateKeyPath = "./private.pem"; 
 configurable string privateKeyPath = ?; 
 
 // Standalone function to create the microapp-specific JWT
@@ -99,7 +98,7 @@ service http:InterceptableService / on new http:Listener(serverPort, config = {r
         // Generate the microapp-specific JWT
         string|error token = createMicroappJWT(emp_id, micro_app_id);
         if token is error {
-            log:printError("Failed to generate JWT for emp_id: " + emp_id + ", micro_app_id: " + micro_app_id, 'error = token);
+            log:printError("Failed to generate JWT for emp_id this time too: " + emp_id + ", micro_app_id: " + micro_app_id, 'error = token);
             return <http:InternalServerError>{
                 body: { "error": "Internal server error" }
             };
