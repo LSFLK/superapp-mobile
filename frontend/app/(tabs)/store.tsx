@@ -107,20 +107,20 @@ export default function Store() {
   }, [installationQueue, isProcessingQueue, dispatch]);
 
   const handleInstallMicroApp = async (app: MicroApp) => {
-    if (!app.versions?.[0]?.downloadUrl) {
+    if (!app.download_url) {
       Alert.alert("Error", "Download URL not available for this app.");
       return;
     }
 
     // const downloadUrl = app.versions[0].downloadUrl;
-    const downloadUrl = `${BASE_URL}/micro-apps/`+app.appId+`/download`
+    const downloadUrl = app.download_url;
 
-    if (activeDownloadsRef.current.has(app.appId)) {
+    if (activeDownloadsRef.current.has(app.app_id)) {
       Alert.alert("Info", "This app is already being downloaded.");
       return;
     }
 
-    const isInQueue = installationQueue.some((item) => item.appId === app.appId);
+    const isInQueue = installationQueue.some((item) => item.appId === app.app_id);
     if (isInQueue) {
       Alert.alert("Info", "This app is already in the download queue.");
       return;
@@ -128,7 +128,7 @@ export default function Store() {
 
     setInstallationQueue((prev) => [
       ...prev,
-      { appId: app.appId, downloadUrl },
+      { appId: app.app_id, downloadUrl },
     ]);
   };
 
@@ -156,17 +156,17 @@ export default function Store() {
   };
 
   const renderMicroApp = ({ item }: { item: MicroApp }) => {
-    const isDownloading = downloading.includes(item.appId);
+    const isDownloading = downloading.includes(item.app_id);
     const isDownloaded = item.status === DOWNLOADED;
-    const inQueue = installationQueue.some((qItem) => qItem.appId === item.appId);
+    const inQueue = installationQueue.some((qItem) => qItem.appId === item.app_id);
 
     return (
       <View style={[styles.appCard, { backgroundColor: Colors[colorScheme].secondaryBackgroundColor }]}>
         <View style={styles.appHeader}>
           <View style={styles.appIcon}>
             <MicroAppIcon
-              iconUrl={item.iconUrl}
-              appId={item.appId}
+              iconUrl={item.icon_url}
+              appId={item.app_id}
               size={24}
               color={isDownloaded ? Colors.actionButtonTextColor : Colors[colorScheme].icon}
             />
@@ -178,9 +178,9 @@ export default function Store() {
             <Text style={[styles.appDescription, { color: Colors[colorScheme].secondaryTextColor }]} numberOfLines={2}>
               {item.description}
             </Text>
-            {item.versions?.[0] && (
+            {item.version && (
               <Text style={[styles.appVersion, { color: Colors[colorScheme].ternaryTextColor }]}>
-                Version {item.versions[0].version}
+                Version {String(item.version)}
               </Text>
             )}
           </View>
@@ -200,7 +200,7 @@ export default function Store() {
           ) : isDownloaded ? (
             <TouchableOpacity
               style={[styles.actionButton, styles.removeButton]}
-              onPress={() => handleRemoveMicroApp(item.appId)}
+              onPress={() => handleRemoveMicroApp(item.app_id)}
               activeOpacity={0.7}
             >
               <Ionicons name="trash-outline" size={16} color="#fff" />
@@ -245,7 +245,7 @@ export default function Store() {
         <FlatList
           data={apps}
           renderItem={renderMicroApp}
-          keyExtractor={(item) => item.appId}
+          keyExtractor={(item) => item.app_id}
           contentContainerStyle={styles.listContainer}
         refreshControl={
           <RefreshControl

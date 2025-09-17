@@ -73,7 +73,7 @@ export default function HomeScreen() {
 
   // Memoized computations - only show downloaded apps
   const downloadedApps = useMemo(() => {
-    return apps.filter(app => app && app.appId && app.status === DOWNLOADED);
+    return apps.filter(app => app && app.app_id && app.status === DOWNLOADED);
   }, [apps]);
 
   // Callbacks
@@ -177,7 +177,7 @@ export default function HomeScreen() {
       <FlatList
         data={downloadedApps}
         renderItem={renderMicroAppCard}
-        keyExtractor={(item) => item.appId}
+        keyExtractor={(item) => item.app_id}
         numColumns={2}
         columnWrapperStyle={styles.row}
         showsVerticalScrollIndicator={false}

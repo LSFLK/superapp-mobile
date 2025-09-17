@@ -69,7 +69,7 @@ export const getDetailedUserInfo = createAsyncThunk(
     try {
       const response = await apiRequest(
         {
-          url: `${BASE_URL}/user-info?email=${params.email}`,
+          url: `${BASE_URL}/users/${params.email}`,
           method: "GET",
         },
         params.onLogout
@@ -80,19 +80,11 @@ export const getDetailedUserInfo = createAsyncThunk(
         // Map the response to our UserInfo structure
         return {
           workEmail: params.email,
-          firstName: data.firstName,
-          lastName: data.lastName || '',
+          firstName: data.first_name,
+          lastName: data.last_name || '',
           employeeThumbnail: data.employeeThumbnail || null,
           department: data.department,
-          employeeID: data.employeeID,
-          position: data.position,
-          phoneNumber: data.phoneNumber,
-          ministry: data.ministry,
-          branch: data.branch,
-          division: data.division,
-          grade: data.grade,
-          joinDate: data.joinDate,
-          manager: data.manager,
+          employeeID: data.employee_id,
           location: data.location,
         };
       } else {

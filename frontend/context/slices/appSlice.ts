@@ -20,13 +20,12 @@ export type Version = {
  */
 export type MicroApp = {
   name: string;         // Display name of the micro-app
-  description: string;  // Detailed description of the app
-  promoText: string;    // Promotional text for marketing
-  appId: string;        // Unique identifier for the app
-  iconUrl: string;      // URL to the app icon
-  bannerImageUrl: string; // URL to the banner image
-  isMandatory: number;  // Flag indicating if app is mandatory (1) or optional (0)
-  versions: Version[];  // Array of available versions
+  app_id: string;        // Unique identifier for the app
+  icon_url: string;      // URL to the app icon
+  version: Version;  // Array of available versions
+  download_url: string | null; // URL to download the app
+  promoText?: string | "";    // Promotional text for marketing
+  description?: string| "";  // Detailed description of the app
   status?: string | ""; // Current status of the app (installed, downloading, etc.)
   webViewUri?: string | ""; // URI for web view if applicable
   clientId?: string | ""; // OAuth client ID for authentication
@@ -98,7 +97,7 @@ const appsSlice = createSlice({
     ) => {
       const { appId, status, webViewUri, clientId, exchangedToken } =
         action.payload;
-      const app = state.apps.find((app) => app.appId === appId);
+      const app = state.apps.find((app) => app.app_id === appId);
       if (app) {
         app.status = status;
         app.webViewUri = webViewUri;
@@ -121,7 +120,7 @@ const appsSlice = createSlice({
       action: PayloadAction<{ appId: string; exchangedToken: string }>
     ) => {
       const { appId, exchangedToken } = action.payload;
-      const app = state.apps.find((app) => app.appId === appId);
+      const app = state.apps.find((app) => app.app_id === appId);
       if (app) app.exchangedToken = exchangedToken;
 
       // Ensure state is saved in AsyncStorage immediately
@@ -132,7 +131,7 @@ const appsSlice = createSlice({
       action: PayloadAction<{ appId: string }>
     ) => {
       const { appId } = action.payload;
-      const app = state.apps.find((app) => app.appId === appId);
+      const app = state.apps.find((app) => app.app_id === appId);
       if (app && app.downloadedAt) {
         // Set downloadedAt to 25 hours ago to remove "Ready" badge
         app.downloadedAt = Date.now() - (25 * 60 * 60 * 1000);

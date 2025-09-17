@@ -278,16 +278,15 @@ export const loadMicroAppDetails = async (
       // Update apps list with status and webViewUri
       let apps: MicroApp[] = response.data.map((app: MicroApp) => {
         const storedApp = storedApps.find(
-          (stored) => stored.appId === app.appId
+          (stored) => stored.app_id === app.app_id
         );
-
-        if (storedApp && storedApp.versions.length > 0) {
+        if (storedApp && storedApp.version) {
           // If new version available automatically update
-          if (app.versions[0].version !== storedApp.versions[0].version) {
+          if (app.version !== storedApp.version) {
             downloadMicroApp(
               dispatch,
-              app.appId,
-              app.versions?.[0]?.downloadUrl,
+              app.app_id,
+              app.download_url,
               onLogout
             );
           }
