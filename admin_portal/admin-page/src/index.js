@@ -17,9 +17,9 @@ root.render(
 
   <AuthProvider
   config={ {
-            signInRedirectURL: "https://7207c220-dc36-4c12-80b7-f404f971c139.e1-us-east-azure.choreoapps.dev",
-            signOutRedirectURL: "https://7207c220-dc36-4c12-80b7-f404f971c139.e1-us-east-azure.choreoapps.dev",
-            clientID: "s89UtsqQ0_rTfwO783jZw51vHxoa",
+            signInRedirectURL: "https://b9852c74-bc78-48f6-9b02-bbd2da8fd972.e1-us-east-azure.choreoapps.dev",
+            signOutRedirectURL: "https://b9852c74-bc78-48f6-9b02-bbd2da8fd972.e1-us-east-azure.choreoapps.dev",
+            clientID: "Hza4f1SMGU1t6SiB8mRGm0jyoTYa",
             baseUrl: "https://api.asgardeo.io/t/jayathunga",
             scope: [ "openid","profile" ]
         } }
