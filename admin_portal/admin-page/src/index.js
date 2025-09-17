@@ -10,41 +10,19 @@ import { AuthProvider } from '@asgardeo/auth-react';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 // Derive Asgardeo settings from CRA env (must be prefixed with REACT_APP_).
 // Defaults fall back to current origin for local dev.
-const signInRedirectURL =
-  process.env.REACT_APP_SIGN_IN_REDIRECT_URL || `${window.location.origin}/`;
-const signOutRedirectURL =
-  process.env.REACT_APP_SIGN_OUT_REDIRECT_URL || `${window.location.origin}/`;
-const clientID = process.env.REACT_APP_ASGARDEO_CLIENT_ID || "";
-const baseUrl = process.env.REACT_APP_ASGARDEO_BASE_URL || "https://api.asgardeo.io/t/<org_name>";
-const scope = (process.env.REACT_APP_ASGARDEO_SCOPES || "openid,profile")
-  .split(",")
-  .map((s) => s.trim())
-  .filter(Boolean);
 
-if (process.env.NODE_ENV !== "production") {
-  // Helpful diagnostics in dev
-  // eslint-disable-next-line no-console
-  console.info("[Asgardeo] Using config:", {
-    baseUrl,
-    signInRedirectURL,
-    signOutRedirectURL,
-    scopes: scope,
-    clientID_present: Boolean(clientID)
-  });
-}
 
 root.render(
   <React.StrictMode>
 
   <AuthProvider
-    config={{
-      signInRedirectURL,
-      signOutRedirectURL,
-      clientID,
-      baseUrl,
-      scope,
-      // storage: "sessionStorage",
-    }}
+  config={ {
+            signInRedirectURL: "https://7207c220-dc36-4c12-80b7-f404f971c139.e1-us-east-azure.choreoapps.dev",
+            signOutRedirectURL: "https://7207c220-dc36-4c12-80b7-f404f971c139.e1-us-east-azure.choreoapps.dev",
+            clientID: "s89UtsqQ0_rTfwO783jZw51vHxoa",
+            baseUrl: "https://api.asgardeo.io/t/jayathunga",
+            scope: [ "openid","profile" ]
+        } }
   >
       <App />
     </AuthProvider>

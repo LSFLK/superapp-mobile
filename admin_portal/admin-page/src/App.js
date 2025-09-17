@@ -33,7 +33,7 @@ function App() {
 
       <main style={styles.main}>
 
-        {!isAuthed ? (
+        {!state.isAuthenticated? (
           <button onClick={() => signIn()}>Login</button>
         ) : (
           <div style={{ width: "100%" }}>
