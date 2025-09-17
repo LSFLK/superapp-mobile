@@ -15,7 +15,7 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
 
-  <AuthProvider
+  {/* <AuthProvider
   config={ {
             signInRedirectURL: "https://b9852c74-bc78-48f6-9b02-bbd2da8fd972.e1-us-east-azure.choreoapps.dev",
             signOutRedirectURL: "https://b9852c74-bc78-48f6-9b02-bbd2da8fd972.e1-us-east-azure.choreoapps.dev",
@@ -23,9 +23,9 @@ root.render(
             baseUrl: "https://api.asgardeo.io/t/jayathunga",
             scope: [ "openid","profile" ]
         } }
-  >
+  > */}
       <App />
-    </AuthProvider>
+    {/* </AuthProvider> */}
     
 
   </React.StrictMode>
