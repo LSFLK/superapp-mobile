@@ -12,7 +12,7 @@
 
 // export default App;
 
-import React from "react";
+import React, { useEffect } from "react";
 import UploadExcel from "./components/UploadExcel";
 
 import { useAuthContext } from "@asgardeo/auth-react";
@@ -23,6 +23,12 @@ function App() {
   const isAuthed = state.isAuthenticated;
   const username = state.username;
 
+  useEffect(() => {
+    if (isAuthed) {
+      // User is authenticated, you can perform actions here
+      console.log("User is authenticated:", username);
+    }
+  }, [isAuthed, username]);
 
   return (
     <div style={styles.appContainer}>
