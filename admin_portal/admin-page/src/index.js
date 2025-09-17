@@ -8,26 +8,34 @@ import { AuthProvider } from '@asgardeo/auth-react';
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-// Derive Asgardeo settings from CRA env (must be prefixed with REACT_APP_).
-// Defaults fall back to current origin for local dev.
 
+// Build Asgardeo config from env with safe defaults.
+// CRA only exposes env vars prefixed with REACT_APP_.
+const ensureTrailingSlash = (url) => (url.endsWith('/') ? url : url + '/');
+const defaultBasePath = process.env.REACT_APP_BASE_PATH || '/';
+const defaultUrl = ensureTrailingSlash(
+  `${window.location.origin}${defaultBasePath.startsWith('/') ? defaultBasePath : `/${defaultBasePath}`}`
+);
+
+const asgardeoConfig = {
+  signInRedirectURL:
+    process.env.REACT_APP_SIGN_IN_REDIRECT_URL
+      ? ensureTrailingSlash(process.env.REACT_APP_SIGN_IN_REDIRECT_URL)
+      : defaultUrl,
+  signOutRedirectURL:
+    process.env.REACT_APP_SIGN_OUT_REDIRECT_URL
+      ? ensureTrailingSlash(process.env.REACT_APP_SIGN_OUT_REDIRECT_URL)
+      : defaultUrl,
+  clientID: process.env.REACT_APP_ASGARDEO_CLIENT_ID || '',
+  baseUrl: process.env.REACT_APP_ASGARDEO_BASE_URL || '',
+  scope: (process.env.REACT_APP_ASGARDEO_SCOPE || 'openid profile').split(/[,\s]+/).filter(Boolean),
+};
 
 root.render(
   <React.StrictMode>
-
-  <AuthProvider
-  config={ {
-            signInRedirectURL: "https://b9852c74-bc78-48f6-9b02-bbd2da8fd972.e1-us-east-azure.choreoapps.dev",
-            signOutRedirectURL: "https://b9852c74-bc78-48f6-9b02-bbd2da8fd972.e1-us-east-azure.choreoapps.dev",
-            clientID: "Hza4f1SMGU1t6SiB8mRGm0jyoTYa",
-            baseUrl: "https://api.asgardeo.io/t/jayathunga",
-            scope: [ "openid","profile" ]
-        } }
-  >
+    <AuthProvider config={asgardeoConfig}>
       <App />
     </AuthProvider>
-    
-
   </React.StrictMode>
 );
 
