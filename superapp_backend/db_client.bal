@@ -144,7 +144,7 @@ public function fetchMicroAppById(string app_id) returns MicroApp|error {
                 icon_url: app.icon_url,
                 zip_blob_length: app.zip_blob_length,
                 created_at: app.created_at,
-                download_url: "http://localhost:9090/micro-apps/" + app.app_id + "/download"
+                download_url: "https://41200aa1-4106-4e6c-babf-311dce37c04a-prod.e1-us-east-azure.choreoapis.dev/gov-superapp/superappbackendprodbranch/v1.0/micro-apps/" + app.app_id + "/download"
             };
             return updatedApp;
         };

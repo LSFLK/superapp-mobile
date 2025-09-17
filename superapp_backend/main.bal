@@ -1,20 +1,59 @@
 import ballerina/http;
 import ballerina/log;
 //import ballerina/io;
+import ballerina/jwt;
+//import ballerina/time;
+import ballerina/uuid; // For optional jti claim
+//import ballerina/io;
+
+
+////////////
 
 // public function main() returns error? {
-//     // Example parameters for insertMicroAppWithZip
-//     string name = "Payslip Viewer";
-//     string version = "1.0.0";
-//     string zipFilePath = "C:/Users/Sandamini/Documents/WORK/payslip-viewer.zip"; // Path to the ZIP file
-//     string appId = "payslip-viewer";
-//     string iconUrlPath = "";
-
-//     // Call the insertMicroAppWithZip function
-//     check insertMicroAppWithZip(name, version, zipFilePath, appId, iconUrlPath);
-//     io:println("Micro-app insertion completed successfully.");
+//     string token_recieved = check createMicroappJWT("EMP004","payslip-viewer");
+//     log:printInfo("Token: " + token_recieved);
 // }
 
+////////////
+
+
+// Configurations (add these to your Config.toml or set as environment variables)
+configurable string superappIssuer = "superapp-issuer"; // e.g., "https://your-superapp.com"
+configurable string microappAudience = "microapp-backend"; // Audience for microapp JWTs
+configurable decimal tokenTTLSeconds = 300; // 5 minutes default TTL
+configurable string privateKeyPath = "./private.pem"; // Path to RS256 private key file
+
+// Standalone function to create the microapp-specific JWT
+// Usage: string|error token = createMicroappJWT("emp-123", "app-456");
+public function createMicroappJWT(string empId, string microAppId) returns string|error {
+    // Build IssuerConfig for JWT
+    jwt:IssuerConfig issuerConfig = {
+        issuer: superappIssuer, // Issuer (your superapp backend)
+        audience: [microappAudience], // Audience as a string array for microapp backend
+        //sub: empId, // User emp_id as subject
+        expTime: tokenTTLSeconds, // Expiry in seconds (relative to iat)
+        customClaims: {
+            "emp_id": empId, // User emp_id as subject
+            "micro_app_id": microAppId, // Custom claim for microapp scoping
+            "jti": uuid:createType1AsString() // Unique token ID (optional)
+        },
+        signatureConfig: {
+            config: {
+                keyFile: privateKeyPath // Path to RS256 private key
+            }
+        }
+    };
+
+    // Issue (sign) the JWT
+    string|jwt:Error token = jwt:issue(issuerConfig);
+    if token is jwt:Error {
+        log:printError("Failed to issue JWT", 'error = token);
+        return token;
+    }
+
+    log:printInfo("Generated microapp JWT for emp_id: " + empId + ", micro_app_id: " + microAppId);
+    return token;
+}
 
 service class ErrorInterceptor {
     *http:ResponseErrorInterceptor;
@@ -207,6 +246,19 @@ service http:InterceptableService / on new http:Listener(serverPort, config = {r
 
 
 
+// public function main() returns error? {
+//     // Example parameters for insertMicroAppWithZip
+//     string name = "Payslip Viewer";
+//     string version = "1.0.0";
+//     string zipFilePath = "C:/Users/Sandamini/Documents/WORK/payslip-viewer.zip"; // Path to the ZIP file
+//     string appId = "payslip-viewer";
+//     string iconUrlPath = "";
+//     //string description = "View and download your monthly payslips";
+
+//     // Call the insertMicroAppWithZip function
+//     check insertMicroAppWithZip(name, version ,zipFilePath, appId, iconUrlPath);
+//     io:println("Micro-app insertion completed successfully.");
+// }
 
 
 
