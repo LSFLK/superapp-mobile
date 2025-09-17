@@ -171,7 +171,7 @@ const MicroApp = () => {
   };
 
   const renderWebView = (webViewUri: string) => {
-    // webViewUri = "http://10.100.5.83:5173/";
+    // webViewUri = "http://10.100.5.83:5174/";
     // Check if web view uri is available
     if (!webViewUri) {
       Alert.alert("Error", "Microapp URL not found. Please check the configuration.");

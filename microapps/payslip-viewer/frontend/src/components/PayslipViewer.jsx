@@ -10,21 +10,23 @@ export default function PayslipViewer() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [employeeId, setEmployeeId] = useState(null); // Default fallback
+  // const [consoleLogs, setConsoleLogs] = useState([]);
 
   useEffect(() => {
     // Get empID from native bridge if available
     const getNativeEmpId = () => {
-      
+      // setConsoleLogs((logs) => [...logs, 'Attempting to get empId from native bridge...']);
       // Check if we're running in native app (bridge available)
       if (window.nativebridge && typeof window.nativebridge === 'object' && Object.keys(window.nativebridge).length > 0) {
-        
+        // setConsoleLogs((logs) => [...logs, 'Native bridge detected. Requesting empId...']);
         // request empId
         if (window.nativebridge.requestEmpId) {
           window.nativebridge.requestEmpId();
-          
+          // setConsoleLogs((logs) => [...logs, 'EmpId request sent to native bridge. Waiting for response...']);
           // Listen for the response
           const handleEmpIdReceived = (event) => {
             setEmployeeId(event.detail);
+            // setConsoleLogs((logs) => [...logs, `Received empId from native bridge: ${event.detail}`]);
           };
           
           window.addEventListener('nativeEmpIdReceived', handleEmpIdReceived);
@@ -91,6 +93,7 @@ export default function PayslipViewer() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-md mx-auto px-4 py-6">
         {/* Header */}
+        <div>{consoleLogs}</div>
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Payslip</h1>
           <p className="text-gray-600 text-sm">Employee ID: {employeeId}</p>

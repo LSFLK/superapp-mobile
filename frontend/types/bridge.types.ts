@@ -17,17 +17,26 @@
 /**
  * Auto-generated TypeScript definitions for the native bridge
  * These types are automatically created from the bridge registry
+ * 
+ * 🚀 To add new bridge methods:
+ * 1. Add your function to bridgeRegistry.ts
+ * 2. That's it! The runtime JavaScript is auto-generated
+ * 3. Optionally run: npm run generate:bridge-types (when implemented)
  */
 
 // Global window extensions
 declare global {
   interface Window {
     nativeToken: string | null;
-    nativeEmpId: string | null;
+    // nativeEmpId: string | null;
     nativebridge: NativeBridge;
     ReactNativeWebView: {
       postMessage(message: string): void;
     };
+    // Dynamic global variables are created at runtime for bridge functions with helpers
+    // Pattern: native + PascalCase(topic) = global variable name
+    // Example: topic "user_settings" → window.nativeUserSettings
+    [key: `native${string}`]: any;
   }
 }
 
@@ -39,9 +48,9 @@ export interface NativeBridge {
   getToken: () => string | null;
 
   // Employee ID methods  
-  requestEmpId: () => void;
-  resolveEmpId: (empId: string) => void;
-  getEmpId: () => string | null;
+  // requestEmpId: () => void;
+  // resolveEmpId: (empId: string) => void;
+  // getEmpId: () => string | null;
 
   // QR Scanner methods
   requestQr: () => void;
@@ -62,19 +71,40 @@ export interface NativeBridge {
   resolveGetLocalData: (data: { value: string | null }) => void;
   rejectGetLocalData: (error: string) => void;
 
-  // 🚀 ADD YOUR NEW BRIDGE METHODS HERE
-  // The types will be auto-generated when you add them to bridgeRegistry.ts
+  // 🚀 DYNAMIC BRIDGE METHODS
+  // Any bridge function added to bridgeRegistry.ts with webViewMethods will automatically:
+  // - Generate request/resolve/reject methods if specified
+  // - Generate helper methods if specified  
+  // - Create global variables for helper functions
+  // - Generate proper event dispatching
+  
+  // When you add new bridge functions to bridgeRegistry.ts, add their type signatures here
+  // Example:
+  // requestUserSettings: () => void;
+  // resolveUserSettings: (settings: any) => void;
+  // getUserSettings: () => any;
 }
 
 // Event types for bridge communication
 export interface BridgeEvents {
+  // Core events that are always available
   nativeTokenReceived: CustomEvent<string>;
-  nativeEmpIdReceived: CustomEvent<string>;
+  // nativeEmpIdReceived: CustomEvent<string>;
   resolveConfirmAlert: CustomEvent<"confirm" | "cancel">;
   resolveSaveLocalData: CustomEvent<void>;
   rejectSaveLocalData: CustomEvent<string>;
   resolveGetLocalData: CustomEvent<{ value: string | null }>;
   rejectGetLocalData: CustomEvent<string>;
+  
+  // Dynamic events are created at runtime following these patterns:
+  // 1. resolve/reject events: exactly match the webViewMethods.resolve/reject names
+  // 2. "received" events: native + PascalCase(topic) + "Received"
+  //    Example: topic "user_settings" → "nativeUserSettingsReceived"
+  
+  // Generic event signatures for dynamically generated events
+  [eventName: `resolve${string}`]: CustomEvent<any>;
+  [eventName: `reject${string}`]: CustomEvent<string>;
+  [eventName: `native${string}Received`]: CustomEvent<any>;
 }
 
 // Utility types for microapp developers
@@ -93,7 +123,7 @@ export interface BridgeHelpers {
    * Get the current employee ID
    * @returns The current employee ID or null if not available
    */
-  getEmpId(): string | null;
+  // getEmpId(): string | null;
 
   /**
    * Request authentication token from native app
@@ -103,7 +133,7 @@ export interface BridgeHelpers {
   /**
    * Request employee ID from native app
    */
-  requestEmpId(): void;
+  // requestEmpId(): void;
 
   /**
    * Show a native alert dialog

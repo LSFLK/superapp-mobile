@@ -59,36 +59,34 @@ export const generateInjectedJavaScript = () => {
 
     // Generate helper methods (global variables and getters)
     if (webViewMethods.helper) {
-      if (topic === 'token') {
-        globalHelpers.push(`  window.nativeToken = null;`);
-        methods.push(`
+      // Create a generic global variable for this topic
+      const globalVarName = `native${topic.split('_').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1)
+      ).join('')}`;
+      
+      globalHelpers.push(`  window.${globalVarName} = null;`);
+      
+      // Create the helper getter method
+      methods.push(`
     ${webViewMethods.helper}: () => {
-      return window.nativeToken;
+      return window.${globalVarName};
     },`);
-        // Special handling for token resolve
-        const resolveIndex = methods.findIndex(m => m.includes('resolveToken'));
+      
+      // If there's a resolve method, enhance it to store the value globally
+      if (webViewMethods.resolve) {
+        const resolveMethodName = webViewMethods.resolve;
+        const resolveIndex = methods.findIndex(m => m.includes(resolveMethodName));
         if (resolveIndex !== -1) {
+          const eventName = `native${topic.split('_').map(word => 
+            word.charAt(0).toUpperCase() + word.slice(1)
+          ).join('')}Received`;
+          
           methods[resolveIndex] = `
-    resolveToken: (token) => {
-      window.nativeToken = token;
-      console.log("Token received from native app:", token);
-      window.dispatchEvent(new CustomEvent('nativeTokenReceived', { detail: token }));
-    },`;
-        }
-      } else if (topic === 'emp_id') {
-        globalHelpers.push(`  window.nativeEmpId = null;`);
-        methods.push(`
-    ${webViewMethods.helper}: () => {
-      return window.nativeEmpId;
-    },`);
-        // Special handling for empId resolve
-        const resolveIndex = methods.findIndex(m => m.includes('resolveEmpId'));
-        if (resolveIndex !== -1) {
-          methods[resolveIndex] = `
-    resolveEmpId: (empId) => {
-      window.nativeEmpId = empId;
-      console.log("Employee ID received from native app:", empId);
-      window.dispatchEvent(new CustomEvent('nativeEmpIdReceived', { detail: empId }));
+    ${resolveMethodName}: (data) => {
+      window.${globalVarName} = data;
+      console.log("${topic} resolved:", data);
+      window.dispatchEvent(new CustomEvent('${resolveMethodName}', { detail: data }));
+      window.dispatchEvent(new CustomEvent('${eventName}', { detail: data }));
     },`;
         }
       }
