@@ -21,7 +21,8 @@ import ballerina/uuid; // For optional jti claim
 configurable string superappIssuer = "superapp-issuer"; 
 //configurable string microappAudience = "microapp-backend"; 
 configurable decimal tokenTTLSeconds = 300; 
-configurable string privateKeyPath = "./private.pem"; 
+//configurable string privateKeyPath = "./private.pem"; 
+configurable string privateKeyPath = ?; 
 
 // Standalone function to create the microapp-specific JWT
 // Usage: string|error token = createMicroappJWT("emp-123", "app-456");
