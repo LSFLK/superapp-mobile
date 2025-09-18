@@ -18,26 +18,34 @@ export default function UploadMicroApp() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
+  const [isWarning, setIsWarning] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [confirmFile, setConfirmFile] = useState(null);
 
   const fileInputRef = useRef(null);
 
+  const getPendingFile = () => zipFile || confirmFile;
+  const hasPending = !!getPendingFile();
+
   const validate = () => {
     if (!name.trim() || !version.trim() || !appId.trim()) {
-      setIsError(true);
+      setIsError(false);
+      setIsWarning(true);
       setMessage("Please provide name, version, and appId.");
       setShowModal(true);
       return false;
     }
-    if (!zipFile) {
-      setIsError(true);
+    const file = getPendingFile();
+    if (!file) {
+      setIsError(false);
+      setIsWarning(true);
       setMessage("Please choose a ZIP file.");
       setShowModal(true);
       return false;
     }
-    if (zipFile && !/\.zip$/i.test(zipFile.name)) {
-      setIsError(true);
+    if (file && !/\.zip$/i.test(file.name)) {
+      setIsError(false);
+      setIsWarning(true);
       setMessage("Selected file must be a .zip archive.");
       setShowModal(true);
       return false;
@@ -46,10 +54,14 @@ export default function UploadMicroApp() {
   };
 
   const handleSubmit = async () => {
+    setIsWarning(false);
     if (!validate()) return;
 
+    const file = getPendingFile();
+
     setLoading(true);
-    setIsError(false);
+  setIsError(false);
+  setIsWarning(false);
     setMessage("");
     try {
       const form = new FormData();
@@ -57,7 +69,7 @@ export default function UploadMicroApp() {
       form.append("version", version.trim());
       form.append("appId", appId.trim());
       if (iconUrlPath.trim()) form.append("iconUrlPath", iconUrlPath.trim());
-      form.append("zipFile", zipFile);
+      form.append("zipFile", file);
 
       const res = await fetch(`${BACKEND_BASE_URL}/micro-apps/upload`, {
         method: "POST",
@@ -70,15 +82,18 @@ export default function UploadMicroApp() {
         throw new Error(msg);
       }
 
-      setIsError(false);
+  setIsError(false);
+  setIsWarning(false);
       setMessage(data?.message || "Micro-app uploaded successfully");
       setShowModal(true);
       // Optional: clear form
       setZipFile(null);
+      setConfirmFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (err) {
       console.error(err);
-      setIsError(true);
+  setIsError(true);
+  setIsWarning(false);
       setMessage(err instanceof Error ? err.message : "Upload failed");
       setShowModal(true);
     } finally {
@@ -119,7 +134,7 @@ export default function UploadMicroApp() {
 
   return (
     <div>
-      <h2 style={{ marginTop: 0, marginBottom: 8 }}>Upload Micro-App (ZIP)</h2>
+      <h2 style={{ marginTop: 0, marginBottom: 8, color: "white" }}>Upload Micro-App (ZIP)</h2>
       <p style={{ marginTop: 0, color: "var(--muted)", marginBottom: 16 }}>
         Fill details and upload a .zip for the micro-app store.
       </p>
@@ -179,33 +194,25 @@ export default function UploadMicroApp() {
         onDragLeave={onDragLeave}
         style={{ marginBottom: 12 }}
       >
-        <p className="dropzone__hint">Drag & drop the .zip file here</p>
-        {zipFile && (
-          <div className="dropzone__filename">Selected: {zipFile.name}</div>
+        <p className="dropzone__hint">Drag & drop the .zip file here or Choose from the computer</p>
+        {hasPending && (
+          <div className="dropzone__filename">Selected: {getPendingFile().name}</div>
         )}
         <div style={{ marginTop: 14 }}>
           <label
             className="btn btn--primary"
-            style={{ cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.8 : 1 }}
+            style={{ cursor: loading || hasPending ? "not-allowed" : "pointer", opacity: loading || hasPending ? 0.65 : 1 }}
           >
-            {loading ? "Uploading…" : "Choose ZIP"}
+            Choose ZIP
             <input
               ref={fileInputRef}
               type="file"
               accept=".zip"
               onChange={onInputChange}
               style={{ display: "none" }}
-              disabled={loading}
+              disabled={loading || hasPending}
             />
           </label>
-          <button
-            className="btn"
-            style={{ marginLeft: 8 }}
-            onClick={handleSubmit}
-            disabled={loading || !name.trim() || !version.trim() || !appId.trim() || !zipFile}
-          >
-            {loading ? "Uploading…" : "Upload ZIP"}
-          </button>
         </div>
       </div>
 
@@ -216,9 +223,10 @@ export default function UploadMicroApp() {
           setAppId("");
           setIconUrlPath("");
           setZipFile(null);
+          setConfirmFile(null);
           if (fileInputRef.current) fileInputRef.current.value = "";
         }}>Clear</button>
-  <button className="btn btn--primary" onClick={handleSubmit} disabled={loading || !name.trim() || !version.trim() || !appId.trim() || !zipFile}>
+  <button className="btn btn--primary" onClick={handleSubmit} disabled={loading}>
           {loading ? "Uploading…" : "Upload"}
         </button>
       </div>
@@ -240,10 +248,10 @@ export default function UploadMicroApp() {
         </div>
       )}
 
-      {showModal && (
+  {showModal && (
         <div className="modal-backdrop" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal__header">{isError ? "Upload Failed" : "Upload Successful"}</div>
+    <div className="modal__header">{isWarning ? "Warning" : isError ? "Upload Failed" : "Upload Successful"}</div>
             <div className="modal__body">
               <p style={{ margin: 0 }}>{message}</p>
             </div>

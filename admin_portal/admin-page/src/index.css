@@ -102,7 +102,7 @@ body {
 .hero p { margin: 0; color: var(--muted); }
 
 .greeting {
-  color: var(--muted);
+  color: #000;
   font-size: 1.25rem;
 }
 

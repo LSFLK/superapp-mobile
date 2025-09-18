@@ -4,6 +4,7 @@ import * as XLSX from "xlsx";
 export default function UploadExcel() {
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
+  const [isWarning, setIsWarning] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [fileName, setFileName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -109,9 +110,21 @@ export default function UploadExcel() {
     setDragging(false);
   };
 
+  // If a user tries to trigger upload without selecting/confirming a file, show a warning.
+  const tryUploadWithoutFile = () => {
+    if (!confirmFile && !fileName) {
+      setIsWarning(true);
+      setIsError(false);
+      setMessage("Please choose a file to upload.");
+      setShowModal(true);
+      return false;
+    }
+    return true;
+  };
+
   return (
     <div>
-      <h2 style={{ marginTop: 0, marginBottom: 8 }}>Upload Excel / CSV</h2>
+  <h2 style={{ marginTop: 0, marginBottom: 8, color: "white" }}>Upload Excel / CSV</h2>
       <p style={{ marginTop: 0, color: "var(--muted)", marginBottom: 16 }}>
         Drag & drop a file here, or choose a file from your computer.
       </p>
@@ -147,6 +160,11 @@ export default function UploadExcel() {
         </div>
       </div>
 
+      {/* Subtle helper button (hidden in UI) to catch accidental uploads without selection */}
+      <div style={{ display: "none" }}>
+        <button onClick={tryUploadWithoutFile}>Hidden upload trigger</button>
+      </div>
+
       {/* ✅ Confirmation Modal */}
       {confirmFile && (
         <div className="modal-backdrop" onClick={() => setConfirmFile(null)}>
@@ -177,12 +195,10 @@ export default function UploadExcel() {
       )}
 
       {/* ✅ Success/Error Modal */}
-      {showModal && (
+  {showModal && (
         <div className="modal-backdrop" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal__header">
-              {isError ? "Upload Failed" : "Upload Successful"}
-            </div>
+    <div className="modal__header">{isWarning ? "Warning" : isError ? "Upload Failed" : "Upload Successful"}</div>
             <div className="modal__body">
               <p style={{ margin: 0 }}>{message}</p>
             </div>

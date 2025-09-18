@@ -1,21 +1,13 @@
-// import React from "react";
-// import UploadExcel from "./components/UploadExcel";
-
-// function App() {
-//   return (
-//     <div className="App">
-//       <h1>Payslip Management</h1>
-//       <UploadExcel />
-//     </div>
-//   );
-// }
-
-// export default App;
-
-import React, { useEffect } from "react";
-import UploadExcel from "./components/UploadExcel";
-import UploadMicroApp from "./components/UploadMicroApp";
+import React, { useEffect, useState } from "react";
+// import UploadExcel from "./components/UploadExcel"; // removed from UI per new menu
+// import UploadMicroApp from "./components/UploadMicroApp"; // handled inside MicroAppManagement
+import UserProfile from "./components/UserProfile";
+import MicroAppManagement from "./components/MicroAppManagement";
 import { useAuthContext } from "@asgardeo/auth-react";
+import MenuBar from "./components/MenuBar";
+import { Layout } from "antd";
+
+const { Content } = Layout;
 
 function App() {
   const ctx = useAuthContext();
@@ -25,9 +17,10 @@ function App() {
 
   const isAuthed = Boolean(state?.isAuthenticated);
   const username = state?.username || "";
-  // Prefer email local-part (before @) if username is an email; otherwise fall back to displayName/given_name
   const emailLocalPart = username.includes("@") ? username.split("@")[0] : "";
   const firstName = ( state?.displayName || emailLocalPart || state?.given_name || username || "").split(" ")[0];
+
+  const [activeKey, setActiveKey] = useState("microapp");
 
   useEffect(() => {
     if (isAuthed) {
@@ -35,53 +28,56 @@ function App() {
     }
   }, [isAuthed, username]);
 
+  const onNavigate = (key) => setActiveKey(key);
+
   return (
-    <div>
-      <nav className="navbar">
-        <div className="container navbar__inner">
-          <div className="brand">Payslip Management</div>
-          <div className="actions">
-            {isAuthed ? (
-              <button className="btn btn--ghost" onClick={() => signOut && signOut()}>Logout</button>
-            ) : null}
-          </div>
-        </div>
-      </nav>
+    <Layout style={{ minHeight: "100vh" }}>
+      {isAuthed ? (
+        <>
+          {/* Left sidebar */}
+          <MenuBar onNavigate={onNavigate} isAuthed={isAuthed} onSignOut={signOut} activeKey={activeKey} />
 
-      {isAuthed && (
-        <div className="container" style={{ marginTop: 16, marginBottom: 8 }}>
-          <div className="greeting">Hi {firstName}</div>
-        </div>
+          {/* Main content area */}
+          <Layout>
+            <Content style={{ padding: "16px" }}>
+              <div className="container" style={{ marginTop: 0, marginBottom: 8 }}>
+                <div className="greeting">Hi {firstName},</div>
+              </div>
+
+              <main className="container" style={{ paddingBottom: 48 }}>
+                {activeKey === "microapp" && (
+                  <section className="card">
+                    <MicroAppManagement />
+                  </section>
+                )}
+
+                {activeKey === "profile" && (
+                  <section className="card">
+                    <UserProfile state={state} />
+                  </section>
+                )}
+              </main>
+            </Content>
+          </Layout>
+        </>
+      ) : (
+        <Layout>
+          <Content style={{ padding: "16px" }}>
+            <main className="container" style={{ paddingBottom: 48 }}>
+              <section className="card" style={{ textAlign: "center" }}>
+                <h2 style={{ marginTop: 0, color: "#fff" }}>Please Sign In</h2>
+                <p style={{ color: "var(--muted)", marginTop: 0 }}>
+                  You must be logged in to use the admin portal.
+                </p>
+                <button className="btn btn--primary" onClick={() => signIn && signIn()}>
+                  Sign In
+                </button>
+              </section>
+            </main>
+          </Content>
+        </Layout>
       )}
-
-      <header className="hero container">
-        <h1></h1>
-        
-      </header>
-
-      <main className="container" style={{ paddingBottom: 48 }}>
-        {isAuthed ? (
-          <>
-            <section className="card" style={{ marginBottom: 16 }}>
-              <UploadExcel />
-            </section>
-            <section className="card">
-              <UploadMicroApp />
-            </section>
-          </>
-        ) : (
-          <section className="card" style={{ textAlign: "center" }}>
-            <h2 style={{ marginTop: 0 }}>Please Sign In</h2>
-            <p style={{ color: "var(--muted)", marginTop: 0 }}>
-              You must be logged in to upload payslips.
-            </p>
-            <button className="btn btn--primary" onClick={() => signIn && signIn()}>
-              Sign In
-            </button>
-          </section>
-        )}
-      </main>
-    </div>
+    </Layout>
   );
 }
 

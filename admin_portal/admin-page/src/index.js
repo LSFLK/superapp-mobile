@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import 'antd/dist/reset.css';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
@@ -30,7 +31,7 @@ root.render(
             clientID: "lwGgwFMsB86wdJlPLHUmmteWZf0a",
             baseUrl: "https://api.asgardeo.io/t/jayathunga",
             scope: [ "openid","profile" ]
-        } } */       
+        } }  */      
   >
       <App />
     </AuthProvider>
