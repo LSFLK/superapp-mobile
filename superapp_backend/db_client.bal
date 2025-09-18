@@ -65,20 +65,19 @@ final mysql:Client databaseClient = check new (...superappMobileDatabaseConfig);
 // Functions to interact with the database
 
 // Function to insert a micro-app with a ZIP file
-public function insertMicroAppWithZip(string name, string version, byte[] zipData, string appId, string iconUrlPath, string? description) returns error? {
+public function insertMicroAppWithZip(string name, string version, byte[] zipData, string appId, string iconUrlPath) returns error? {
 
     // Parameterized query to insert into micro_apps
     //sql:ParameterizedQuery query = `INSERT INTO micro_apps (name, version, zip_blob, app_id) VALUES (${name}, ${version}, ${zipData}, ${appId});`;
     sql:ParameterizedQuery query = `
-    INSERT INTO micro_apps (name, version, zip_blob, app_id, icon_url, description)
-    VALUES (${name}, ${version}, ${zipData}, ${appId}, ${iconUrlPath}, ${description})
+    INSERT INTO micro_apps (name, version, zip_blob, app_id, icon_url)
+    VALUES (${name}, ${version}, ${zipData}, ${appId}, ${iconUrlPath})
     ON DUPLICATE KEY UPDATE
         name = VALUES(name),
         version = VALUES(version),
         zip_blob = VALUES(zip_blob),
         icon_url = VALUES(icon_url),
         created_at = CURRENT_TIMESTAMP;
-        description = VALUES(description),
     `;
 
     // Execute the query

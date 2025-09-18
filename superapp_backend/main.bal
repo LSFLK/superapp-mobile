@@ -328,7 +328,7 @@ service http:InterceptableService / on new http:Listener(serverPort, config = {r
             };
         }
 
-        error? result = insertMicroAppWithZip(name, version, zipData, appId, iconUrlPath,description);
+        error? result = insertMicroAppWithZip(name, version, zipData, appId, iconUrlPath);
         if result is error {
             log:printError("Failed to insert micro-app", result);
             return <http:InternalServerError>{
