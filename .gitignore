@@ -34,3 +34,4 @@ Config.toml
 react-app-env.d.ts
 node_modules
 *.pem
+*.crt
