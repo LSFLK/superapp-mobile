@@ -50,13 +50,13 @@ export const MicroAppCard: React.FC<MicroAppCardProps> = ({
     if (isAvailable) {
       // Mark app as viewed to remove "Ready" badge
       if (isNewlyDownloaded) {
-        dispatch(markAppAsViewed({ appId: app.appId }));
+        dispatch(markAppAsViewed({ appId: app.app_id }));
       }
       
       router.push({
         pathname: "/micro-app",
         params: {
-          appId: app.appId,
+          appId: app.app_id,
           appName: app.name,
           webViewUri: app.webViewUri,
           clientId: app.clientId || "default-client-id",
@@ -89,8 +89,8 @@ export const MicroAppCard: React.FC<MicroAppCardProps> = ({
         !isAvailable && styles.iconContainerDisabled,
       ]}>
         <MicroAppIcon
-          iconUrl={app.iconUrl}
-          appId={app.appId}
+          iconUrl={app.icon_url}
+          appId={app.app_id}
           size={32}
           color={isAvailable ? Colors.actionButtonTextColor : Colors[colorScheme].icon}
         />

@@ -124,7 +124,7 @@ const MicroApp = () => {
   }, [clientId]);*/
 
   useEffect(() => {
-    console.log("recieved emp ID ; " , empID);
+    // console.log("recieved emp ID ; " , empID);
     // Send empID to WebView when it's available
     if (empID) {
       sendResponseToWeb("resolveEmpId", empID);
@@ -143,10 +143,11 @@ const MicroApp = () => {
         console.error("Unknown topic:", topic);
         return;
       }
-
+      // console.log("micro-app.tsx : app id : " , appId);
       // Create bridge context
       const bridgeContext: BridgeContext = {
         empID,
+        appID: appId as string,
         token: token || null,
         setScannerVisible,
         sendResponseToWeb,

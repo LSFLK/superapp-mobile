@@ -16,6 +16,7 @@
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert } from "react-native";
+import { fetchMicroAppToken, MicroAppTokenParams } from "@/services/microAppTokenService";
 
 /**
  * SINGLE PLACE TO ADD/MODIFY BRIDGE FUNCTIONS
@@ -39,6 +40,7 @@ export interface BridgeFunction {
 
 export interface BridgeContext {
   empID: string;
+  appID: string;
   token: string | null;
   setScannerVisible: (visible: boolean) => void;
   sendResponseToWeb: (method: string, data?: any) => void;
@@ -166,6 +168,48 @@ export const BRIDGE_REGISTRY: BridgeFunction[] = [
       request: "requestGetLocalData",
       resolve: "resolveGetLocalData",
       reject: "rejectGetLocalData"
+    }
+  },
+
+  {
+    topic: "microapp_token",
+    handler: async (params, context) => {
+      try {
+        const { appID, empID } = context;
+        // console.log("app id in context", appID);
+        if (!appID) {
+          throw new Error("app_id parameter is required");
+        }
+
+        if (!empID) {
+          throw new Error("Employee ID is not available");
+        }
+
+        const tokenParams: MicroAppTokenParams = {
+          emp_id: empID,
+          app_id: appID
+        };
+
+        console.log(`Requesting microapp token for app: ${appID}, emp: ${empID}`);
+
+        const tokenData = await fetchMicroAppToken(tokenParams);
+        
+        context.sendResponseToWeb("resolveMicroAppToken", {
+          token: tokenData.token,
+          expiresAt: tokenData.expiresAt,
+          app_id: appID
+        });
+        
+      } catch (error) {
+        console.error("Error fetching microapp token:", error);
+        const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+        context.sendResponseToWeb("rejectMicroAppToken", errorMessage);
+      }
+    },
+    webViewMethods: {
+      request: "requestMicroAppToken",
+      resolve: "resolveMicroAppToken",
+      reject: "rejectMicroAppToken"
     }
   },
 

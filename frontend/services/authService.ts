@@ -382,7 +382,7 @@ export const processNativeAuthResult = async (
     if (authResult.accessToken && authResult.idToken) {
       const decodedIdToken = jwtDecode<DecodedIdToken>(authResult.idToken);
       const exp = jwtDecode<{ exp: number }>(authResult.accessToken).exp || 0;
-      console.log("Decoded ID token:", decodedIdToken);
+      // console.log("Decoded ID token:", decodedIdToken);
       const { email } = decodedIdToken;
 
       const authData: AuthData = {
