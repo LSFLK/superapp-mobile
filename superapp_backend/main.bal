@@ -102,7 +102,7 @@ service http:InterceptableService / on new http:Listener(serverPort, config = {r
         }
 
         // Return the token in JSON response
-        json response = { "token": token };
+        json response = { "token": token , "expiresAt": tokenTTLSeconds};
         log:printInfo("Successfully generated JWT for emp_id: " + emp_id + ", micro_app_id: " + micro_app_id);
         return response;
     }
