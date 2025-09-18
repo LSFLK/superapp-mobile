@@ -5,7 +5,7 @@ import React, { useRef, useState } from "react";
 // Output: renders a form to upload micro-app ZIP with fields name, version, appId, iconUrlPath
 // Success criteria: POST multipart/form-data to backend and show success/error modal
 
-const BACKEND_BASE_URL = process.env.REACT_APP_MICROAPPS_BASE_URL || "http://localhost:9090";
+const BACKEND_BASE_URL = process.env.REACT_APP_MICROAPPS_BASE_URL || "https://41200aa1-4106-4e6c-babf-311dce37c04a-prod.e1-us-east-azure.choreoapis.dev/gov-superapp/superappbackendprodbranch/v1.0";
 
 export default function UploadMicroApp() {
   const [name, setName] = useState("");
