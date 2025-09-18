@@ -38,6 +38,7 @@ export const GOOGLE_REFRESH_TOKEN_KEY =
   process.env.EXPO_PUBLIC_GOOGLE_REFRESH_TOKEN_KEY ?? "";
 export const GOOGLE_USER_INFO_KEY =
   process.env.EXPO_PUBLIC_GOOGLE_USER_INFO_KEY ?? "";
+export const MICROAPP_TOKEN_STORAGE_KEY = "microapp-tokens";
 export const GOOGLE_SCOPES = [
   "openid",
   "profile",

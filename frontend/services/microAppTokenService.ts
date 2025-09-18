@@ -15,7 +15,10 @@
 // under the License.
 
 import axios from "axios";
-import { BASE_URL } from "@/constants/Constants";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { jwtDecode } from "jwt-decode";
+import dayjs from "dayjs";
+import { BASE_URL, MICROAPP_TOKEN_STORAGE_KEY } from "@/constants/Constants";
 
 /**
  * Interface for microapp token request parameters
@@ -35,7 +38,90 @@ export interface MicroAppTokenResponse {
 }
 
 /**
- * Fetches a microapp token from the backend
+ * Interface for cached microapp token data
+ */
+interface CachedMicroAppToken extends MicroAppTokenResponse {
+  emp_id: string;
+  app_id: string;
+  cachedAt: number;
+}
+
+/**
+ * Helper function to check if a token is expired
+ * 
+ * @param token - The JWT token string
+ * @returns boolean - true if token is expired, false otherwise
+ */
+const isTokenExpired = (token: string): boolean => {
+  try {
+    const decoded = jwtDecode<{ exp: number }>(token);
+    return dayjs.unix(decoded.exp).isBefore(dayjs());
+  } catch {
+    return true; // Assume expired if decoding fails
+  }
+};
+
+/**
+ * Generate storage key for microapp token
+ * 
+ * @param emp_id - Employee ID
+ * @param app_id - App ID
+ * @returns string - Storage key for the token
+ */
+const getTokenStorageKey = (emp_id: string, app_id: string): string => {
+  return `${MICROAPP_TOKEN_STORAGE_KEY}-${emp_id}-${app_id}`;
+};
+
+/**
+ * Get cached microapp token from storage
+ * 
+ * @param emp_id - Employee ID
+ * @param app_id - App ID
+ * @returns Promise<CachedMicroAppToken | null> - Cached token data or null if not found
+ */
+const getCachedToken = async (emp_id: string, app_id: string): Promise<CachedMicroAppToken | null> => {
+  try {
+    const storageKey = getTokenStorageKey(emp_id, app_id);
+    const cachedData = await AsyncStorage.getItem(storageKey);
+    
+    if (!cachedData) {
+      return null;
+    }
+
+    const tokenData: CachedMicroAppToken = JSON.parse(cachedData);
+    return tokenData;
+  } catch (error) {
+    console.error("Error getting cached token:", error);
+    return null;
+  }
+};
+
+/**
+ * Save microapp token to storage
+ * 
+ * @param emp_id - Employee ID
+ * @param app_id - App ID
+ * @param tokenData - Token data to cache
+ */
+const saveTokenToCache = async (emp_id: string, app_id: string, tokenData: MicroAppTokenResponse): Promise<void> => {
+  try {
+    const storageKey = getTokenStorageKey(emp_id, app_id);
+    const cachedData: CachedMicroAppToken = {
+      ...tokenData,
+      emp_id,
+      app_id,
+      cachedAt: Date.now()
+    };
+
+    await AsyncStorage.setItem(storageKey, JSON.stringify(cachedData));
+    console.log(`Microapp token cached for app: ${app_id}, emp: ${emp_id}`);
+  } catch (error) {
+    console.error("Error saving token to cache:", error);
+  }
+};
+
+/**
+ * Fetches a microapp token from the backend with caching support
  * 
  * @param params - Object containing emp_id and app_id
  * @returns Promise<MicroAppTokenResponse> - The microapp token data
@@ -49,6 +135,23 @@ export const fetchMicroAppToken = async (
 
     if (!emp_id || !app_id) {
       throw new Error("Both emp_id and app_id are required parameters");
+    }
+
+    // Check for cached token first
+    const cachedToken = await getCachedToken(emp_id, app_id);
+    if (cachedToken) {
+      // Check if cached token is still valid
+      if (!isTokenExpired(cachedToken.token)) {
+        console.log(`Using cached microapp token for app: ${app_id}, emp: ${emp_id}`);
+        return {
+          token: cachedToken.token,
+          expiresAt: cachedToken.expiresAt
+        };
+      } else {
+        console.log(`Cached token expired for app: ${app_id}, emp: ${emp_id}. Fetching new token...`);
+      }
+    } else {
+      console.log(`No cached token found for app: ${app_id}, emp: ${emp_id}. Fetching new token...`);
     }
 
     if (!BASE_URL) {
@@ -83,7 +186,10 @@ export const fetchMicroAppToken = async (
       throw new Error("Invalid response: token field is missing");
     }
 
-    console.log(`Successfully fetched microapp token for app: ${app_id}, emp: ${emp_id}`);
+    // Cache the new token
+    await saveTokenToCache(emp_id, app_id, tokenData);
+
+    console.log(`Successfully fetched and cached microapp token for app: ${app_id}, emp: ${emp_id}`);
     
     return tokenData;
 
@@ -113,8 +219,69 @@ export const fetchMicroAppToken = async (
  */
 export const isMicroAppTokenExpired = (tokenData: MicroAppTokenResponse): boolean => {
   if (!tokenData.expiresAt) {
-    return false; // If no expiration time, consider it valid
+    // If no expiration time, try to decode the JWT token
+    return isTokenExpired(tokenData.token);
   }
   
   return Date.now() >= tokenData.expiresAt;
+};
+
+/**
+ * Clear cached token for a specific app and employee
+ * 
+ * @param emp_id - Employee ID
+ * @param app_id - App ID
+ */
+export const clearCachedToken = async (emp_id: string, app_id: string): Promise<void> => {
+  try {
+    const storageKey = getTokenStorageKey(emp_id, app_id);
+    await AsyncStorage.removeItem(storageKey);
+    console.log(`Cleared cached token for app: ${app_id}, emp: ${emp_id}`);
+  } catch (error) {
+    console.error("Error clearing cached token:", error);
+  }
+};
+
+/**
+ * Clear all cached microapp tokens
+ */
+export const clearAllCachedTokens = async (): Promise<void> => {
+  try {
+    const allKeys = await AsyncStorage.getAllKeys();
+    const tokenKeys = allKeys.filter(key => key.startsWith(MICROAPP_TOKEN_STORAGE_KEY));
+    
+    if (tokenKeys.length > 0) {
+      await AsyncStorage.multiRemove(tokenKeys);
+      console.log(`Cleared ${tokenKeys.length} cached microapp tokens`);
+    }
+  } catch (error) {
+    console.error("Error clearing all cached tokens:", error);
+  }
+};
+
+/**
+ * Get cached token without making API call (for checking cache status)
+ * 
+ * @param emp_id - Employee ID
+ * @param app_id - App ID
+ * @returns Promise<MicroAppTokenResponse | null> - Cached token data or null if not found/expired
+ */
+export const getCachedMicroAppToken = async (emp_id: string, app_id: string): Promise<MicroAppTokenResponse | null> => {
+  const cachedToken = await getCachedToken(emp_id, app_id);
+  
+  if (!cachedToken) {
+    return null;
+  }
+  
+  // Check if token is still valid
+  if (isTokenExpired(cachedToken.token)) {
+    // Token is expired, remove from cache
+    await clearCachedToken(emp_id, app_id);
+    return null;
+  }
+  
+  return {
+    token: cachedToken.token,
+    expiresAt: cachedToken.expiresAt
+  };
 };

@@ -6,12 +6,27 @@ This guide explains how microapps can request and use microapp-specific tokens f
 
 ## Service Function
 
-The `fetchMicroAppToken` function is available in `/services/microAppTokenService.ts` and allows fetching microapp tokens from the backend using:
+The `fetchMicroAppToken` function is available in `/services/microAppTokenService.ts` and allows fetching microapp tokens from the backend with intelligent caching:
 
 - **URL**: `${BASE_URL}/micro-app-token?emp_id=${emp_id}&micro_app_id=${app_id}`
 - **Parameters**: 
   - `emp_id`: Employee ID of the current user
   - `app_id`: ID of the microapp requesting the token
+
+### Caching Behavior
+
+The service implements smart caching to avoid unnecessary API calls:
+
+1. **First Request**: Fetches token from backend and caches it locally
+2. **Subsequent Requests**: Returns cached token if still valid
+3. **Expired Token**: Automatically fetches new token when cached token expires
+4. **Invalid Token**: Removes invalid tokens from cache
+
+### Cache Storage
+
+- Tokens are stored in AsyncStorage with keys like: `microapp-tokens-${emp_id}-${app_id}`
+- Each cached token includes: token, expiration time, employee ID, app ID, and cache timestamp
+- JWT tokens are automatically validated for expiration using the `exp` claim
 
 ## Bridge Integration
 
@@ -94,5 +109,31 @@ The service includes comprehensive error handling for:
 - Network errors
 - Server errors
 - Invalid responses
+- Token expiration and caching issues
 
 All errors are properly logged and communicated back to the microapp through the bridge system.
+
+## Cache Management
+
+### Available Cache Functions
+
+```javascript
+// Get cached token without API call (returns null if expired)
+const cachedToken = await getCachedMicroAppToken(emp_id, app_id);
+
+// Clear specific cached token
+await clearCachedToken(emp_id, app_id);
+
+// Clear all cached microapp tokens (useful for logout)
+await clearAllCachedTokens();
+
+// Check if token is expired
+const isExpired = isMicroAppTokenExpired(tokenData);
+```
+
+### Cache Benefits
+
+- **Performance**: Avoids unnecessary API calls for valid tokens
+- **Offline Support**: Can use cached tokens when network is unavailable
+- **Battery Life**: Reduces network requests to save device battery
+- **User Experience**: Faster app loading times
