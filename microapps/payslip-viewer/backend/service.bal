@@ -18,12 +18,7 @@ map<Payslip> uploadedPayslips = {};
 // Main payslip service
 service /api/v1/payslips on new http:Listener(serverPort) {
 
-    // Health check endpoint (always public)
-    resource function get health() returns HealthResponse {
-        logRequest("GET", "/health");
-        return createHealthResponse();
-    }
-
+    
     // POST endpoint to upload CSV
     resource function post upload(http:Request req) returns json|error {
         mime:Entity|error fileEntity = req.getEntity();
@@ -106,58 +101,6 @@ service /api/v1/payslips on new http:Listener(serverPort) {
     }
 
 
-    // Get payslips from uploaded CSV as a map keyed by employeeId
-    resource function get all() returns json|error {
-        string csvPath = "./uploaded.csv";
-
-        // Check if file exists
-        // Check if file exists using ballerina/file
-        boolean exists = check file:test(csvPath, file:EXISTS);
-        if !exists {
-            return { message: "No uploaded CSV found", payslips: {} };
-        }
-
-        // Read CSV as a stream
-        stream<string[], io:Error?> csvStream = check io:fileReadCsvAsStream(csvPath);
-
-        Payslip[] payslips = [];
-
-        check csvStream.forEach(function(string[] row) {
-            // Skip empty or invalid rows
-            if row.length() < 9 || row[0].toLowerAscii().trim() == "employeeid" {
-                return;
-            }
-
-            float|error basicSalary = float:fromString(row[5].trim());
-            float|error allowances = float:fromString(row[6].trim());
-            float|error deductions = float:fromString(row[7].trim());
-            float|error netSalary = float:fromString(row[8].trim());
-
-            // Skip row if numeric parsing fails
-            if basicSalary is error || allowances is error || deductions is error || netSalary is error {
-                return;
-            }
-
-            payslips.push({
-                employeeId: row[0].trim(),
-                designation: row[1].trim(),
-                name: row[2].trim(),
-                department: row[3].trim(),
-                payPeriod: row[4].trim(),
-                basicSalary: basicSalary,
-                allowances: allowances,
-                deductions: deductions,
-                netSalary: netSalary
-            });
-        });
-
-        return {
-            status: "success",
-            message: "Fetched payslips from CSV",
-            count: payslips.length(),
-            data: payslips
-        };
-    }
 
     // GET a single payslip by EmployeeId
     resource function get [string employeeId](http:Caller caller, http:Request req) returns error? {
@@ -226,9 +169,74 @@ service /api/v1/payslips on new http:Listener(serverPort) {
         return ();
     }
 
+
+    
+
+
+
+    // Health check endpoint (always public)
+    resource function get health() returns HealthResponse {
+        logRequest("GET", "/health");
+        return createHealthResponse();
+    }
+
 }
 
 
+////////////////////////////////////////////////////////////// COMMENTED OUT FOR REFACTORING PURPOSES  ////////////////////////////////////////////////////////////////
+
+    // Get payslips from uploaded CSV as a map keyed by employeeId
+    // resource function get all() returns json|error {
+    //     string csvPath = "./uploaded.csv";
+
+    //     // Check if file exists
+    //     // Check if file exists using ballerina/file
+    //     boolean exists = check file:test(csvPath, file:EXISTS);
+    //     if !exists {
+    //         return { message: "No uploaded CSV found", payslips: {} };
+    //     }
+
+    //     // Read CSV as a stream
+    //     stream<string[], io:Error?> csvStream = check io:fileReadCsvAsStream(csvPath);
+
+    //     Payslip[] payslips = [];
+
+    //     check csvStream.forEach(function(string[] row) {
+    //         // Skip empty or invalid rows
+    //         if row.length() < 9 || row[0].toLowerAscii().trim() == "employeeid" {
+    //             return;
+    //         }
+
+    //         float|error basicSalary = float:fromString(row[5].trim());
+    //         float|error allowances = float:fromString(row[6].trim());
+    //         float|error deductions = float:fromString(row[7].trim());
+    //         float|error netSalary = float:fromString(row[8].trim());
+
+    //         // Skip row if numeric parsing fails
+    //         if basicSalary is error || allowances is error || deductions is error || netSalary is error {
+    //             return;
+    //         }
+
+    //         payslips.push({
+    //             employeeId: row[0].trim(),
+    //             designation: row[1].trim(),
+    //             name: row[2].trim(),
+    //             department: row[3].trim(),
+    //             payPeriod: row[4].trim(),
+    //             basicSalary: basicSalary,
+    //             allowances: allowances,
+    //             deductions: deductions,
+    //             netSalary: netSalary
+    //         });
+    //     });
+
+    //     return {
+    //         status: "success",
+    //         message: "Fetched payslips from CSV",
+    //         count: payslips.length(),
+    //         data: payslips
+    //     };
+    // }
 
 
 
