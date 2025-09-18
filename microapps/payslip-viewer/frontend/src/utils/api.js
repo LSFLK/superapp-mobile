@@ -64,21 +64,27 @@ async function apiRequest(endpoint, options = {}) {
 }
 
 /**
- * Fetch payslip for specific employee
- * @param {string} employeeId - Employee ID to fetch payslip for
+ * Fetch payslip data using microapp token
+ * @param {string} microappToken - Microapp token for authentication
  * @param {string} payPeriod - Optional pay period (YYYY-MM format)
  * @returns {Promise<Object>} Response containing payslip data
  */
-export async function fetchPayslipByEmployee(employeeId, payPeriod = null) {
-  if (!employeeId || typeof employeeId !== 'string') {
-    throw new ApiError('Employee ID is required', 400, 'VALIDATION_ERROR');
+export async function fetchPayslip(microappToken, payPeriod = null) {
+  if (!microappToken || typeof microappToken !== 'string') {
+    throw new ApiError('Microapp token is required', 400, 'VALIDATION_ERROR');
   }
   
   const endpoint = payPeriod 
-    ? `/${encodeURIComponent(employeeId)}?payPeriod=${encodeURIComponent(payPeriod)}`
-    : `/${encodeURIComponent(employeeId)}`;
+    ? `/payslip?payPeriod=${encodeURIComponent(payPeriod)}`
+    : '/payslip';
     
-  return apiRequest(endpoint);
+  const options = {
+    headers: {
+      'Authorization': microappToken,
+    },
+  };
+    
+  return apiRequest(endpoint, options);
 }
 
 /**

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AlertCircle } from 'lucide-react';
-import { fetchPayslipByEmployee, getErrorMessage } from '../utils/api';
+import { fetchPayslip, getErrorMessage } from '../utils/api';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorMessage from './ErrorMessage';
 import PayslipCard from './PayslipCard';
@@ -10,107 +10,105 @@ export default function PayslipViewer() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [microappToken, setMicroappToken] = useState("No Microapp Token"); // Default fallback
+  const [empID, setEmpID] = useState(null);
   const [consoleLogs, setConsoleLogs] = useState([]);
+  const [showDebugInfo, setShowDebugInfo] = useState(false);
+
+
+  const loadPayslip = async (token) => {
+    if (!token || token === "No Microapp Token") {
+      setError("No valid microapp token available");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetchPayslip(token);
+      console.log('API Response:', response);
+      setPayslip(response.data);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   useEffect(() => {
-    // Get empID from native bridge if available
+
+    // Set loading to false when no native bridge is available (browser testing)
+    if (!window.nativebridge || Object.keys(window.nativebridge).length === 0) {
+      setLoading(false);
+    }
+
     const getMicroappToken = () => {
       // setConsoleLogs((logs) => [...logs, 'Attempting to get microapp token from native bridge...']);
-      // Check if we're running in native app (bridge available)
-      if (window.nativebridge && typeof window.nativebridge === 'object' && Object.keys(window.nativebridge).length > 0) {
-        // setConsoleLogs((logs) => [...logs, 'Native bridge detected. Requesting microapp token...']);
-        // request microapp token
-        if (window.nativebridge.requestMicroAppToken) {
-          // Add debug info
-          // setConsoleLogs((logs) => [...logs, 'Bridge methods available:', Object.keys(window.nativebridge).join(', ')]);
-          
-          window.nativebridge.requestMicroAppToken({ app_id: "payslip-viewer" });
-          // setConsoleLogs((logs) => [...logs, 'Microapp token request sent to native bridge with app_id: payslip-viewer. Waiting for response...']);
-          
-          // Listen for the response
-          const handleMicroAppTokenReceived = (event) => {
-            setMicroappToken(event.detail.token);
-            // setConsoleLogs((logs) => [...logs, `Received microapp token from native bridge: ${event.detail.token}`]);
-          };
 
-          // FIXED: Listen for the correct event name
-          window.addEventListener('resolveMicroAppToken', handleMicroAppTokenReceived);
-          
-          // Also listen for errors
-          const handleMicroAppTokenError = (event) => {
-            setConsoleLogs((logs) => [...logs, `Error getting microapp token: ${event.detail}`]);
-            setError(`Failed to get microapp token: ${event.detail}`);
-          };
-          
-          window.addEventListener('rejectMicroAppToken', handleMicroAppTokenError);
-          
-          return null; // Will be set via event listener
-        }
-      } else {
-        console.log('Native bridge not available (running in browser).');
-      }
+      // Add debug info
+      // setConsoleLogs((logs) => [...logs, 'Bridge methods available: ' + Object.keys(window.nativebridge).join(', ')]);
 
-      return null; // Fallback ID for testing in browser
-    };
+      window.nativebridge.requestMicroAppToken({ app_id: "payslip-viewer" });
 
-    // Get initial microapp token
-    const currentMicroappToken = getMicroappToken();
+      // Listen for the response
+      const handleMicroAppTokenReceived = async (event) => {
+        setMicroappToken(event.detail.token);
+        // setConsoleLogs((logs) => [...logs, `Received microapp token from native bridge: ${event.detail.token}`]);
+        // Load payslip once we have the token
+        await loadPayslip(event.detail.token);
+      };
+      window.addEventListener('resolveMicroAppToken', handleMicroAppTokenReceived);
 
-    // const loadPayslip = async (empId) => {
-    //   if (!empId) return; // Don't load if empId is null (waiting for native response)
-      
-    //   try {
-    //     setLoading(true);
-    //     const response = await fetchPayslipByEmployee(empId);
-    //     // console.log('Fetched employeeId:', empId);
-    //     // console.log('API Response:', response);
-    //     setPayslip(response.data);
-    //   } catch (err) {
-    //     setError(getErrorMessage(err));
-    //   } finally {
-    //     setLoading(false);
-    //   }
-    // };
+      // Also listen for errors
+      const handleMicroAppTokenError = (event) => {
+        // setConsoleLogs((logs) => [...logs, `Error getting microapp token: ${event.detail}`]);
+        setError(`Failed to get microapp token: ${event.detail}`);
+      };
+      window.addEventListener('rejectMicroAppToken', handleMicroAppTokenError);
 
-    // if (currentEmpId) {
-    //   loadPayslip(currentEmpId);
-    // }
+    }
+
+    const getEmpID = () => {
+      window.nativebridge.requestEmpId();
+      // Listen for employee ID response
+      const handleEmpIDReceived = (event) => {
+        setEmpID(event.detail);
+        // setConsoleLogs((logs) => [...logs, `Received employee ID: ${event.detail}`]);
+      };
+      window.addEventListener('resolveEmpId', handleEmpIDReceived);
+
+    }
+
+    // Check if we're running in native app (bridge available)
+    if (window.nativebridge && typeof window.nativebridge === 'object' && Object.keys(window.nativebridge).length > 0) {
+      // setConsoleLogs((logs) => [...logs, 'Native bridge detected.']);
+      if (window.nativebridge.requestMicroAppToken) { getMicroappToken(); }
+      if (window.nativebridge.requestEmpId) { getEmpID(); }
+
+    } else {
+      console.log('Native bridge not available (running in browser).');
+    }
+
+
+
 
     // Cleanup event listeners
     return () => {
-      window.removeEventListener('resolveMicroAppToken', () => {});
-      window.removeEventListener('rejectMicroAppToken', () => {});
+      window.removeEventListener('resolveMicroAppToken', () => { });
+      window.removeEventListener('rejectMicroAppToken', () => { });
+      window.removeEventListener('resolveEmpId', () => { });
     };
   }, []);
 
-  // // Reload payslip when employeeId changes
-  // useEffect(() => {
-  //   if (employeeId && employeeId !== 'EMP003') {
-  //     const loadPayslip = async () => {
-  //       try {
-  //         setLoading(true);
-  //         const response = await fetchPayslipByEmployee(employeeId);
-  //         console.log('Reloaded payslip for employeeId:', employeeId);
-  //         setPayslip(response.data);
-  //       } catch (err) {
-  //         setError(getErrorMessage(err));
-  //       } finally {
-  //         setLoading(false);
-  //       }
-  //     };
 
-  //     loadPayslip();
-  //   }
-  // }, [employeeId]);
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-md mx-auto px-4 py-6">
         {/* Header */}
-        <div>{consoleLogs}</div>
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Payslip</h1>
-          {/* <p className="text-gray-600 text-sm">Employee ID: {employeeId}</p> */}
+          <p className="text-gray-600 text-sm">Employee ID: {empID || 'Not Available'}</p>
         </div>
 
         {/* Loading */}
@@ -124,6 +122,25 @@ export default function PayslipViewer() {
             dismissible
             onDismiss={() => setError(null)}
           />
+        )}
+
+        {/* No payslip loaded - show refresh button if we have a token */}
+        {!payslip && !loading && !error && microappToken && microappToken !== "No Microapp Token" && (
+          <div className="text-center">
+            <button
+              onClick={() => loadPayslip(microappToken)}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+            >
+              Load Payslip
+            </button>
+          </div>
+        )}
+
+        {/* No token available */}
+        {!payslip && !loading && microappToken === "No Microapp Token" && (
+          <div className="text-center text-gray-600">
+            <p>No microapp token available. Please run this in the mobile app.</p>
+          </div>
         )}
 
         {/* Payslip */}
