@@ -9,85 +9,99 @@ export default function PayslipViewer() {
   const [payslip, setPayslip] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [employeeId, setEmployeeId] = useState(null); // Default fallback
-  // const [consoleLogs, setConsoleLogs] = useState([]);
+  const [microappToken, setMicroappToken] = useState("No Microapp Token"); // Default fallback
+  const [consoleLogs, setConsoleLogs] = useState([]);
 
   useEffect(() => {
     // Get empID from native bridge if available
-    const getNativeEmpId = () => {
-      // setConsoleLogs((logs) => [...logs, 'Attempting to get empId from native bridge...']);
+    const getMicroappToken = () => {
+      // setConsoleLogs((logs) => [...logs, 'Attempting to get microapp token from native bridge...']);
       // Check if we're running in native app (bridge available)
       if (window.nativebridge && typeof window.nativebridge === 'object' && Object.keys(window.nativebridge).length > 0) {
-        // setConsoleLogs((logs) => [...logs, 'Native bridge detected. Requesting empId...']);
-        // request empId
-        if (window.nativebridge.requestEmpId) {
-          window.nativebridge.requestEmpId();
-          // setConsoleLogs((logs) => [...logs, 'EmpId request sent to native bridge. Waiting for response...']);
+        // setConsoleLogs((logs) => [...logs, 'Native bridge detected. Requesting microapp token...']);
+        // request microapp token
+        if (window.nativebridge.requestMicroAppToken) {
+          // Add debug info
+          // setConsoleLogs((logs) => [...logs, 'Bridge methods available:', Object.keys(window.nativebridge).join(', ')]);
+          
+          window.nativebridge.requestMicroAppToken({ app_id: "payslip-viewer" });
+          // setConsoleLogs((logs) => [...logs, 'Microapp token request sent to native bridge with app_id: payslip-viewer. Waiting for response...']);
+          
           // Listen for the response
-          const handleEmpIdReceived = (event) => {
-            setEmployeeId(event.detail);
-            // setConsoleLogs((logs) => [...logs, `Received empId from native bridge: ${event.detail}`]);
+          const handleMicroAppTokenReceived = (event) => {
+            setMicroappToken(event.detail.token);
+            // setConsoleLogs((logs) => [...logs, `Received microapp token from native bridge: ${event.detail.token}`]);
+          };
+
+          // FIXED: Listen for the correct event name
+          window.addEventListener('resolveMicroAppToken', handleMicroAppTokenReceived);
+          
+          // Also listen for errors
+          const handleMicroAppTokenError = (event) => {
+            setConsoleLogs((logs) => [...logs, `Error getting microapp token: ${event.detail}`]);
+            setError(`Failed to get microapp token: ${event.detail}`);
           };
           
-          window.addEventListener('nativeEmpIdReceived', handleEmpIdReceived);
+          window.addEventListener('rejectMicroAppToken', handleMicroAppTokenError);
+          
           return null; // Will be set via event listener
         }
       } else {
-        console.log('Native bridge not available (running in browser). Using fallback ID: EMP000');
+        console.log('Native bridge not available (running in browser).');
       }
 
-      return 'EMP000'; // Fallback ID for testing in browser
+      return null; // Fallback ID for testing in browser
     };
 
-    // Get initial empID
-    const currentEmpId = getNativeEmpId();
+    // Get initial microapp token
+    const currentMicroappToken = getMicroappToken();
 
-    const loadPayslip = async (empId) => {
-      if (!empId) return; // Don't load if empId is null (waiting for native response)
+    // const loadPayslip = async (empId) => {
+    //   if (!empId) return; // Don't load if empId is null (waiting for native response)
       
-      try {
-        setLoading(true);
-        const response = await fetchPayslipByEmployee(empId);
-        // console.log('Fetched employeeId:', empId);
-        // console.log('API Response:', response);
-        setPayslip(response.data);
-      } catch (err) {
-        setError(getErrorMessage(err));
-      } finally {
-        setLoading(false);
-      }
-    };
+    //   try {
+    //     setLoading(true);
+    //     const response = await fetchPayslipByEmployee(empId);
+    //     // console.log('Fetched employeeId:', empId);
+    //     // console.log('API Response:', response);
+    //     setPayslip(response.data);
+    //   } catch (err) {
+    //     setError(getErrorMessage(err));
+    //   } finally {
+    //     setLoading(false);
+    //   }
+    // };
 
-    if (currentEmpId) {
-      loadPayslip(currentEmpId);
-    }
+    // if (currentEmpId) {
+    //   loadPayslip(currentEmpId);
+    // }
 
     // Cleanup event listeners
     return () => {
-      window.removeEventListener('nativeEmpIdReceived', () => {});
-      window.removeEventListener('resolveDeviceInfo', () => {});
+      window.removeEventListener('resolveMicroAppToken', () => {});
+      window.removeEventListener('rejectMicroAppToken', () => {});
     };
   }, []);
 
-  // Reload payslip when employeeId changes
-  useEffect(() => {
-    if (employeeId && employeeId !== 'EMP003') {
-      const loadPayslip = async () => {
-        try {
-          setLoading(true);
-          const response = await fetchPayslipByEmployee(employeeId);
-          console.log('Reloaded payslip for employeeId:', employeeId);
-          setPayslip(response.data);
-        } catch (err) {
-          setError(getErrorMessage(err));
-        } finally {
-          setLoading(false);
-        }
-      };
+  // // Reload payslip when employeeId changes
+  // useEffect(() => {
+  //   if (employeeId && employeeId !== 'EMP003') {
+  //     const loadPayslip = async () => {
+  //       try {
+  //         setLoading(true);
+  //         const response = await fetchPayslipByEmployee(employeeId);
+  //         console.log('Reloaded payslip for employeeId:', employeeId);
+  //         setPayslip(response.data);
+  //       } catch (err) {
+  //         setError(getErrorMessage(err));
+  //       } finally {
+  //         setLoading(false);
+  //       }
+  //     };
 
-      loadPayslip();
-    }
-  }, [employeeId]);
+  //     loadPayslip();
+  //   }
+  // }, [employeeId]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -96,7 +110,7 @@ export default function PayslipViewer() {
         <div>{consoleLogs}</div>
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Payslip</h1>
-          <p className="text-gray-600 text-sm">Employee ID: {employeeId}</p>
+          {/* <p className="text-gray-600 text-sm">Employee ID: {employeeId}</p> */}
         </div>
 
         {/* Loading */}

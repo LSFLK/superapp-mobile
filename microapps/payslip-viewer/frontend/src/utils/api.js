@@ -64,14 +64,6 @@ async function apiRequest(endpoint, options = {}) {
 }
 
 /**
- * Fetch all payslips
- * @returns {Promise<Object>} Response containing array of payslips
- */
-export async function fetchAllPayslips() {
-  return apiRequest('/payslips');
-}
-
-/**
  * Fetch payslip for specific employee
  * @param {string} employeeId - Employee ID to fetch payslip for
  * @param {string} payPeriod - Optional pay period (YYYY-MM format)
