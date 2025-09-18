@@ -64,10 +64,7 @@ final mysql:Client databaseClient = check new (...superappMobileDatabaseConfig);
 // Functions to interact with the database
 
 // Function to insert a micro-app with a ZIP file
-public function insertMicroAppWithZip(string name, string version, string zipFilePath, string appId, string iconUrlPath) returns error? {
-
-    // Read ZIP file from local path
-    byte[] zipData = check io:fileReadBytes(zipFilePath);
+public function insertMicroAppWithZip(string name, string version, byte[] zipData, string appId, string iconUrlPath) returns error? {
 
     // Parameterized query to insert into micro_apps
     //sql:ParameterizedQuery query = `INSERT INTO micro_apps (name, version, zip_blob, app_id) VALUES (${name}, ${version}, ${zipData}, ${appId});`;
