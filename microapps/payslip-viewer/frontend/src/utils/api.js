@@ -1,10 +1,20 @@
+import { terminal } from 'virtual:terminal';
 /**
  * API utility functions for payslip viewer
  * Clean and reusable API functions with proper error handling
  */
 
 // API base URL - can be configured via environment variable
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://192.168.1.103:8080/api/v1';
+// Use proxy during development to bypass CORS
+const isDevelopment = import.meta.env.DEV;
+const API_BASE_URL = isDevelopment 
+  ? '/api/proxy/gov-superapp/microappbackendprodbranch/v1.0'  // Use Vite proxy during development
+  : import.meta.env.VITE_API_BASE_URL;
+
+// Log which API base URL is being used
+// if (typeof terminal !== 'undefined' && terminal.log) {
+//   terminal.log(`API Base URL: ${API_BASE_URL} (Development mode: ${isDevelopment})`);
+// }
 
 /**
  * Generic API error class for better error handling
@@ -29,16 +39,41 @@ async function apiRequest(endpoint, options = {}) {
       'Content-Type': 'application/json',
       ...options.headers,
     },
+    // Add timeout to prevent hanging requests
+    signal: AbortSignal.timeout(30000), // 30 second timeout
   };
 
   try {
+    // terminal.log(`Making API request to ${url} with options:`, defaultOptions);
     const response = await fetch(url, { ...defaultOptions, ...options });
+    
+    // terminal.log(`Received response from ${url}:`, {
+    //   status: response.status,
+    //   statusText: response.statusText,
+    //   headers: Object.fromEntries(response.headers.entries()),
+    //   ok: response.ok
+    // });
+    
+    // Check if response is ok before trying to parse JSON
+    if (!response.ok) {
+      // Try to get error message from response
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = await response.text();
+        terminal.log(`Error response body:`, errorData);
+        errorMessage += ` - ${errorData}`;
+      } catch (parseError) {
+        terminal.log(`Could not parse error response:`, parseError);
+      }
+      throw new ApiError(errorMessage, response.status, 'HTTP_ERROR');
+    }
     
     // Parse JSON response
     const data = await response.json();
+    // terminal.log(`Parsed response data:`, data);
     
     // Handle API errors
-    if (!response.ok || data.status === 'error') {
+    if (data.status === 'error') {
       throw new ApiError(
         data.message || 'An error occurred',
         response.status,
@@ -48,18 +83,48 @@ async function apiRequest(endpoint, options = {}) {
     
     return data;
   } catch (error) {
+    // // Enhanced error logging
+    // terminal.log(`API request error:`, {
+    //   name: error.name,
+    //   message: error.message,
+    //   stack: error.stack,
+    //   status: error.status || 'unknown',
+    //   errorCode: error.errorCode || 'unknown',
+    //   url: url,
+    //   timestamp: new Date().toISOString()
+    // });
+    
     // Re-throw API errors
     if (error instanceof ApiError) {
       throw error;
     }
     
-    // Handle network errors
-    if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      throw new ApiError('Network error. Please check your connection.', 0, 'NETWORK_ERROR');
+    // Handle network errors with more specific messaging
+    if (error.name === 'TypeError') {
+      if (error.message.includes('fetch') || error.message.includes('Failed to fetch')) {
+        throw new ApiError(
+          `Network error: ${error.message}. This could be due to CORS policy, network connectivity, or server unavailability.`, 
+          0, 
+          'NETWORK_ERROR'
+        );
+      }
+      if (error.message.includes('NetworkError')) {
+        throw new ApiError('Network error: Request blocked by browser security policy.', 0, 'BROWSER_BLOCK_ERROR');
+      }
+    }
+    
+    // Handle JSON parsing errors
+    if (error instanceof SyntaxError && error.message.includes('JSON')) {
+      throw new ApiError('Server returned invalid JSON response.', 0, 'JSON_PARSE_ERROR');
+    }
+    
+    // Handle timeout errors
+    if (error.name === 'AbortError') {
+      throw new ApiError('Request timeout - the server is not responding.', 0, 'TIMEOUT_ERROR');
     }
     
     // Handle other errors
-    throw new ApiError('An unexpected error occurred.', 500, 'UNKNOWN_ERROR');
+    throw new ApiError(`Unexpected error: ${error.message}`, 500, 'UNKNOWN_ERROR');
   }
 }
 

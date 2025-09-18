@@ -26,7 +26,9 @@ export default function PayslipViewer() {
       setError(null);
       const response = await fetchPayslip(token);
       console.log('API Response:', response);
-      setPayslip(response.data);
+      
+      // The payslip data is directly in the response, not nested under 'data'
+      setPayslip(response);
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -126,10 +128,10 @@ export default function PayslipViewer() {
 
         {/* No payslip loaded - show refresh button if we have a token */}
         {!payslip && !loading && !error && microappToken && microappToken !== "No Microapp Token" && (
-          <div className="text-center">
+          <div className="text-center space-y-2">
             <button
               onClick={() => loadPayslip(microappToken)}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors mr-2"
             >
               Load Payslip
             </button>
