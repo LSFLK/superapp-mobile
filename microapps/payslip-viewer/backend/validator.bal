@@ -1,9 +1,23 @@
 import ballerina/http;
 import ballerina/jwt;
-// import ballerina/io;
+//import ballerina/io;
 import ballerina/log;
 
 configurable string publicKeyPath = ?; // e.g., "./public.pem" locally, "/public.pem" in Choreo
+
+public isolated function extractEmployeeId(jwt:Payload payload) returns string|error {
+    anydata|error empClaim = payload["emp_id"];
+
+    if empClaim is error {
+        return error("emp_id claim not found in JWT payload");
+    }
+
+    if empClaim is string {
+        return empClaim;
+    }
+
+    return error("emp_id claim is not a string");
+}
 
 # To handle authorization for each resource function invocation.
 service class JwtInterceptor {
@@ -33,7 +47,10 @@ service class JwtInterceptor {
         }
 
         jwt:Payload | jwt:Error payload = jwt:validate(idToken, validatorConfig);
-        //io:println("JWT validation successful. Payload: " + payload.toString());
+        
+        // if payload is jwt:Payload {
+        //     log:printInfo("JWT payload: " + payload.toString());
+        // }
 
         if (payload is jwt:Error) {
             string errorMsg = "JWT validation failed! Unauthorized !!!";
@@ -44,7 +61,21 @@ service class JwtInterceptor {
                 }
             };
         }
-        // io:println("JWT validation successful. Payload: " + payload.toString());
+
+
+        //Extract emp_id
+        string|error empId = extractEmployeeId(payload);
+        if empId is error {
+            log:printError("Failed to extract emp_id", empId);
+            return <http:InternalServerError>{
+                body: { message: "Invalid token: emp_id missing" }
+            };
+        }
+
+        log:printInfo("Authenticated employee ID: " + empId);
+
+
+        ctx.set("emp_id", empId);
         
         return ctx.next();
     }

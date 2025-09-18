@@ -21,5 +21,14 @@ public AuthConfig authConfig = {
     publicEndpoints: publicEndpoints
 };
 
+
 // Service start time for uptime calculation
 public time:Utc serviceStartTime = time:utcNow();
+// Database configuration
+public type DatabaseConfig record {
+    string DB_HOST;
+    int DB_PORT;
+    string DB_NAME;
+    string DB_USER;
+    string DB_PASSWORD;
+};
