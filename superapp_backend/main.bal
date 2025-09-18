@@ -21,6 +21,8 @@ configurable string superappIssuer = "superapp-issuer";
 configurable decimal tokenTTLSeconds = 300; 
 configurable string privateKeyPath = ?; 
 
+// CORS configuration for frontend access
+
 // Standalone function to create the microapp-specific JWT
 // Usage: string|error token = createMicroappJWT("emp-123", "app-456");
 public function createMicroappJWT(string empId, string microAppId) returns string|error {
@@ -69,15 +71,19 @@ service class ErrorInterceptor {
     }
 }
 
+@http:ServiceConfig {
+    cors: {
+        allowOrigins: ["*"],
+        allowCredentials: false,
+        allowHeaders: ["Authorization", "Content-Type"],
+        allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    }
+}
 service http:InterceptableService / on new http:Listener(serverPort, config = {requestLimits: {maxHeaderSize}}) {
 
     # + return - ErrorInterceptor
     public function createInterceptors() returns http:Interceptor[] =>
     [new ErrorInterceptor()];
-
-
-    // Endpoint to generate and return a microapp-specific JWT
-    # Generate a microapp-specific JWT based on emp_id and micro_app_id.
     #
     # + ctx - Request context
     # + emp_id - Employee ID (passed as query parameter)
@@ -229,6 +235,101 @@ service http:InterceptableService / on new http:Listener(serverPort, config = {r
         return response;
     }
 
+    # Upload a micro-app with ZIP file.
+    #
+    # + req - HTTP request
+    # + return - JSON response or error
+    resource function post micro\-apps/upload(http:Request req) returns json|http:BadRequest|http:InternalServerError {
+        var bodyParts = req.getBodyParts();
+        if bodyParts is error {
+            log:printError("Failed to parse multipart body", bodyParts);
+            return <http:BadRequest>{
+                body: { "error": "Bad Request: Invalid multipart/form-data" }
+            };
+        }
+
+        string name = "";
+        string version = "";
+        string appId = "";
+        string iconUrlPath = "";
+        byte[] zipData = [];
+
+        foreach var part in bodyParts {
+            var disposition = part.getContentDisposition();
+            string fieldName = disposition.name;
+            if fieldName == "zipFile" {
+                var byteArray = part.getByteArray();
+                if byteArray is error {
+                    log:printError("Failed to get byte array for ZIP file", byteArray);
+                    return <http:BadRequest>{
+                        body: { "error": "Bad Request: Invalid ZIP file" }
+                    };
+                }
+                zipData = byteArray;
+            } else if fieldName == "name" {
+                var text = part.getText();
+                if text is error {
+                    log:printError("Failed to get text for name", text);
+                    return <http:BadRequest>{
+                        body: { "error": "Bad Request: Invalid name" }
+                    };
+                }
+                name = text;
+            } else if fieldName == "version" {
+                var text = part.getText();
+                if text is error {
+                    log:printError("Failed to get text for version", text);
+                    return <http:BadRequest>{
+                        body: { "error": "Bad Request: Invalid version" }
+                    };
+                }
+                version = text;
+            } else if fieldName == "appId" {
+                var text = part.getText();
+                if text is error {
+                    log:printError("Failed to get text for appId", text);
+                    return <http:BadRequest>{
+                        body: { "error": "Bad Request: Invalid appId" }
+                    };
+                }
+                appId = text;
+            } else if fieldName == "iconUrlPath" {
+                var text = part.getText();
+                if text is error {
+                    log:printError("Failed to get text for iconUrlPath", text);
+                    return <http:BadRequest>{
+                        body: { "error": "Bad Request: Invalid iconUrlPath" }
+                    };
+                }
+                iconUrlPath = text;
+            }
+        }
+
+        if zipData.length() == 0 {
+            log:printError("ZIP file not found in request");
+            return <http:BadRequest>{
+                body: { "error": "Bad Request: ZIP file is required" }
+            };
+        }
+
+        if name.trim() == "" || version.trim() == "" || appId.trim() == "" {
+            return <http:BadRequest>{
+                body: { "error": "Bad Request: name, version, and appId are required" }
+            };
+        }
+
+        error? result = insertMicroAppWithZip(name, version, zipData, appId, iconUrlPath);
+        if result is error {
+            log:printError("Failed to insert micro-app", result);
+            return <http:InternalServerError>{
+                body: { "error": "Internal server error" }
+            };
+        }
+
+        log:printInfo("Micro-app uploaded successfully: " + name);
+        return { "message": "Micro-app uploaded successfully" };
+    }
+
 
     # Fetch the icon for a micro-app by its app ID from the database.
     #
@@ -272,9 +373,7 @@ service http:InterceptableService / on new http:Listener(serverPort, config = {r
         log:printInfo("Successfully serving icon for micro-app: " + iconName);
         return response;
     }
-}
-
-
+};
 
 // public function main() returns error? {
 //     // Example parameters for insertMicroAppWithZip
