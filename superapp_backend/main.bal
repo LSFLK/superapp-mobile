@@ -1,10 +1,9 @@
 import ballerina/http;
 import ballerina/log;
-//import ballerina/io;
 import ballerina/jwt;
-//import ballerina/time;
 import ballerina/uuid; // For optional jti claim
 //import ballerina/io;
+//import ballerina/time;
 
 
 //////////// DEBUG
@@ -19,7 +18,6 @@ import ballerina/uuid; // For optional jti claim
 
 // Configurations (add these to your Config.toml or set as environment variables)
 configurable string superappIssuer = "superapp-issuer"; 
-//configurable string microappAudience = "microapp-backend"; 
 configurable decimal tokenTTLSeconds = 300; 
 configurable string privateKeyPath = ?; 
 
@@ -30,12 +28,11 @@ public function createMicroappJWT(string empId, string microAppId) returns strin
     jwt:IssuerConfig issuerConfig = {
         issuer: superappIssuer, // Issuer (your superapp backend)
         audience: microAppId, // Audience as a string array for microapp backend
-        //sub: empId, // User emp_id as subject
         expTime: tokenTTLSeconds, // Expiry in seconds (relative to iat)
         customClaims: {
             "emp_id": empId, // User emp_id as subject
             "micro_app_id": microAppId, // Custom claim for microapp scoping
-            "jti": uuid:createType1AsString() // Unique token ID (optional)
+            "jti": uuid:createType1AsString() // Unique token ID
         },
         signatureConfig: {
             config: {
