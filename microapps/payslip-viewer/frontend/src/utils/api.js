@@ -80,7 +80,7 @@ export async function fetchPayslip(microappToken, payPeriod = null) {
     
   const options = {
     headers: {
-      'Authorization': microappToken,
+      'x-jwt-assertion': microappToken,
     },
   };
     
