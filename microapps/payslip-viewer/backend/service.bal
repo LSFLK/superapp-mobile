@@ -51,7 +51,7 @@ map<Payslip> uploadedPayslips = {};
     cors: {
         allowOrigins: ["*"],
         allowCredentials: false,
-        allowHeaders: ["Authorization", "Content-Type"],
+        allowHeaders: ["Authorization", "Content-Type", "x-jwt-assertion"],
         allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     }
 }
