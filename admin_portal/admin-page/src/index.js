@@ -23,6 +23,14 @@ root.render(
             baseUrl: "https://api.asgardeo.io/t/jayathunga",
             scope: [ "openid","profile" ]
         } }
+
+     /* config={ {
+            signInRedirectURL: "http://localhost:3000",
+            signOutRedirectURL: "http://localhost:3000",
+            clientID: "lwGgwFMsB86wdJlPLHUmmteWZf0a",
+            baseUrl: "https://api.asgardeo.io/t/jayathunga",
+            scope: [ "openid","profile" ]
+        } } */       
   >
       <App />
     </AuthProvider>

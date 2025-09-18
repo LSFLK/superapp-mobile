@@ -14,6 +14,7 @@
 
 import React, { useEffect } from "react";
 import UploadExcel from "./components/UploadExcel";
+import UploadMicroApp from "./components/UploadMicroApp";
 import { useAuthContext } from "@asgardeo/auth-react";
 
 function App() {
@@ -60,9 +61,14 @@ function App() {
 
       <main className="container" style={{ paddingBottom: 48 }}>
         {isAuthed ? (
-          <section className="card">
-            <UploadExcel />
-          </section>
+          <>
+            <section className="card" style={{ marginBottom: 16 }}>
+              <UploadExcel />
+            </section>
+            <section className="card">
+              <UploadMicroApp />
+            </section>
+          </>
         ) : (
           <section className="card" style={{ textAlign: "center" }}>
             <h2 style={{ marginTop: 0 }}>Please Sign In</h2>
