@@ -16,9 +16,11 @@ map<Payslip> uploadedPayslips = {};
     }
 }
 // Main payslip service
-service /api/v1/payslips on new http:Listener(serverPort) {
+service http:InterceptableService /api/v1/payslips on new http:Listener(serverPort) {
 
-    
+    public function createInterceptors() returns JwtInterceptor {
+        return new JwtInterceptor();
+    }
     // POST endpoint to upload CSV
     resource function post upload(http:Request req) returns json|error {
         mime:Entity|error fileEntity = req.getEntity();
@@ -168,10 +170,6 @@ service /api/v1/payslips on new http:Listener(serverPort) {
 
         return ();
     }
-
-
-    
-
 
 
     // Health check endpoint (always public)
