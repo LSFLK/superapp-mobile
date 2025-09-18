@@ -21,6 +21,8 @@ configurable string superappIssuer = "superapp-issuer";
 configurable decimal tokenTTLSeconds = 300; 
 configurable string privateKeyPath = ?; 
 
+// CORS configuration for frontend access
+
 // Standalone function to create the microapp-specific JWT
 // Usage: string|error token = createMicroappJWT("emp-123", "app-456");
 public function createMicroappJWT(string empId, string microAppId) returns string|error {
@@ -69,15 +71,19 @@ service class ErrorInterceptor {
     }
 }
 
+@http:ServiceConfig {
+    cors: {
+        allowOrigins: ["*"],
+        allowCredentials: false,
+        allowHeaders: ["Authorization", "Content-Type"],
+        allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    }
+}
 service http:InterceptableService / on new http:Listener(serverPort, config = {requestLimits: {maxHeaderSize}}) {
 
     # + return - ErrorInterceptor
     public function createInterceptors() returns http:Interceptor[] =>
     [new ErrorInterceptor()];
-
-
-    // Endpoint to generate and return a microapp-specific JWT
-    # Generate a microapp-specific JWT based on emp_id and micro_app_id.
     #
     # + ctx - Request context
     # + emp_id - Employee ID (passed as query parameter)
