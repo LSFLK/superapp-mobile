@@ -253,6 +253,7 @@ service http:InterceptableService / on new http:Listener(serverPort, config = {r
         string appId = "";
         string iconUrlPath = "";
         byte[] zipData = [];
+        string description = "";
 
         foreach var part in bodyParts {
             var disposition = part.getContentDisposition();
@@ -302,6 +303,15 @@ service http:InterceptableService / on new http:Listener(serverPort, config = {r
                     };
                 }
                 iconUrlPath = text;
+            } else if fieldName == "description" {
+                var text = part.getText();
+                if text is error {
+                    log:printError("Failed to get text for description", text);
+                    return <http:BadRequest>{
+                        body: { "error": "Bad Request: Invalid description" }
+                    };
+                }
+                description = text;
             }
         }
 
@@ -318,7 +328,7 @@ service http:InterceptableService / on new http:Listener(serverPort, config = {r
             };
         }
 
-        error? result = insertMicroAppWithZip(name, version, zipData, appId, iconUrlPath);
+        error? result = insertMicroAppWithZip(name, version, zipData, appId, iconUrlPath,description);
         if result is error {
             log:printError("Failed to insert micro-app", result);
             return <http:InternalServerError>{

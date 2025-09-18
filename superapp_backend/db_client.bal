@@ -32,6 +32,7 @@ type MicroApp record {
     int? zip_blob_length;   // size in bytes
     string? created_at;     // timestamp as string
     string download_url;
+    string? description;
 };
 
 // MicroAppDownload type for fetching ZIP blob
@@ -64,19 +65,20 @@ final mysql:Client databaseClient = check new (...superappMobileDatabaseConfig);
 // Functions to interact with the database
 
 // Function to insert a micro-app with a ZIP file
-public function insertMicroAppWithZip(string name, string version, byte[] zipData, string appId, string iconUrlPath) returns error? {
+public function insertMicroAppWithZip(string name, string version, byte[] zipData, string appId, string iconUrlPath, string? description) returns error? {
 
     // Parameterized query to insert into micro_apps
     //sql:ParameterizedQuery query = `INSERT INTO micro_apps (name, version, zip_blob, app_id) VALUES (${name}, ${version}, ${zipData}, ${appId});`;
     sql:ParameterizedQuery query = `
-    INSERT INTO micro_apps (name, version, zip_blob, app_id, icon_url)
-    VALUES (${name}, ${version}, ${zipData}, ${appId}, ${iconUrlPath})
+    INSERT INTO micro_apps (name, version, zip_blob, app_id, icon_url, description)
+    VALUES (${name}, ${version}, ${zipData}, ${appId}, ${iconUrlPath}, ${description})
     ON DUPLICATE KEY UPDATE
         name = VALUES(name),
         version = VALUES(version),
         zip_blob = VALUES(zip_blob),
         icon_url = VALUES(icon_url),
         created_at = CURRENT_TIMESTAMP;
+        description = VALUES(description),
     `;
 
     // Execute the query
@@ -88,7 +90,7 @@ public function insertMicroAppWithZip(string name, string version, byte[] zipDat
 // Function to fetch all micro-apps from the database
 public function fetchAllMicroApps() returns MicroApp[]|error {
     sql:ParameterizedQuery query = `
-        SELECT micro_app_id, app_id, name, version, LENGTH(zip_blob) AS zip_blob_length, created_at
+        SELECT micro_app_id, app_id, name, version, LENGTH(zip_blob) AS zip_blob_length, created_at, description
         FROM micro_apps;
     `;
     
@@ -105,7 +107,8 @@ public function fetchAllMicroApps() returns MicroApp[]|error {
                 icon_url: app.icon_url,
                 zip_blob_length: app.zip_blob_length,
                 created_at: app.created_at,
-                download_url: "https://41200aa1-4106-4e6c-babf-311dce37c04a-prod.e1-us-east-azure.choreoapis.dev/gov-superapp/superappbackendprodbranch/v1.0/micro-apps/" + app.app_id + "/download"
+                download_url: "https://41200aa1-4106-4e6c-babf-311dce37c04a-prod.e1-us-east-azure.choreoapis.dev/gov-superapp/superappbackendprodbranch/v1.0/micro-apps/" + app.app_id + "/download",
+                description: app.description
             };
             log:printInfo(
                 "MicroApp: " + updatedApp.name +
@@ -124,7 +127,7 @@ public function fetchAllMicroApps() returns MicroApp[]|error {
 // Function to fetch a micro-app by its ID
 public function fetchMicroAppById(string app_id) returns MicroApp|error {
     sql:ParameterizedQuery query = `
-        SELECT micro_app_id, app_id, name, version, LENGTH(zip_blob) AS zip_blob_length, created_at
+        SELECT micro_app_id, app_id, name, version, LENGTH(zip_blob) AS zip_blob_length, created_at, description
         FROM micro_apps
         WHERE app_id = ${app_id};
     `;
@@ -141,7 +144,8 @@ public function fetchMicroAppById(string app_id) returns MicroApp|error {
                 icon_url: app.icon_url,
                 zip_blob_length: app.zip_blob_length,
                 created_at: app.created_at,
-                download_url: "https://41200aa1-4106-4e6c-babf-311dce37c04a-prod.e1-us-east-azure.choreoapis.dev/gov-superapp/superappbackendprodbranch/v1.0/micro-apps/" + app.app_id + "/download"
+                download_url: "https://41200aa1-4106-4e6c-babf-311dce37c04a-prod.e1-us-east-azure.choreoapis.dev/gov-superapp/superappbackendprodbranch/v1.0/micro-apps/" + app.app_id + "/download",
+                description: app.description
             };
             return updatedApp;
         };
