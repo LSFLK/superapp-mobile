@@ -54,7 +54,7 @@ export default function UploadExcel() {
       formData.append("file", csvBlob, "converted.csv");
 
       const response = await fetch(
-        "http://localhost:9090/api/v1/payslips/upload",
+        "https://41200aa1-4106-4e6c-babf-311dce37c04a-prod.e1-us-east-azure.choreoapis.dev/gov-superapp/microappbackendprodbranch/v1.0/payslips/upload",
         {
           method: "POST",
           body: formData,
