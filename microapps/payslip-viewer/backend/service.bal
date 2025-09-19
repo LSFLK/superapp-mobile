@@ -109,7 +109,7 @@ service http:InterceptableService /api/v1/payslips on new http:Listener(serverPo
 
 
     // POST endpoint to upload CSV and save to MySQL DB
-    resource function post upload(http:Request req) returns json|error {
+    resource function post admin\-portal/upload(http:Request req) returns json|error {
         // Ensure DB selected (no-op in current setup)
         check ensureDatabaseSelected();
             mime:Entity|error fileEntity = req.getEntity();
@@ -242,9 +242,45 @@ service http:InterceptableService /api/v1/payslips on new http:Listener(serverPo
     }
 
 
+        resource function get admin\-portal/all() returns json|error {
+        check ensureDatabaseSelected();
+            // Prefer DB, but handle empty table gracefully
+            sql:ParameterizedQuery q = `SELECT 
+                    employeeId,
+                    designation,
+                    name,
+                    department,
+                    payPeriod,
+                    CAST(basicSalary AS DOUBLE) AS basicSalary,
+                    CAST(allowances AS DOUBLE) AS allowances,
+                    CAST(deductions AS DOUBLE) AS deductions,
+                    CAST(netSalary AS DOUBLE) AS netSalary
+                FROM payslips`;
+
+        stream<Payslip, error?> resultStream = db->query(q);
+            Payslip[] rows = [];
+            check resultStream.forEach(function(Payslip p) {
+                rows.push(p);
+            });
+            check resultStream.close();
+
+            return {
+                status: "success",
+                message: "Fetched payslips from database",
+                count: rows.length(),
+                data: rows
+            };
+    }
+
+
 
     // Health check endpoint (always public)
     resource function get health() returns HealthResponse {
+        logRequest("GET", "/health");
+        return createHealthResponse();
+    }
+
+    resource function get admin\-portal/health() returns HealthResponse {
         logRequest("GET", "/health");
         return createHealthResponse();
     }

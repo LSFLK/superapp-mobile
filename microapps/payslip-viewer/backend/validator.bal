@@ -3,7 +3,8 @@ import ballerina/jwt;
 //import ballerina/io;
 import ballerina/log;
 
-configurable string publicKeyPath = ?; // e.g., "./public.pem" locally, "/public.pem" in Choreo
+configurable string publicKeyPath_microapp = ?; // e.g., "./public.pem" locally, "/public.pem" in Choreo
+configurable string publicKeyPath_adminPortal = ?; // e.g., "./public.pem" locally, "/public.pem" in Choreo
 
 public isolated function extractEmployeeId(jwt:Payload payload) returns string|error {
     anydata|error empClaim = payload["emp_id"];
@@ -26,13 +27,29 @@ service class JwtInterceptor {
     isolated resource function default [string... path](http:RequestContext ctx, http:Request req)
         returns http:NextService|http:InternalServerError|error? {
 
-        jwt:ValidatorConfig validatorConfig = {
-            issuer: "superapp-issuer",
-            audience: "payslip-viewer",
-            signatureConfig: {
-                certFile: publicKeyPath
-            }
-        };
+        string fullPath = req.rawPath;
+        jwt:ValidatorConfig validatorConfig = {};
+
+        if fullPath.startsWith("/api/v1/payslips/admin-portal") {
+            log:printInfo("From admin portal endpoints "+fullPath);
+            validatorConfig = {
+                issuer: "https://api.asgardeo.io/t/lsfproject/oauth2/token",
+                audience: "0N1TBTVQ6RMWXoebacNHRL6f2psa",
+                signatureConfig: {
+                    certFile: publicKeyPath_adminPortal
+                }
+            };
+        } else {
+            log:printInfo("From microapp endpoints "+fullPath);
+            validatorConfig = {
+                issuer: "superapp-issuer",
+                audience: "payslip-viewer",
+                signatureConfig: {
+                    certFile: publicKeyPath_microapp
+                }
+            };
+        }  
+
 
         string|error idToken = req.getHeader(JWT_ASSERTION_HEADER);
 
@@ -62,20 +79,20 @@ service class JwtInterceptor {
             };
         }
 
+        if !fullPath.startsWith("/api/v1/payslips/admin-portal") {
+             //Extract emp_id
+            string|error empId = extractEmployeeId(payload);
+            if empId is error {
+                log:printError("Failed to extract emp_id", empId);
+                return <http:InternalServerError>{
+                    body: { message: "Invalid token: emp_id missing" }
+                };
+            }
 
-        //Extract emp_id
-        string|error empId = extractEmployeeId(payload);
-        if empId is error {
-            log:printError("Failed to extract emp_id", empId);
-            return <http:InternalServerError>{
-                body: { message: "Invalid token: emp_id missing" }
-            };
+            log:printInfo("Authenticated employee ID: " + empId);
+            ctx.set("emp_id", empId);
         }
-
-        log:printInfo("Authenticated employee ID: " + empId);
-
-
-        ctx.set("emp_id", empId);
+       
         
         return ctx.next();
     }
