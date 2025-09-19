@@ -110,3 +110,44 @@ Quick theme tweaks:
 
 Component notes:
 - Uploader supports drag & drop and file picker with success/error messaging. See `src/components/UploadExcel.jsx`.
+
+## Payslip Upload CORS (Dev Proxy)
+
+The payslip Excel upload calls a Choreo-hosted backend that does not include a permissive `Access-Control-Allow-Origin` header for `http://localhost:3000`, which causes browser CORS failures when developing locally.
+
+To avoid this in development we use Create React App's proxy middleware (`src/setupProxy.js`).
+
+How it works:
+- Frontend code sends POST requests to the relative path `/api/payslips/upload`.
+- The dev server intercepts those requests and proxies them to the DEV endpoint:
+	`https://41200aa1-4106-4e6c-babf-311dce37c04a-dev.e1-us-east-azure.choreoapis.dev/gov-superapp/microappbackendprodbranch/v1.0/upload`
+- (Earlier PROD path with `/payslips/upload` segment was replaced; backend now expects a single `/upload`.)
+- Because the request is made server-to-server from the dev server, the browser's same-origin policy is not triggered.
+
+Override target (optional):
+```
+PAYSLIP_API_TARGET=https://<alt-domain> npm start
+```
+
+Or place it in a local environment file (note: CRA only exposes vars starting with `REACT_APP_`, but since this var is consumed only by the Node dev server proxy, the `PAYSLIP_API_TARGET` name is fine). Do NOT rely on this proxy in production—deploy a backend or configure proper CORS/server-side calls.
+
+Production builds:
+- The compiled bundle will still point to `/api/payslips/upload` unless you change it. For production you should either:
+	1. Replace the relative path with an absolute environment-derived URL at build time, or
+	2. Serve the admin app behind a reverse proxy that forwards `/api/payslips` similarly.
+
+If you introduce an environment-based base URL for production, add something like:
+```js
+const PAYSLIP_BASE = process.env.REACT_APP_PAYSLIP_API_BASE || '/api/payslips';
+fetch(`${PAYSLIP_BASE}/upload`, { method: 'POST', body: formData });
+```
+and set `REACT_APP_PAYSLIP_API_BASE` during CI/CD.
+
+Troubleshooting:
+- Seeing CORS errors still? Ensure you're hitting `http://localhost:3000` (not a file:// URL) and that you restarted after adding or editing `setupProxy.js`.
+- 404 from `/api/payslips/upload`? Confirm the path rewrite now maps exactly to `/gov-superapp/microappbackendprodbranch/v1.0/upload` (no `/payslips` segment). If backend still requires the old path, revert the rewrite.
+- Network ECONNREFUSED locally: corporate VPN / firewall may block the Choreo host.
+
+### Auth / Invoker Header
+
+If the backend expects an invoker assertion (`x-jwt-assertion`), the uploader now attempts to retrieve the Asgardeo ID token via `auth.getIDToken()` and sends it as that header. If you're not authenticated or the call fails, the header is omitted and the backend may respond with `Missing invoker info header!`.

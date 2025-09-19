@@ -1,7 +1,9 @@
 import React, { useState, useRef } from "react";
+import { useAuthContext } from "@asgardeo/auth-react";
 import * as XLSX from "xlsx";
 
 export default function UploadExcel() {
+  const auth = useAuthContext();
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
   const [isWarning, setIsWarning] = useState(false);
@@ -53,13 +55,26 @@ export default function UploadExcel() {
       const formData = new FormData();
       formData.append("file", csvBlob, "converted.csv");
 
-      const response = await fetch(
-        "https://41200aa1-4106-4e6c-babf-311dce37c04a-prod.e1-us-east-azure.choreoapis.dev/gov-superapp/microappbackendprodbranch/v1.0/payslips/upload",
-        {
-          method: "POST",
-          body: formData,
+      // Use relative path so CRA dev proxy (setupProxy.js) can avoid CORS locally.
+      // Try to include invoker assertion header if available from Asgardeo
+      let headers = {};
+      try {
+        if (auth?.state?.isAuthenticated) {
+          // getIDToken is preferred for identity assertions; fall back to access token if needed
+            const idToken = await auth.getIDToken();
+            if (idToken) {
+              headers["x-jwt-assertion"] = idToken;
+            }
         }
-      );
+      } catch (e) {
+        console.warn("Could not obtain ID token for upload", e);
+      }
+
+      const response = await fetch("/api/payslips/upload", {
+        method: "POST",
+        headers,
+        body: formData,
+      });
 
       const result = await response.json();
       if (!response.ok) throw new Error(result?.message || "Upload failed");
