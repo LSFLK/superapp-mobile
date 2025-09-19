@@ -14,7 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import axios from "axios";
+// import axios from "axios";
+import { apiRequest } from "@/utils/requestHandler";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { jwtDecode } from "jwt-decode";
 import dayjs from "dayjs";
@@ -169,20 +170,24 @@ export const fetchMicroAppToken = async (
     
     console.log(`Fetching microapp token from: ${fullUrl}`);
 
-    const response = await axios.get(fullUrl, {
-      headers: {
-        'Content-Type': 'application/json',
+    // Use apiRequest to ensure authorization headers and token refresh are handled
+    const response = await apiRequest(
+      {
+        url: fullUrl,
+        method: "GET",
+        timeout: 10000,
       },
-      timeout: 10000, // 10 seconds timeout
-    });
+      // This function doesn't have an onLogout callback in its signature; pass a noop
+      async () => Promise.resolve()
+    );
 
-    if (response.status !== 200) {
-      throw new Error(`Failed to fetch microapp token: ${response.status} - ${response.statusText}`);
+    if (!response || response.status !== 200) {
+      throw new Error(`Failed to fetch microapp token: ${response?.status || "no response"}`);
     }
 
     const tokenData: MicroAppTokenResponse = response.data;
 
-    if (!tokenData.token) {
+    if (!tokenData || !tokenData.token) {
       throw new Error("Invalid response: token field is missing");
     }
 
@@ -196,15 +201,15 @@ export const fetchMicroAppToken = async (
   } catch (error) {
     console.error("Error fetching microapp token:", error);
     
-    if (axios.isAxiosError(error)) {
-      if (error.response) {
-        // Server responded with an error status
-        throw new Error(`Server error: ${error.response.status} - ${error.response.data?.message || error.response.statusText}`);
-      } else if (error.request) {
-        // Network error
-        throw new Error("Network error: Unable to reach the server. Please check your internet connection.");
-      }
-    }
+    // if (axios.isAxiosError(error)) {
+    //   if (error.response) {
+    //     // Server responded with an error status
+    //     throw new Error(`Server error: ${error.response.status} - ${error.response.data?.message || error.response.statusText}`);
+    //   } else if (error.request) {
+    //     // Network error
+    //     throw new Error("Network error: Unable to reach the server. Please check your internet connection.");
+    //   }
+    // }
     
     // Re-throw the original error if it's not an Axios error
     throw error;

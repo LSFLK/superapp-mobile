@@ -9,6 +9,7 @@ import {
   writeAsStringAsync,
 } from "expo-file-system";
 import JSZip from "jszip";
+import { fromByteArray } from "base64-js";
 import { AppDispatch } from "@/context/store";
 import {
   addDownloading,
@@ -43,7 +44,7 @@ export const downloadMicroApp = async (
       return;
     }
 
-    await downloadAndSaveFile(appId, downloadUrl); // Download react production build
+  await downloadAndSaveFile(appId, downloadUrl, onLogout); // Download react production build
     await unzipFile(dispatch, appId); // Unzip downloaded zip file
     // Skip user configuration update for now
     // await UpdateUserConfiguration(appId, DOWNLOADED, onLogout);
@@ -58,7 +59,11 @@ export const downloadMicroApp = async (
   }
 };
 
-const downloadAndSaveFile = async (appId: string, downloadUrl: string) => {
+const downloadAndSaveFile = async (
+  appId: string,
+  downloadUrl: string,
+  onLogout: () => Promise<void>
+) => {
   const fileName = `${appId}.zip`;
   const customDir = `${documentDirectory}wso2/micro-apps/`;
 
@@ -67,7 +72,44 @@ const downloadAndSaveFile = async (appId: string, downloadUrl: string) => {
   }
 
   const fileUri = `${customDir}${fileName}`;
-  await downloadAsync(downloadUrl, fileUri);
+
+  // Use apiRequest (axios) to fetch binary data with authentication headers
+  try {
+    const response = await apiRequest(
+      { url: downloadUrl, method: "GET", responseType: "arraybuffer" },
+      onLogout
+    );
+
+    if (!response || !response.data) {
+      throw new Error("Empty response when downloading micro app");
+    }
+
+    // response.data may be an ArrayBuffer or a Buffer-like object
+    let uint8Array: Uint8Array;
+
+    if (response.data instanceof ArrayBuffer) {
+      uint8Array = new Uint8Array(response.data);
+    } else if (ArrayBuffer.isView(response.data)) {
+      // TypedArray or DataView
+      // @ts-ignore
+      uint8Array = new Uint8Array(response.data.buffer || response.data);
+    } else if (response.data && typeof response.data === "object" && response.data.length) {
+      // Fallback for Buffer in some environments
+      // @ts-ignore
+      uint8Array = new Uint8Array(response.data);
+    } else {
+      throw new Error("Unsupported response data type for micro app download");
+    }
+
+    // Convert bytes to base64 and write to file
+    const base64String = fromByteArray(uint8Array);
+    await writeAsStringAsync(fileUri, base64String, {
+      encoding: EncodingType.Base64,
+    });
+  } catch (error) {
+    console.error("Failed to download and save file:", error);
+    throw error;
+  }
 };
 
 const unzipFile = async (dispatch: AppDispatch, appId: string) => {
