@@ -11,3 +11,4 @@ generated/
 Config.toml
 *.env
 *.pem
+*.crt
