@@ -75,7 +75,7 @@ service class ErrorInterceptor {
     cors: {
         allowOrigins: ["*"],
         allowCredentials: false,
-        allowHeaders: ["Authorization", "Content-Type"],
+        allowHeaders: ["Authorization", "Content-Type", "x-jwt-assertion"],
         allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     }
 }
@@ -83,7 +83,7 @@ service http:InterceptableService / on new http:Listener(serverPort, config = {r
 
     # + return - ErrorInterceptor
     public function createInterceptors() returns http:Interceptor[] =>
-    [new ErrorInterceptor()];
+    [new ErrorInterceptor(), new JwtInterceptor()];
     #
     # + ctx - Request context
     # + emp_id - Employee ID (passed as query parameter)
