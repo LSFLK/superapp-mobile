@@ -6,8 +6,6 @@ import ballerinax/mysql;
 import ballerina/sql;
 import ballerinax/mysql.driver as _; // bundle driver
 
-
-
 configurable DatabaseConfig databaseConfig = ?;
 
 mysql:Client db = check new(

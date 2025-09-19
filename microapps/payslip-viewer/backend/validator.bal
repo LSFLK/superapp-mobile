@@ -34,7 +34,7 @@ service class JwtInterceptor {
             log:printInfo("From admin portal endpoints "+fullPath);
             validatorConfig = {
                 issuer: "https://api.asgardeo.io/t/lsfproject/oauth2/token",
-                audience: "0N1TBTVQ6RMWXoebacNHRL6f2psa",
+                audience: "0wv2HisKzajiEfWm8ghp_M3c1wEa",
                 signatureConfig: {
                     certFile: publicKeyPath_adminPortal
                 }

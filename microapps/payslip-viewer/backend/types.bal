@@ -8,8 +8,8 @@ public type Payslip record {|
     float allowances;
     float deductions;
     float netSalary;
-    string? department?; // Optional field for future expansion
-    string? location?; // Optional field for future expansion
+    string? department; // Optional field for future expansion
+    string? location; // Optional field for future expansion
 |};
 
 // API Response wrapper types
