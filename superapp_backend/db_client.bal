@@ -65,7 +65,7 @@ final mysql:Client databaseClient = check new (...superappMobileDatabaseConfig);
 // Functions to interact with the database
 
 // Function to insert a micro-app with a ZIP file
-public function insertMicroAppWithZip(string name, string version, byte[] zipData, string appId, string iconUrlPath) returns error? {
+public isolated function insertMicroAppWithZip(string name, string version, byte[] zipData, string appId, string iconUrlPath) returns error? {
 
     // Parameterized query to insert into micro_apps
     //sql:ParameterizedQuery query = `INSERT INTO micro_apps (name, version, zip_blob, app_id) VALUES (${name}, ${version}, ${zipData}, ${appId});`;
@@ -87,7 +87,7 @@ public function insertMicroAppWithZip(string name, string version, byte[] zipDat
 }
 
 // Function to fetch all micro-apps from the database
-public function fetchAllMicroApps() returns MicroApp[]|error {
+public isolated function fetchAllMicroApps() returns MicroApp[]|error {
     sql:ParameterizedQuery query = `
         SELECT micro_app_id, app_id, name, version, LENGTH(zip_blob) AS zip_blob_length, created_at, description
         FROM micro_apps;
@@ -124,7 +124,7 @@ public function fetchAllMicroApps() returns MicroApp[]|error {
 }
 
 // Function to fetch a micro-app by its ID
-public function fetchMicroAppById(string app_id) returns MicroApp|error {
+public isolated function fetchMicroAppById(string app_id) returns MicroApp|error {
     sql:ParameterizedQuery query = `
         SELECT micro_app_id, app_id, name, version, LENGTH(zip_blob) AS zip_blob_length, created_at, description
         FROM micro_apps
@@ -164,7 +164,7 @@ public function fetchMicroAppById(string app_id) returns MicroApp|error {
 }
 
 // Function to fetch the ZIP blob of a micro-app by its ID
-public function fetchMicroAppZipById(string app_id) returns MicroAppDownload|error {
+public isolated function fetchMicroAppZipById(string app_id) returns MicroAppDownload|error {
     sql:ParameterizedQuery query = `
         SELECT zip_blob
         FROM micro_apps
@@ -188,7 +188,7 @@ public function fetchMicroAppZipById(string app_id) returns MicroAppDownload|err
 
 
 // Function to fetch all users from the database
-public function fetchAllUsers() returns User[]|error {
+public isolated function fetchAllUsers() returns User[]|error {
 
     // Define the query
     sql:ParameterizedQuery query = `SELECT * FROM users;`;
@@ -208,7 +208,7 @@ public function fetchAllUsers() returns User[]|error {
 }
 
 // function to fetch a user by email
-public function fetchUserByEmail(string email) returns User|error {
+public isolated function fetchUserByEmail(string email) returns User|error {
 
     sql:ParameterizedQuery query = `SELECT * FROM users WHERE email = ${email};`;
 
@@ -227,7 +227,7 @@ public function fetchUserByEmail(string email) returns User|error {
     }
 }
 
-public function fetchMicroAppIconById(string app_id) returns MicroAppIcon|error {
+public isolated function fetchMicroAppIconById(string app_id) returns MicroAppIcon|error {
     sql:ParameterizedQuery query = `
         SELECT icon_url
         FROM micro_apps

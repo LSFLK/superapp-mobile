@@ -1,19 +1,9 @@
 import ballerina/http;
 import ballerina/log;
 import ballerina/jwt;
-import ballerina/uuid; // For optional jti claim
+import ballerina/uuid; 
 //import ballerina/io;
 //import ballerina/time;
-
-
-//////////// DEBUG
-
-// public function main() returns error? {
-//     string token_recieved = check createMicroappJWT("EMP004","payslip-viewer");
-//     log:printInfo("Token: " + token_recieved);
-// }
-
-////////////
 
 
 // Configurations (add these to your Config.toml or set as environment variables)
@@ -25,7 +15,7 @@ configurable string privateKeyPath = ?;
 
 // Standalone function to create the microapp-specific JWT
 // Usage: string|error token = createMicroappJWT("emp-123", "app-456");
-public function createMicroappJWT(string empId, string microAppId) returns string|error {
+public isolated function createMicroappJWT(string empId, string microAppId) returns string|error {
     // Build IssuerConfig for JWT
     jwt:IssuerConfig issuerConfig = {
         issuer: superappIssuer, // Issuer (your superapp backend)
@@ -83,8 +73,8 @@ service http:InterceptableService / on new http:Listener(serverPort, config = {r
 
     # + return - ErrorInterceptor
     public function createInterceptors() returns http:Interceptor[] =>
-    //[new ErrorInterceptor()];
-    [new ErrorInterceptor(), new JwtInterceptor()];
+    [new ErrorInterceptor()];
+    //[new ErrorInterceptor(), new JwtInterceptor()];
     #
     # + ctx - Request context
     # + emp_id - Employee ID (passed as query parameter)
