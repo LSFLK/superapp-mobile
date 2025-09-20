@@ -100,7 +100,7 @@ service http:InterceptableService / on new http:Listener(serverPort) {
             return <json>{ "error": "No file uploaded" };
         }
 
-        string tempCsvPath = "./tmp/uploaded.csv";
+        string tempCsvPath = "/tmp/uploaded.csv";
         byte[] fileContent = check fileEntity.getByteArray();
         check io:fileWriteBytes(tempCsvPath, fileContent);
 
