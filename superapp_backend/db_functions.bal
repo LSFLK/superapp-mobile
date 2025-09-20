@@ -25,6 +25,7 @@ public isolated function insertMicroAppWithZip(string name, string version, byte
     sql:ExecutionResult result = check databaseClient->execute(query);
 
     io:println("Rows affected: " + result.affectedRowCount.toString());
+    
 }
 
 // Function to fetch all micro-apps from the database
@@ -60,6 +61,7 @@ public isolated function fetchAllMicroApps() returns MicroApp[]|error {
             );
             microApps.push(updatedApp);
         };
+    check resultStream.close();
     
     return microApps;
 }
@@ -89,6 +91,7 @@ public isolated function fetchMicroAppById(string app_id) returns MicroApp|error
             };
             return updatedApp;
         };
+    check resultStream.close();
     
     if foundApp is MicroApp {
         log:printInfo(
@@ -119,6 +122,8 @@ public isolated function fetchMicroAppZipById(string app_id) returns MicroAppDow
             return app;
         };
     
+    check resultStream.close();
+
     if foundApp is MicroAppDownload {
         log:printInfo("Found ZIP for micro-app with app ID: " + app_id);
         return foundApp;
@@ -144,6 +149,8 @@ public isolated function fetchAllUsers() returns User[]|error {
             log:printInfo("User: " + user.first_name + " " + user.last_name + ", Email: " + user.email);
             users.push(user);
         };
+
+    check resultStream.close();
     
     return users;
 }
@@ -159,6 +166,8 @@ public isolated function fetchUserByEmail(string email) returns User|error {
                         do {
                             return user; // return the first match
                         };
+
+    check resultStream.close();
 
     if foundUser is User {
         log:printInfo("Found user: " + foundUser.toString());
@@ -181,6 +190,8 @@ public isolated function fetchMicroAppIconById(string app_id) returns MicroAppIc
         do {
             return icon;
         };
+
+    check resultStream.close();
     
     if foundIcon is MicroAppIcon {
         log:printInfo("Found icon for micro-app with app ID: " + app_id);
