@@ -4,7 +4,7 @@ import ballerinax/mysql.driver as _; // bundle driver
 configurable DatabaseConfig databaseConfig = ?;
 
 // Singleton MySQL client used across modules
-public mysql:Client db = check new(
+final mysql:Client databaseClient = check new(
     host = databaseConfig.DB_HOST,
     port = databaseConfig.DB_PORT,
     user = databaseConfig.DB_USER,

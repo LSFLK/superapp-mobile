@@ -11,7 +11,7 @@ configurable string jwtSecret = "your-secret-key-change-in-production";
 configurable int tokenExpirySeconds = 3600; // 1 hour
 
 // Public endpoints that don't require authentication
-public string[] publicEndpoints = ["/api/v1/payslips/health"];
+public string[] publicEndpoints = ["/health"];
 
 // Authentication configuration
 public AuthConfig authConfig = {

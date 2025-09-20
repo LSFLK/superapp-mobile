@@ -5,7 +5,7 @@ import ballerinax/mysql.driver as _; // bundle driver
 //import db_client;
 
 public function initDB() returns error? {
-    _ = check db->execute(`
+    _ = check databaseClient->execute(`
         CREATE TABLE IF NOT EXISTS payslips (
             employeeId   VARCHAR(64) PRIMARY KEY,
             designation  VARCHAR(255) NOT NULL,
@@ -20,11 +20,11 @@ public function initDB() returns error? {
     `);
 }
 
-public function ensureDatabaseSelected() returns error? {
+public isolated function ensureDatabaseSelected() returns error? {
     return ();
 }
 
-public function insertPayslip(
+public isolated function insertPayslip(
         string employeeId, string designation, string name, string department, string payPeriod,
         decimal basicSalary, decimal allowances, decimal deductions, decimal netSalary
     ) returns error? {
@@ -34,7 +34,7 @@ public function insertPayslip(
         VALUES (${employeeId}, ${designation}, ${name}, ${department}, ${payPeriod},
                 ${basicSalary}, ${allowances}, ${deductions}, ${netSalary})`;
 
-    _ = check db->execute(pq);
+    _ = check databaseClient->execute(pq);
 }
 
 public function fetchLatestPayslip(string employeeId) returns Payslip|error {
@@ -53,7 +53,7 @@ public function fetchLatestPayslip(string employeeId) returns Payslip|error {
             ORDER BY payPeriod DESC 
             LIMIT 1`;
 
-    return db->queryRow(q);
+    return databaseClient->queryRow(q);
 }
 
 public function fetchAllPayslips() returns Payslip[]|error {
@@ -69,7 +69,7 @@ public function fetchAllPayslips() returns Payslip[]|error {
                 CAST(netSalary AS DOUBLE) AS netSalary
             FROM payslips`;
 
-    stream<Payslip, error?> resultStream = db->query(q);
+    stream<Payslip, error?> resultStream = databaseClient->query(q);
     Payslip[] rows = [];
     check resultStream.forEach(function(Payslip p) {
         rows.push(p);
@@ -81,7 +81,7 @@ public function fetchAllPayslips() returns Payslip[]|error {
 
 public function stopHandler() returns error? {
     io:println("Performing shutdown tasks...");
-    check db.close();
+    check databaseClient.close();
     io:println("Database client closed gracefully.");
     return ();
 }

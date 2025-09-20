@@ -1,6 +1,5 @@
 import ballerina/http;
 import ballerina/jwt;
-//import ballerina/io;
 import ballerina/log;
 
 configurable string publicKeyPath_microapp = ?; // e.g., "./public.pem" locally, "/public.pem" in Choreo
@@ -30,11 +29,11 @@ service class JwtInterceptor {
         string fullPath = req.rawPath;
         jwt:ValidatorConfig validatorConfig = {};
 
-        if fullPath.startsWith("/api/v1/payslips/admin-portal") {
+        if fullPath.startsWith("/admin-portal") {
             log:printInfo("From admin portal endpoints "+fullPath);
             validatorConfig = {
-                issuer: "https://api.asgardeo.io/t/lsfproject/oauth2/token",
-                audience: "0wv2HisKzajiEfWm8ghp_M3c1wEa",
+                issuer: ASGARDEO_ISSUER,
+                audience: ASGARDEO_AUDIENCE,
                 signatureConfig: {
                     certFile: publicKeyPath_adminPortal
                 }
@@ -42,8 +41,8 @@ service class JwtInterceptor {
         } else {
             log:printInfo("From microapp endpoints "+fullPath);
             validatorConfig = {
-                issuer: "superapp-issuer",
-                audience: "payslip-viewer",
+                issuer: MICROAPP_ISSUER,
+                audience: MICROAPP_AUDIENCE,
                 signatureConfig: {
                     certFile: publicKeyPath_microapp
                 }
@@ -79,7 +78,7 @@ service class JwtInterceptor {
             };
         }
 
-        if !fullPath.startsWith("/api/v1/payslips/admin-portal") {
+        if !fullPath.startsWith("/admin-portal") {
              //Extract emp_id
             string|error empId = extractEmployeeId(payload);
             if empId is error {

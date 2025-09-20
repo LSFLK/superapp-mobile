@@ -30,7 +30,7 @@ service class ErrorInterceptor {
         allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     }
 }
-service http:InterceptableService /api/v1/payslips on new http:Listener(serverPort) {
+service http:InterceptableService / on new http:Listener(serverPort) {
 
     public function createInterceptors() returns http:Interceptor[] =>
     [new ErrorInterceptor(), new JwtInterceptor()];
@@ -100,7 +100,7 @@ service http:InterceptableService /api/v1/payslips on new http:Listener(serverPo
             return <json>{ "error": "No file uploaded" };
         }
 
-        string tempCsvPath = "./uploaded.csv";
+        string tempCsvPath = "./tmp/uploaded.csv";
         byte[] fileContent = check fileEntity.getByteArray();
         check io:fileWriteBytes(tempCsvPath, fileContent);
 
