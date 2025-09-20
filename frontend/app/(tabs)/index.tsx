@@ -1,9 +1,3 @@
-/**
- * Government SuperApp - Home Screen
- * 
- * Production-ready home screen with clean architecture and dynamic loading
- */
-
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
   StyleSheet,

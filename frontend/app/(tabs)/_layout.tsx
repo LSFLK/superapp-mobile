@@ -1,10 +1,3 @@
-/**
- * Government SuperApp - Simple Tab Layout
- * 
- * Only essential tabs: Home and Profile
- * Clean, minimal navigation
- */
-
 import { Tabs } from "expo-router";
 import { Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";

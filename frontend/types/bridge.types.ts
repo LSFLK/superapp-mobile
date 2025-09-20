@@ -14,16 +14,6 @@
 // specific language governing permissions and limitations
 // under the License.
 
-/**
- * Auto-generated TypeScript definitions for the native bridge
- * These types are automatically created from the bridge registry
- * 
- * 🚀 To add new bridge methods:
- * 1. Add your function to bridgeRegistry.ts
- * 2. That's it! The runtime JavaScript is auto-generated
- * 3. Optionally run: npm run generate:bridge-types (when implemented)
- */
-
 // Global window extensions
 declare global {
   interface Window {
@@ -71,13 +61,6 @@ export interface NativeBridge {
   resolveGetLocalData: (data: { value: string | null }) => void;
   rejectGetLocalData: (error: string) => void;
 
-  // 🚀 DYNAMIC BRIDGE METHODS
-  // Any bridge function added to bridgeRegistry.ts with webViewMethods will automatically:
-  // - Generate request/resolve/reject methods if specified
-  // - Generate helper methods if specified  
-  // - Create global variables for helper functions
-  // - Generate proper event dispatching
-  
   // When you add new bridge functions to bridgeRegistry.ts, add their type signatures here
   // Example:
   // requestUserSettings: () => void;
