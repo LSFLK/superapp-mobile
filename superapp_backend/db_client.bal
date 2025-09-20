@@ -56,11 +56,6 @@ SuperappMobileDatabaseConfig superappMobileDatabaseConfig = {
         ssl: { mode: mysql:SSL_PREFERRED },
         connectTimeout: 10
     },
-    connectionPool: {
-        maxOpenConnections: 30,     // adjust based on load & DB capacity
-        minIdleConnections: 5,
-        maxConnectionLifeTime: 300  // seconds
-    }
 };
 
 final mysql:Client databaseClient = check new (...superappMobileDatabaseConfig);
