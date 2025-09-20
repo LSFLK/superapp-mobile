@@ -2,47 +2,24 @@ import ballerina/http;
 import ballerina/mime;
 import ballerina/log;
 import ballerina/io;
-import ballerinax/mysql;
-import ballerina/sql;
-import ballerinax/mysql.driver as _; // bundle driver
+import ballerina/lang.runtime as runtime;
 
-configurable DatabaseConfig databaseConfig = ?;
+service class ErrorInterceptor {
+    *http:ResponseErrorInterceptor;
 
-mysql:Client db = check new(
-    host = databaseConfig.DB_HOST,
-    port = databaseConfig.DB_PORT,
-    user = databaseConfig.DB_USER,
-    password = databaseConfig.DB_PASSWORD,
-    database = databaseConfig.DB_NAME
-);
-
-// Initialize DB - create table if not exists
-public function initDB() returns error? {
-    // Create table if not exists in the selected DB
-    _ = check db->execute(`
-        CREATE TABLE IF NOT EXISTS payslips (
-            employeeId   VARCHAR(64) PRIMARY KEY,
-            designation  VARCHAR(255) NOT NULL,
-            name         VARCHAR(255) NOT NULL,
-            department   VARCHAR(255) NOT NULL,
-            payPeriod    VARCHAR(64) NOT NULL,
-            basicSalary  DECIMAL(18,2) NOT NULL,
-            allowances   DECIMAL(18,2) NOT NULL,
-            deductions   DECIMAL(18,2) NOT NULL,
-            netSalary    DECIMAL(18,2) NOT NULL
-        )
-    `);
-    return ();
+    remote function interceptResponseError(error err, http:RequestContext ctx) returns http:BadRequest|error {
+        if err is http:PayloadBindingError {
+            string customError = "Payload binding failed!";
+            log:printError(customError, err);
+            return {
+                body: {
+                    message: customError
+                }
+            };
+        }
+        return err;
+    }
 }
-
-// No-op; kept for compatibility in case of future multi-database usage
-isolated function ensureDatabaseSelected() returns error? {
-    return ();
-}
-
-map<Payslip> uploadedPayslips = {};
-
-
 
 // CORS configuration for frontend access
 @http:ServiceConfig {
@@ -53,23 +30,20 @@ map<Payslip> uploadedPayslips = {};
         allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     }
 }
-// Main payslip service
 service http:InterceptableService /api/v1/payslips on new http:Listener(serverPort) {
 
-    public function createInterceptors() returns JwtInterceptor {
-        return new JwtInterceptor();
-    }
+    public function createInterceptors() returns http:Interceptor[] =>
+    [new ErrorInterceptor(), new JwtInterceptor()];
 
     public function init() returns error? {
         check initDB();
+        io:println("Initializing the microapp backend service...");
+        runtime:onGracefulStop(stopHandler);
     }
 
-
-    // GET payslip details
+    // GET single payslip
     resource function get payslip(http:Caller caller, http:Request req, http:RequestContext ctx) returns error? {
-        // Retrieve emp_id set by JwtInterceptor
         string|error empId = ctx.getWithType("emp_id");
-
         if empId is error {
             check caller->respond({
                 status: "error",
@@ -79,198 +53,118 @@ service http:InterceptableService /api/v1/payslips on new http:Listener(serverPo
             return;
         }
 
-        // Query DB for the latest payslip
-        sql:ParameterizedQuery q = `SELECT 
-                    employeeId,
-                    designation,
-                    name,
-                    department,
-                    payPeriod,
-                    CAST(basicSalary AS DOUBLE) AS basicSalary,
-                    CAST(allowances AS DOUBLE) AS allowances,
-                    CAST(deductions AS DOUBLE) AS deductions,
-                    CAST(netSalary AS DOUBLE) AS netSalary
-                FROM payslips 
-                WHERE employeeId = ${empId} 
-                ORDER BY payPeriod DESC 
-                LIMIT 1`;
-
-        Payslip|error row = db->queryRow(q);
-
+        Payslip|error row = fetchLatestPayslip(empId);
         if row is Payslip {
-            check caller->respond(row); // send directly
-        } else if row is error {
-            return row; // propagate DB error as HTTP error
+            check caller->respond(row);
+        } else {
+            return row;
         }
     }
 
+    // GET all payslips
+    resource function get all() returns json|error {
+        Payslip[]|error rows = fetchAllPayslips();
+        if rows is error {
+            return rows;
+        }
+
+        return {
+            status: "success",
+            message: "Fetched payslips from database",
+            count: rows.length(),
+            data: rows
+        };
+    }
 
 
-    // POST endpoint to upload CSV and save to MySQL DB
+    resource function get admin\-portal/all() returns json|error {
+        Payslip[]|error rows = fetchAllPayslips();
+        if rows is error {
+            return rows;
+        }
+
+        return {
+            status: "success",
+            message: "Fetched payslips from database",
+            count: rows.length(),
+            data: rows
+        };
+    }
+
+    // POST CSV upload
     resource function post admin\-portal/upload(http:Request req) returns json|error {
-        // Ensure DB selected (no-op in current setup)
         check ensureDatabaseSelected();
-            mime:Entity|error fileEntity = req.getEntity();
-            if fileEntity is error {
-                return <json>{ "error": "No file uploaded" };
+
+        mime:Entity|error fileEntity = req.getEntity();
+        if fileEntity is error {
+            return <json>{ "error": "No file uploaded" };
+        }
+
+        string tempCsvPath = "./uploaded.csv";
+        byte[] fileContent = check fileEntity.getByteArray();
+        check io:fileWriteBytes(tempCsvPath, fileContent);
+
+        stream<string[], io:Error?> csvStream = check io:fileReadCsvAsStream(tempCsvPath);
+
+        int processed = 0;
+        int skipped = 0;
+        int errors = 0;
+
+        check csvStream.forEach(function(string[] row) {
+            if row.length() == 0 || (row.length() == 1 && row[0].trim() == "") {
+                skipped += 1;
+                return;
             }
 
-            // Save uploaded CSV temporarily
-            string tempCsvPath = "./uploaded.csv";
-            byte[] fileContent = check fileEntity.getByteArray();
-            check io:fileWriteBytes(tempCsvPath, fileContent);
+            string firstCol = row[0].toLowerAscii().trim();
+            if firstCol == "employeeid" || firstCol == "employee_id" {
+                skipped += 1;
+                return;
+            }
 
-            // Read CSV as a stream
-            stream<string[], io:Error?> csvStream = check io:fileReadCsvAsStream(tempCsvPath);
+            if row.length() < 9 {
+                errors += 1;
+                log:printWarn("Skipping row due to insufficient columns (" + row.length().toString() + ")");
+                return;
+            }
 
-            int processed = 0;
-            int skipped = 0;
-            int errors = 0;
+            decimal|error basicSalary = decimal:fromString(row[5].trim());
+            decimal|error allowances = decimal:fromString(row[6].trim());
+            decimal|error deductions = decimal:fromString(row[7].trim());
+            decimal|error netSalary = decimal:fromString(row[8].trim());
 
+            if basicSalary is error || allowances is error || deductions is error || netSalary is error {
+                errors += 1;
+                log:printWarn("Skipping row due to numeric parse error for employeeId: " + row[0].trim());
+                return;
+            }
 
-        // We'll use REPLACE INTO to upsert by primary key (employeeId)
+            do {
+                check ensureDatabaseSelected();
+                check insertPayslip(
+                    row[0].trim(), row[1].trim(), row[2].trim(), row[3].trim(), row[4].trim(),
+                    basicSalary, allowances, deductions, netSalary
+                );
+                processed += 1;
+            } on fail var e {
+                errors += 1;
+                log:printError("Error inserting row for employeeId: " + row[0].trim() + " -> " + e.toString());
+            }
+        });
 
-        // Iterate CSV rows and insert into DB
-        check csvStream.forEach(function(string[] row) {
-                if row.length() == 0 {
-                    skipped += 1;
-                    return;
-                }
-                if row.length() == 1 && row[0].trim() == "" {
-                    skipped += 1;
-                    return;
-                }
+        check csvStream.close();
 
-                // Skip header row (case-insensitive)
-                string firstCol = row[0].toLowerAscii().trim();
-                if firstCol == "employeeid" || firstCol == "employee_id" {
-                    skipped += 1;
-                    return;
-                }
+        log:printInfo("CSV upload summary -> processed: " + processed.toString() +
+            ", skipped: " + skipped.toString() + ", errors: " + errors.toString());
 
-                // Validate minimum columns
-
-                if row.length() < 9 {
-                    errors += 1;
-                    log:printWarn("Skipping row due to insufficient columns (" + row.length().toString() + ")");
-                    return;
-                }
-                // Parse numeric values safely (use decimal for money)
-                decimal|error basicSalary = decimal:fromString(row[5].trim());
-                decimal|error allowances = decimal:fromString(row[6].trim());
-                decimal|error deductions = decimal:fromString(row[7].trim());
-                decimal|error netSalary = decimal:fromString(row[8].trim());
-
-                if basicSalary is error || allowances is error || deductions is error || netSalary is error {
-                    errors += 1;
-                    log:printWarn("Skipping row due to numeric parse error for employeeId: " + row[0].trim());
-                    return;
-                }
-
-                do {
-                    // Ensure DB selected (no-op in current setup)
-                    check ensureDatabaseSelected();
-
-                    // Create the parameterized upsert query
-                    sql:ParameterizedQuery pq = `REPLACE INTO payslips
-                        (employeeId, designation, name, department, payPeriod, basicSalary, allowances, deductions, netSalary)
-                        VALUES (${row[0].trim()}, ${row[1].trim()}, ${row[2].trim()}, ${row[3].trim()}, ${row[4].trim()},
-                                ${basicSalary}, ${allowances}, ${deductions}, ${netSalary})`;
-
-                    // Execute
-                    _ = check db->execute(pq);
-
-
-                    // (optional) you can inspect affectedRowCount if needed:
-                    // int? affected = result.affectedRowCount;
-
-                    processed += 1;
-                } on fail var e {
-                    errors += 1;
-                    log:printError("Error inserting row for employeeId: " + row[0].trim() + " -> " + e.toString());
-                }
-            });
-
-            // close csvStream if not already closed
-            check csvStream.close();
-
-            log:printInfo("CSV upload summary -> processed: " + processed.toString() +
-                ", skipped: " + skipped.toString() + ", errors: " + errors.toString());
-
-            return {
-                status: "success",
-                message: "CSV uploaded and stored in DB successfully",
-                processed: processed,
-                skipped: skipped,
-                errors: errors
-            };
+        return {
+            status: "success",
+            message: "CSV uploaded and stored in DB successfully",
+            processed: processed,
+            skipped: skipped,
+            errors: errors
+        };
     }
-
-
-
-    // Get payslips from uploaded CSV as a map keyed by employeeId
-    resource function get all() returns json|error {
-        check ensureDatabaseSelected();
-            // Prefer DB, but handle empty table gracefully
-            sql:ParameterizedQuery q = `SELECT 
-                    employeeId,
-                    designation,
-                    name,
-                    department,
-                    payPeriod,
-                    CAST(basicSalary AS DOUBLE) AS basicSalary,
-                    CAST(allowances AS DOUBLE) AS allowances,
-                    CAST(deductions AS DOUBLE) AS deductions,
-                    CAST(netSalary AS DOUBLE) AS netSalary
-                FROM payslips`;
-
-        stream<Payslip, error?> resultStream = db->query(q);
-            Payslip[] rows = [];
-            check resultStream.forEach(function(Payslip p) {
-                rows.push(p);
-            });
-            check resultStream.close();
-
-            return {
-                status: "success",
-                message: "Fetched payslips from database",
-                count: rows.length(),
-                data: rows
-            };
-    }
-
-
-        resource function get admin\-portal/all() returns json|error {
-        check ensureDatabaseSelected();
-            // Prefer DB, but handle empty table gracefully
-            sql:ParameterizedQuery q = `SELECT 
-                    employeeId,
-                    designation,
-                    name,
-                    department,
-                    payPeriod,
-                    CAST(basicSalary AS DOUBLE) AS basicSalary,
-                    CAST(allowances AS DOUBLE) AS allowances,
-                    CAST(deductions AS DOUBLE) AS deductions,
-                    CAST(netSalary AS DOUBLE) AS netSalary
-                FROM payslips`;
-
-        stream<Payslip, error?> resultStream = db->query(q);
-            Payslip[] rows = [];
-            check resultStream.forEach(function(Payslip p) {
-                rows.push(p);
-            });
-            check resultStream.close();
-
-            return {
-                status: "success",
-                message: "Fetched payslips from database",
-                count: rows.length(),
-                data: rows
-            };
-    }
-
-
 
     // Health check endpoint (always public)
     resource function get health() returns HealthResponse {
@@ -282,8 +176,308 @@ service http:InterceptableService /api/v1/payslips on new http:Listener(serverPo
         logRequest("GET", "/health");
         return createHealthResponse();
     }
-
 }
+
+
+
+
+// import ballerina/http;
+// import ballerina/mime;
+// import ballerina/log;
+// import ballerina/io;
+// import ballerinax/mysql;
+// import ballerina/sql;
+// import ballerinax/mysql.driver as _; // bundle driver
+// import ballerina/lang.runtime;
+
+
+// function init() returns error? {
+//     check initDB();
+//     io:println("Initializing the microapp backend service...");
+
+//     // Registers a function that will be called during the graceful shutdown.
+//     runtime:onGracefulStop(stopHandler);
+// }
+
+// function stopHandler() returns error? {
+//     io:println("Performing shutdown tasks...");
+//     // Add your cleanup logic here (e.g., close files, database connections)
+//     check db.close();
+//     io:println("Shutdown tasks completed.");
+//     return ();
+// }
+
+// configurable DatabaseConfig databaseConfig = ?;
+
+// mysql:Client db = check new(
+//     host = databaseConfig.DB_HOST,
+//     port = databaseConfig.DB_PORT,
+//     user = databaseConfig.DB_USER,
+//     password = databaseConfig.DB_PASSWORD,
+//     database = databaseConfig.DB_NAME
+// );
+
+// // Initialize DB - create table if not exists
+// public function initDB() returns error? {
+//     // Create table if not exists in the selected DB
+//     _ = check db->execute(`
+//         CREATE TABLE IF NOT EXISTS payslips (
+//             employeeId   VARCHAR(64) PRIMARY KEY,
+//             designation  VARCHAR(255) NOT NULL,
+//             name         VARCHAR(255) NOT NULL,
+//             department   VARCHAR(255) NOT NULL,
+//             payPeriod    VARCHAR(64) NOT NULL,
+//             basicSalary  DECIMAL(18,2) NOT NULL,
+//             allowances   DECIMAL(18,2) NOT NULL,
+//             deductions   DECIMAL(18,2) NOT NULL,
+//             netSalary    DECIMAL(18,2) NOT NULL
+//         )
+//     `);
+//     return ();
+// }
+
+// // No-op; kept for compatibility in case of future multi-database usage
+// isolated function ensureDatabaseSelected() returns error? {
+//     return ();
+// }
+
+// map<Payslip> uploadedPayslips = {};
+
+// // CORS configuration for frontend access
+// @http:ServiceConfig {
+//     cors: {
+//         allowOrigins: ["*"],
+//         allowCredentials: false,
+//         allowHeaders: ["Authorization", "Content-Type", "x-jwt-assertion"],
+//         allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+//     }
+// }
+// // Main payslip service
+// service http:InterceptableService /api/v1/payslips on new http:Listener(serverPort) {
+
+//     public function createInterceptors() returns JwtInterceptor {
+//         return new JwtInterceptor();
+//     }
+
+//     // GET payslip details
+//     resource function get payslip(http:Caller caller, http:Request req, http:RequestContext ctx) returns error? {
+//         // Retrieve emp_id set by JwtInterceptor
+//         string|error empId = ctx.getWithType("emp_id");
+
+//         if empId is error {
+//             check caller->respond({
+//                 status: "error",
+//                 message: "Invalid request: emp_id missing in JWT",
+//                 errorCode: "UNAUTHORIZED"
+//             });
+//             return;
+//         }
+
+//         // Query DB for the latest payslip
+//         sql:ParameterizedQuery q = `SELECT 
+//                     employeeId,
+//                     designation,
+//                     name,
+//                     department,
+//                     payPeriod,
+//                     CAST(basicSalary AS DOUBLE) AS basicSalary,
+//                     CAST(allowances AS DOUBLE) AS allowances,
+//                     CAST(deductions AS DOUBLE) AS deductions,
+//                     CAST(netSalary AS DOUBLE) AS netSalary
+//                 FROM payslips 
+//                 WHERE employeeId = ${empId} 
+//                 ORDER BY payPeriod DESC 
+//                 LIMIT 1`;
+
+//         Payslip|error row = db->queryRow(q);
+
+//         if row is Payslip {
+//             check caller->respond(row); // send directly
+//         } else if row is error {
+//             return row; // propagate DB error as HTTP error
+//         }
+//     }
+
+
+
+//     // POST endpoint to upload CSV and save to MySQL DB
+//     resource function post admin\-portal/upload(http:Request req) returns json|error {
+//         // Ensure DB selected (no-op in current setup)
+//         check ensureDatabaseSelected();
+//             mime:Entity|error fileEntity = req.getEntity();
+//             if fileEntity is error {
+//                 return <json>{ "error": "No file uploaded" };
+//             }
+
+//             // Save uploaded CSV temporarily
+//             string tempCsvPath = "./uploaded.csv";
+//             byte[] fileContent = check fileEntity.getByteArray();
+//             check io:fileWriteBytes(tempCsvPath, fileContent);
+
+//             // Read CSV as a stream
+//             stream<string[], io:Error?> csvStream = check io:fileReadCsvAsStream(tempCsvPath);
+
+//             int processed = 0;
+//             int skipped = 0;
+//             int errors = 0;
+
+
+//         // We'll use REPLACE INTO to upsert by primary key (employeeId)
+
+//         // Iterate CSV rows and insert into DB
+//         check csvStream.forEach(function(string[] row) {
+//                 if row.length() == 0 {
+//                     skipped += 1;
+//                     return;
+//                 }
+//                 if row.length() == 1 && row[0].trim() == "" {
+//                     skipped += 1;
+//                     return;
+//                 }
+
+//                 // Skip header row (case-insensitive)
+//                 string firstCol = row[0].toLowerAscii().trim();
+//                 if firstCol == "employeeid" || firstCol == "employee_id" {
+//                     skipped += 1;
+//                     return;
+//                 }
+
+//                 // Validate minimum columns
+
+//                 if row.length() < 9 {
+//                     errors += 1;
+//                     log:printWarn("Skipping row due to insufficient columns (" + row.length().toString() + ")");
+//                     return;
+//                 }
+//                 // Parse numeric values safely (use decimal for money)
+//                 decimal|error basicSalary = decimal:fromString(row[5].trim());
+//                 decimal|error allowances = decimal:fromString(row[6].trim());
+//                 decimal|error deductions = decimal:fromString(row[7].trim());
+//                 decimal|error netSalary = decimal:fromString(row[8].trim());
+
+//                 if basicSalary is error || allowances is error || deductions is error || netSalary is error {
+//                     errors += 1;
+//                     log:printWarn("Skipping row due to numeric parse error for employeeId: " + row[0].trim());
+//                     return;
+//                 }
+
+//                 do {
+//                     // Ensure DB selected (no-op in current setup)
+//                     check ensureDatabaseSelected();
+
+//                     // Create the parameterized upsert query
+//                     sql:ParameterizedQuery pq = `REPLACE INTO payslips
+//                         (employeeId, designation, name, department, payPeriod, basicSalary, allowances, deductions, netSalary)
+//                         VALUES (${row[0].trim()}, ${row[1].trim()}, ${row[2].trim()}, ${row[3].trim()}, ${row[4].trim()},
+//                                 ${basicSalary}, ${allowances}, ${deductions}, ${netSalary})`;
+
+//                     // Execute
+//                     _ = check db->execute(pq);
+
+
+//                     // (optional) you can inspect affectedRowCount if needed:
+//                     // int? affected = result.affectedRowCount;
+
+//                     processed += 1;
+//                 } on fail var e {
+//                     errors += 1;
+//                     log:printError("Error inserting row for employeeId: " + row[0].trim() + " -> " + e.toString());
+//                 }
+//             });
+
+//             // close csvStream if not already closed
+//             check csvStream.close();
+
+//             log:printInfo("CSV upload summary -> processed: " + processed.toString() +
+//                 ", skipped: " + skipped.toString() + ", errors: " + errors.toString());
+
+//             return {
+//                 status: "success",
+//                 message: "CSV uploaded and stored in DB successfully",
+//                 processed: processed,
+//                 skipped: skipped,
+//                 errors: errors
+//             };
+//     }
+
+
+
+//     // Get payslips from uploaded CSV as a map keyed by employeeId
+//     resource function get all() returns json|error {
+//         check ensureDatabaseSelected();
+//             // Prefer DB, but handle empty table gracefully
+//             sql:ParameterizedQuery q = `SELECT 
+//                     employeeId,
+//                     designation,
+//                     name,
+//                     department,
+//                     payPeriod,
+//                     CAST(basicSalary AS DOUBLE) AS basicSalary,
+//                     CAST(allowances AS DOUBLE) AS allowances,
+//                     CAST(deductions AS DOUBLE) AS deductions,
+//                     CAST(netSalary AS DOUBLE) AS netSalary
+//                 FROM payslips`;
+
+//         stream<Payslip, error?> resultStream = db->query(q);
+//             Payslip[] rows = [];
+//             check resultStream.forEach(function(Payslip p) {
+//                 rows.push(p);
+//             });
+//             check resultStream.close();
+
+//             return {
+//                 status: "success",
+//                 message: "Fetched payslips from database",
+//                 count: rows.length(),
+//                 data: rows
+//             };
+//     }
+
+
+//     resource function get admin\-portal/all() returns json|error {
+//         check ensureDatabaseSelected();
+//             // Prefer DB, but handle empty table gracefully
+//             sql:ParameterizedQuery q = `SELECT 
+//                     employeeId,
+//                     designation,
+//                     name,
+//                     department,
+//                     payPeriod,
+//                     CAST(basicSalary AS DOUBLE) AS basicSalary,
+//                     CAST(allowances AS DOUBLE) AS allowances,
+//                     CAST(deductions AS DOUBLE) AS deductions,
+//                     CAST(netSalary AS DOUBLE) AS netSalary
+//                 FROM payslips`;
+
+//         stream<Payslip, error?> resultStream = db->query(q);
+//             Payslip[] rows = [];
+//             check resultStream.forEach(function(Payslip p) {
+//                 rows.push(p);
+//             });
+//             check resultStream.close();
+
+//             return {
+//                 status: "success",
+//                 message: "Fetched payslips from database",
+//                 count: rows.length(),
+//                 data: rows
+//             };
+//     }
+
+
+
+//     // Health check endpoint (always public)
+//     resource function get health() returns HealthResponse {
+//         logRequest("GET", "/health");
+//         return createHealthResponse();
+//     }
+
+//     resource function get admin\-portal/health() returns HealthResponse {
+//         logRequest("GET", "/health");
+//         return createHealthResponse();
+//     }
+
+// }
 
 
 
