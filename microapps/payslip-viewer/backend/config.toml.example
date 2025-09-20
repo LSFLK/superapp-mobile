@@ -1,0 +1,10 @@
+# Root-level (Add the public-key in the .pem format and the identity provider's public key in the .crt format to the same directory)
+publicKeyPath_microapp = "./<your-superapp-public-key>.pem"
+publicKeyPath_adminPortal = "./<your-idp-certificate>.crt"
+
+[databaseConfig]
+host = "<your-db-host-name>"
+user = "<your-db_admin-name>"
+password = "<your-db-password>"
+database = "<your-db-name>"
+port = <port>
