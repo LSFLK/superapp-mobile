@@ -55,7 +55,7 @@ SuperappMobileDatabaseConfig superappMobileDatabaseConfig = {
     options: {
         ssl: { mode: mysql:SSL_PREFERRED },
         connectTimeout: 10
-    },
+    }
 };
 
 final mysql:Client databaseClient = check new (...superappMobileDatabaseConfig);
