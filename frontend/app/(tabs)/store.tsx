@@ -279,12 +279,12 @@ export default function Store() {
 const createStyles = (colorScheme: "light" | "dark") => StyleSheet.create({
   container: {
     flex: 1,
+    marginTop:-10,
     backgroundColor: Colors[colorScheme].primaryBackgroundColor,
   },
   contentContainer: {
     flex: 1,
     paddingHorizontal: 20,
-    paddingTop: 15,
   },
   loadingContainer: {
     flex: 1,
@@ -297,7 +297,6 @@ const createStyles = (colorScheme: "light" | "dark") => StyleSheet.create({
     fontWeight: "500",
   },
   header: {
-    marginBottom: 24,
     paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: Colors[colorScheme].ternaryBackgroundColor,
@@ -313,10 +312,11 @@ const createStyles = (colorScheme: "light" | "dark") => StyleSheet.create({
     color: Colors[colorScheme].secondaryTextColor,
   },
   listContainer: {
-    paddingTop: 0,
+    padding:10,
+    // paddingTop: 10,
   },
   appCard: {
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     shadowColor: "#000",
@@ -324,9 +324,9 @@ const createStyles = (colorScheme: "light" | "dark") => StyleSheet.create({
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.5,
     shadowRadius: 3.84,
-    elevation: 5,
+    elevation: 2,
   },
   appHeader: {
     flexDirection: "row",
@@ -371,9 +371,25 @@ const createStyles = (colorScheme: "light" | "dark") => StyleSheet.create({
   },
   installButton: {
     backgroundColor: Colors.actionButtonTextColor,
+        shadowColor: Colors.actionButtonTextColor,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 3.84,
+    elevation: 10,
   },
   removeButton: {
     backgroundColor: Colors.removeButtonTextColor,
+            shadowColor: Colors.removeButtonTextColor,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 3.84,
+    elevation: 10,
   },
   actionButtonText: {
     color: "#fff",

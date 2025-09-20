@@ -91,7 +91,7 @@ export const Colors = {
     modalBorderColor: "#EBEBEB", // Modal outline border color
   },
 
-  companyOrange: "#850000fd", // Company brand accent color
+  companyOrange: "#a52828fd", // Company brand accent color
   actionButtonTextColor: "#4989F7", // Action button text color
   removeButtonTextColor: "#EB4E3D", // Remove button text color
 };

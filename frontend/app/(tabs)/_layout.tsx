@@ -14,9 +14,10 @@ export default function TabLayout() {
             paddingTop: 5,
           },
           android: {
-            height: 80,
+            height: 70,
             paddingTop: 5,
-            paddingBottom: 5,
+            paddingBottom: 15,
+            
           },
         }),
       }}

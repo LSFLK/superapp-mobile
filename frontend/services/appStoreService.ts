@@ -308,6 +308,8 @@ export const loadMicroAppDetails = async (
       : [];
 
     // Dispatch stored apps initially
+    // If no stored apps and we're in development, inject a mock app so
+ 
     dispatch(setApps(storedApps));
 
     // Fetch latest micro apps list from API
@@ -350,6 +352,7 @@ export const loadMicroAppDetails = async (
     }
   } catch (error) {
     console.error("Error loading micro apps:", error);
-    dispatch(setApps([]));
+    // dispatch(setApps([]));
+    // Don't clear apps on error, just log it
   }
 };

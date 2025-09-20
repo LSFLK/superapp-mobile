@@ -26,6 +26,8 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
   onNotificationPress
 }) => {
   const colorScheme = useColorScheme() ?? "light";
+    const styles = createStyles(colorScheme ?? "light");
+
 
   const getDisplayName = (): string => {
     if (loading) return "Loading...";
@@ -78,7 +80,7 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colorScheme: "light" | "dark") => StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -86,6 +88,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 50,
     paddingBottom: 16,
+    shadowColor: Colors[colorScheme].secondaryTextColor,
+      shadowOffset: {
+        width: 0,
+        height:2,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 20,
   },
   headerContent: {
     flexDirection: 'row',

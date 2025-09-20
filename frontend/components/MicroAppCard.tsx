@@ -77,7 +77,7 @@ export const MicroAppCard: React.FC<MicroAppCardProps> = ({
     <TouchableOpacity 
       style={[
         styles.card,
-        { backgroundColor: Colors[colorScheme].secondaryBackgroundColor },
+        { backgroundColor: Colors[colorScheme].secondaryBackgroundColor ,},
         !isAvailable && styles.cardDisabled
       ]} 
       onPress={handlePress}
@@ -85,7 +85,7 @@ export const MicroAppCard: React.FC<MicroAppCardProps> = ({
     >
       <View style={[
         styles.iconContainer, 
-        { backgroundColor: Colors[colorScheme].overLayColor },
+        { backgroundColor: Colors[colorScheme].overLayColor , shadowColor: Colors[colorScheme].overLayColor, elevation:10 },
         !isAvailable && styles.iconContainerDisabled,
       ]}>
         <MicroAppIcon
@@ -125,21 +125,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     minHeight: 120,
     justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
   cardDisabled: {
     opacity: 0.6,
   },
   iconContainer: {
-    width: 48,
-    height: 48,
+    width: 64,
+    height: 64,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',

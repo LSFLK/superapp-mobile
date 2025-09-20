@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Alert,
   Image,
+  ScrollView
 } from "react-native";
 import React, { useCallback } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -84,6 +85,7 @@ const SettingsScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <ScrollView style={{}} scrollEnabled={true}>
       {userInfo ? (
         <View style={styles.contentContainer}>
           {/* Header */}
@@ -91,7 +93,6 @@ const SettingsScreen = () => {
             <Text style={styles.headerTitle}>Profile</Text>
             <Text style={styles.headerSubtitle}>Manage your account settings</Text>
           </View>
-
           {/* Profile Card */}
           <View style={styles.profileCard}>
             <View style={styles.avatarWrapper}>
@@ -164,15 +165,15 @@ const SettingsScreen = () => {
                 <Text style={styles.logoutText}>Sign Out</Text>
               </View>
             </TouchableOpacity>
-          </View>
-
-          {/* Version */}
+                    {/* Version */}
           <View style={styles.versionContainer}>
             <Text style={styles.versionText}>version {version}</Text>
           </View>
         </View>
-      ) : (
-        <View style={styles.signInContainer}>
+          </View>
+
+) : (
+  <View style={styles.signInContainer}>
           <View style={styles.overlay}>
             <View style={styles.modal}>
               <SignInMessage />
@@ -183,6 +184,8 @@ const SettingsScreen = () => {
           </View>
         </View>
       )}
+
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -192,6 +195,7 @@ export default SettingsScreen;
 const createStyles = (colorScheme: "light" | "dark") =>
   StyleSheet.create({
     container: {
+      marginTop:10,
       flex: 1,
       backgroundColor: Colors[colorScheme].primaryBackgroundColor,
     },
@@ -201,7 +205,7 @@ const createStyles = (colorScheme: "light" | "dark") =>
       paddingTop: 40,
     },
     header: {
-      marginBottom: 24,
+      marginBottom: 16,
       paddingBottom: 16,
       borderBottomWidth: 1,
       borderBottomColor: Colors[colorScheme].ternaryBackgroundColor,
@@ -222,14 +226,7 @@ const createStyles = (colorScheme: "light" | "dark") =>
       padding: 24,
       alignItems: 'center',
       marginBottom: 24,
-      shadowColor: '#000',
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
-      elevation: 4,
+    
     },
     avatarWrapper: {
       marginBottom: 16,
@@ -263,7 +260,7 @@ const createStyles = (colorScheme: "light" | "dark") =>
       },
       shadowOpacity: 0.1,
       shadowRadius: 8,
-      elevation: 4,
+      elevation: 20,
     },
     actionsContainer: {
       marginBottom: 24,
@@ -273,14 +270,14 @@ const createStyles = (colorScheme: "light" | "dark") =>
       paddingVertical: 16,
       paddingHorizontal: 24,
       borderRadius: 12,
-      shadowColor: '#000',
+      shadowColor: '#ff0000ff',
       shadowOffset: {
         width: 0,
         height: 2,
       },
       shadowOpacity: 0.1,
       shadowRadius: 4,
-      elevation: 2,
+      elevation: 10,
     },
     logoutRow: {
       flexDirection: 'row',
@@ -296,7 +293,8 @@ const createStyles = (colorScheme: "light" | "dark") =>
       fontWeight: '600',
     },
     versionContainer: {
-      paddingBottom: 20,
+      paddingTop:15,
+      paddingBottom: 10,
       alignItems: 'center',
     },
     versionText: {

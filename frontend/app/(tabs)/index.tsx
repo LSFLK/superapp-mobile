@@ -183,7 +183,7 @@ export default function HomeScreen() {
         data={downloadedApps}
         renderItem={renderMicroAppCard}
         keyExtractor={(item) => item.app_id}
-        numColumns={2}
+        numColumns={3}
         columnWrapperStyle={styles.row}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.gridContent}
@@ -209,6 +209,11 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: Colors[colorScheme].primaryBackgroundColor }]}>
+        <HomeHeader
+          userInfo={userInfo}
+          loading={userInfoLoading}
+          onNotificationPress={handleNotificationPress}
+        />
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -221,11 +226,7 @@ export default function HomeScreen() {
           />
         }
       >
-        <HomeHeader
-          userInfo={userInfo}
-          loading={userInfoLoading}
-          onNotificationPress={handleNotificationPress}
-        />
+
 
         <View style={styles.content}>
           <View style={styles.sectionHeader}>
@@ -287,7 +288,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   cardWrapper: {
-    flex: 1,
+    flex: 0,
     margin: 6,
   },
   row: {

@@ -112,7 +112,7 @@ const styles = (colorScheme: "light" | "dark") =>
     contentContainer: {
       flex: 1,
       paddingHorizontal: 20,
-      paddingTop: 60,
+      paddingTop: 150,
       justifyContent: 'space-between',
     },
     header: {
@@ -140,18 +140,13 @@ const styles = (colorScheme: "light" | "dark") =>
       lineHeight: 24,
     },
     signInCard: {
-      backgroundColor: Colors[colorScheme].secondaryBackgroundColor,
+      backgroundColor: Colors[colorScheme].primaryBackgroundColor,
       borderRadius: 20,
       padding: 32,
       marginHorizontal: 4,
-      shadowColor: '#000',
-      shadowOffset: {
-        width: 0,
-        height: 4,
-      },
-      shadowOpacity: 0.15,
-      shadowRadius: 12,
-      elevation: 8,
+      // shadowColor: Colors[colorScheme].secondaryTextColor,
+      // shadowOpacity: 0,
+      // elevation: 20,
     },
     versionContainer: {
       alignItems: 'center',
