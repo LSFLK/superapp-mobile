@@ -1,11 +1,8 @@
 import ballerina/http;
 import ballerina/jwt;
-//import ballerina/io;
 import ballerina/log;
 
-configurable string publicKeyPath = ?; // e.g., "./public.pem" locally, "/public.pem" in Choreo
-
-# To handle authorization for each resource function invocation.
+// To handle authorization for each resource function invocation.
 service class JwtInterceptor {
 
     *http:RequestInterceptor;
