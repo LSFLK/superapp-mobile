@@ -11,8 +11,8 @@ isolated service class JwtInterceptor {
 
         jwt:ValidatorConfig validatorConfig = {};
         validatorConfig = {
-                issuer: "https://api.asgardeo.io/t/lsfproject/oauth2/token",
-                audience: "5jjnGuEZz1BcyfhJ_CCHrbdJEzEa",
+                issuer: ASGARDEO_ISSUER,
+                audience: [ASGARDEO_AUDIENCE_1, ASGARDEO_AUDIENCE_2],
                 signatureConfig: {
                     certFile: publicKeyPath
                 }
