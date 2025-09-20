@@ -25,6 +25,21 @@ function App() {
   useEffect(() => {
     if (isAuthed) {
       console.log("User is authenticated:", username);
+      // Fetch and print the access token once authenticated
+      (async () => {
+        try {
+          const token = await ctx?.getAccessToken?.();
+          if (token) {
+            console.log("==== ADMIN PORTAL ACCESS TOKEN (Asgardeo) ====");
+            console.log(ctx.getAccessToken());
+            console.log("================================================");
+          } else {
+            console.warn("Access token not available yet.");
+          }
+        } catch (e) {
+          console.error("Failed to retrieve access token", e);
+        }
+      })();
     }
   }, [isAuthed, username]);
 

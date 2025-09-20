@@ -148,6 +148,10 @@ Troubleshooting:
 - 404 from `/api/payslips/upload`? Confirm the path rewrite now maps exactly to `/gov-superapp/microappbackendprodbranch/v1.0/upload` (no `/payslips` segment). If backend still requires the old path, revert the rewrite.
 - Network ECONNREFUSED locally: corporate VPN / firewall may block the Choreo host.
 
-### Auth / Invoker Header
+### Auth / Invoker Headers
 
-If the backend expects an invoker assertion (`x-jwt-assertion`), the uploader now attempts to retrieve the Asgardeo ID token via `auth.getIDToken()` and sends it as that header. If you're not authenticated or the call fails, the header is omitted and the backend may respond with `Missing invoker info header!`.
+The uploader now sends both (when authenticated):
+- `x-jwt-assertion`: Asgardeo ID token from `getIDToken()` for invoker identity.
+- `Authorization: Bearer <accessToken>`: Access token from `getAccessToken()` for API authorization.
+
+If tokens can't be retrieved (not signed in or SDK error), headers are skipped and backend may reject the request.

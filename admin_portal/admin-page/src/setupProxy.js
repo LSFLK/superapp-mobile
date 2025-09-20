@@ -6,21 +6,38 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
  * This file is picked up automatically by CRA when starting `npm start`.
  */
 module.exports = function(app) {
+  // Upstream host (no path). Keep existing env override behavior.
   const target = process.env.PAYSLIP_API_TARGET || 'https://41200aa1-4106-4e6c-babf-311dce37c04a-dev.e1-us-east-azure.choreoapis.dev';
-  // Proxy only the specific microapp backend path segment we rely on
-  app.use(
-  '/api/payslips',
-    createProxyMiddleware({
-      target,
-      changeOrigin: true,
-      logLevel: 'info',
-      pathRewrite: (path, req) => {
-    // Incoming: /api/payslips/upload -> Outgoing: /gov-superapp/microappbackendprodbranch/v1.0/upload
-    return path.replace(/^\/api\/payslips\/upload$/, '/gov-superapp/microappbackendprodbranch/v1.0/upload');
-      },
-      onProxyReq: (proxyReq, req, res) => {
-        // Can inject headers here if needed (e.g., auth). None for now.
-      },
-    })
-  );
+
+  console.log('[setupProxy] PAYSLIP_API_TARGET =>', target);
+
+  // New confirmed upstream upload path (full path on host) provided by user.
+  const upstreamUploadPath = process.env.PAYSLIP_API_UPSTREAM_PATH || '/gov-superapp/microappbackendprodbranch/v1.0/admin-portal/upload';
+  console.log('[setupProxy] Using upstream upload path =>', upstreamUploadPath);
+
+  app.use('/api/payslips', createProxyMiddleware({
+    target,
+    changeOrigin: true,
+    logLevel: 'debug',
+    pathRewrite: (path, req) => {
+      // Expected incoming: /api/payslips/upload
+      if (/^\/api\/payslips\/upload$/.test(path)) {
+        // If upstreamUploadPath already contains version + resource we send directly.
+        const rewritten = upstreamUploadPath;
+        console.log(`[setupProxy] Rewriting ${path} -> ${rewritten}`);
+        return rewritten;
+      }
+      console.warn('[setupProxy] Unhandled payslip path (no rewrite applied):', path);
+      return path;
+    },
+    onProxyReq: (proxyReq, req) => {
+      console.log(`[setupProxy] -> ${proxyReq.method} ${proxyReq.getHeader('host')}${proxyReq.path}`);
+    },
+    onProxyRes: (proxyRes, req) => {
+      console.log(`[setupProxy] <- ${proxyRes.statusCode} for ${req.method} ${req.originalUrl}`);
+    },
+    onError: (err, req, res) => {
+      console.error('[setupProxy] Proxy error:', err.message);
+    }
+  }));
 };

@@ -60,11 +60,16 @@ export default function UploadExcel() {
       let headers = {};
       try {
         if (auth?.state?.isAuthenticated) {
-          // getIDToken is preferred for identity assertions; fall back to access token if needed
-            const idToken = await auth.getIDToken();
-            if (idToken) {
-              headers["x-jwt-assertion"] = idToken;
-            }
+          // Identity assertion (ID token)
+          const idToken = await auth.getIDToken();
+          if (idToken) {
+            headers["x-jwt-assertion"] = idToken;
+          }
+          // API authorization (access token)
+          const accessToken = await auth.getAccessToken();
+          if (accessToken) {
+            headers["Authorization"] = `Bearer ${accessToken}`;
+          }
         }
       } catch (e) {
         console.warn("Could not obtain ID token for upload", e);

@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react";
 
 // Contract
 // Inputs: none (uses internal state)
-// Output: renders a form to upload micro-app ZIP with fields name, version, appId, description (required), iconUrlPath
+// Output: renders a form to upload micro-app ZIP with fields name, version, appId, iconUrlPath
 // Success criteria: POST multipart/form-data to backend and show success/error modal
 
 const BACKEND_BASE_URL = process.env.REACT_APP_MICROAPPS_BASE_URL || "https://41200aa1-4106-4e6c-babf-311dce37c04a-prod.e1-us-east-azure.choreoapis.dev/gov-superapp/superappbackendprodbranch/v1.0";
@@ -12,7 +12,6 @@ export default function UploadMicroApp() {
   const [version, setVersion] = useState("");
   const [appId, setAppId] = useState("");
   const [iconUrlPath, setIconUrlPath] = useState("");
-  const [description, setDescription] = useState(""); // required
   const [zipFile, setZipFile] = useState(null);
 
   const [dragging, setDragging] = useState(false);
@@ -29,10 +28,10 @@ export default function UploadMicroApp() {
   const hasPending = !!getPendingFile();
 
   const validate = () => {
-    if (!name.trim() || !version.trim() || !appId.trim() || !description.trim()) {
+    if (!name.trim() || !version.trim() || !appId.trim()) {
       setIsError(false);
       setIsWarning(true);
-      setMessage("Please provide name, version, appId, and description.");
+      setMessage("Please provide name, version, and appId.");
       setShowModal(true);
       return false;
     }
@@ -61,8 +60,8 @@ export default function UploadMicroApp() {
     const file = getPendingFile();
 
     setLoading(true);
-    setIsError(false);
-    setIsWarning(false);
+  setIsError(false);
+  setIsWarning(false);
     setMessage("");
     try {
       const form = new FormData();
@@ -70,7 +69,6 @@ export default function UploadMicroApp() {
       form.append("version", version.trim());
       form.append("appId", appId.trim());
       if (iconUrlPath.trim()) form.append("iconUrlPath", iconUrlPath.trim());
-      form.append("description", description.trim());
       form.append("zipFile", file);
 
       const res = await fetch(`${BACKEND_BASE_URL}/micro-apps/upload`, {
@@ -84,8 +82,8 @@ export default function UploadMicroApp() {
         throw new Error(msg);
       }
 
-      setIsError(false);
-      setIsWarning(false);
+  setIsError(false);
+  setIsWarning(false);
       setMessage(data?.message || "Micro-app uploaded successfully");
       setShowModal(true);
       // Optional: clear form
@@ -94,8 +92,8 @@ export default function UploadMicroApp() {
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (err) {
       console.error(err);
-      setIsError(true);
-      setIsWarning(false);
+  setIsError(true);
+  setIsWarning(false);
       setMessage(err instanceof Error ? err.message : "Upload failed");
       setShowModal(true);
     } finally {
@@ -143,7 +141,6 @@ export default function UploadMicroApp() {
 
       <div className="card" style={{ marginBottom: 16 }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          {/* Name */}
           <label style={{ display: "grid", gap: 6 }}>
             <span style={{ color: "var(--muted)", fontSize: 12 }}>Name*</span>
             <input
@@ -155,7 +152,6 @@ export default function UploadMicroApp() {
             />
             {!name.trim() && <small style={{ color: "#dc2626" }}>Required</small>}
           </label>
-          {/* Version */}
           <label style={{ display: "grid", gap: 6 }}>
             <span style={{ color: "var(--muted)", fontSize: 12 }}>Version*</span>
             <input
@@ -167,7 +163,6 @@ export default function UploadMicroApp() {
             />
             {!version.trim() && <small style={{ color: "#dc2626" }}>Required</small>}
           </label>
-          {/* App ID */}
           <label style={{ display: "grid", gap: 6 }}>
             <span style={{ color: "var(--muted)", fontSize: 12 }}>App ID*</span>
             <input
@@ -179,7 +174,6 @@ export default function UploadMicroApp() {
             />
             {!appId.trim() && <small style={{ color: "#dc2626" }}>Required</small>}
           </label>
-          {/* Icon URL Path (optional) */}
           <label style={{ display: "grid", gap: 6 }}>
             <span style={{ color: "var(--muted)", fontSize: 12 }}>Icon URL Path</span>
             <input
@@ -189,18 +183,6 @@ export default function UploadMicroApp() {
               placeholder="optional"
               style={{ padding: 10, borderRadius: 10, border: "1px solid var(--border)" }}
             />
-          </label>
-          {/* Description (required) */}
-          <label style={{ gridColumn: "1 / -1", display: "grid", gap: 6 }}>
-            <span style={{ color: "var(--muted)", fontSize: 12 }}>Description*</span>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Please provide a clear description of the micro-app."
-              rows={3}
-              style={{ padding: 10, borderRadius: 10, border: "1px solid var(--border)", resize: "vertical" }}
-            />
-            {!description.trim() && <small style={{ color: "#dc2626" }}>Required</small>}
           </label>
         </div>
       </div>
@@ -234,19 +216,17 @@ export default function UploadMicroApp() {
         </div>
       </div>
 
-      {/* Clear button reset additions */}
       <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
         <button className="btn" onClick={() => {
           setName("");
           setVersion("");
           setAppId("");
           setIconUrlPath("");
-          setDescription("");
           setZipFile(null);
           setConfirmFile(null);
           if (fileInputRef.current) fileInputRef.current.value = "";
         }}>Clear</button>
-        <button className="btn btn--primary" onClick={handleSubmit} disabled={loading}>
+  <button className="btn btn--primary" onClick={handleSubmit} disabled={loading}>
           {loading ? "Uploading…" : "Upload"}
         </button>
       </div>
@@ -268,10 +248,10 @@ export default function UploadMicroApp() {
         </div>
       )}
 
-      {showModal && (
+  {showModal && (
         <div className="modal-backdrop" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal__header">{isWarning ? "Warning" : isError ? "Upload Failed" : "Upload Successful"}</div>
+    <div className="modal__header">{isWarning ? "Warning" : isError ? "Upload Failed" : "Upload Successful"}</div>
             <div className="modal__body">
               <p style={{ margin: 0 }}>{message}</p>
             </div>
