@@ -1,13 +1,19 @@
 import React, { useRef, useState } from "react";
+import { useAuthContext } from "@asgardeo/auth-react";
 
 // Contract
 // Inputs: none (uses internal state)
 // Output: renders a form to upload micro-app ZIP with fields name, version, appId, iconUrlPath
 // Success criteria: POST multipart/form-data to backend and show success/error modal
 
-const BACKEND_BASE_URL = process.env.REACT_APP_MICROAPPS_BASE_URL || "https://41200aa1-4106-4e6c-babf-311dce37c04a-prod.e1-us-east-azure.choreoapis.dev/gov-superapp/superappbackendprodbranch/v1.0";
+// In local dev we proxy through CRA to avoid CORS; if an explicit base URL is provided we use that.
+const RAW_BACKEND_BASE_URL = process.env.REACT_APP_MICROAPPS_BASE_URL || "https://41200aa1-4106-4e6c-babf-311dce37c04a-dev.e1-us-east-azure.choreoapis.dev/gov-superapp/superappbackendprodbranch/v1.0";
+const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+// When local: use relative path handled by setupProxy (/api/microapps). Else use absolute.
+const BACKEND_BASE_URL = IS_LOCAL ? '/api/microapps' : RAW_BACKEND_BASE_URL;
 
 export default function UploadMicroApp() {
+  const auth = useAuthContext();
   const [name, setName] = useState("");
   const [version, setVersion] = useState("");
   const [appId, setAppId] = useState("");
@@ -71,8 +77,37 @@ export default function UploadMicroApp() {
       if (iconUrlPath.trim()) form.append("iconUrlPath", iconUrlPath.trim());
       form.append("zipFile", file);
 
-      const res = await fetch(`${BACKEND_BASE_URL}/micro-apps/upload`, {
+      // Build auth / invoker headers
+      const headers = {};
+      try {
+        if (auth?.state?.isAuthenticated) {
+          const idToken = await auth.getIDToken().catch(() => undefined);
+          if (idToken) headers["x-jwt-assertion"] = idToken;
+          const accessToken = await auth.getAccessToken().catch(() => undefined);
+          if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
+        }
+      } catch (e) {
+        // Non-fatal: continue without tokens (backend may reject)
+        console.warn("Auth acquisition failed for micro-app upload", e);
+      }
+
+      // Optional local dev bypass (uncomment if backend using mock tokens)
+      // if (process.env.REACT_APP_DEV_BYPASS_AUTH === 'true' && !headers.Authorization) {
+      //   headers.Authorization = 'Bearer admin-token';
+      // }
+
+      const uploadUrl = IS_LOCAL ? `${BACKEND_BASE_URL}/upload` : `${BACKEND_BASE_URL}/micro-apps/upload`;
+      // Optionally suppress x-jwt-assertion if remote gateway rejects it
+      if (process.env.REACT_APP_MICROAPPS_SUPPRESS_ASSERTION === 'true' && headers['x-jwt-assertion']) {
+        delete headers['x-jwt-assertion'];
+      }
+      if (!headers["x-jwt-assertion"]) {
+        console.warn("UploadMicroApp: x-jwt-assertion header is missing before request (user likely not authenticated)");
+      }
+
+      const res = await fetch(uploadUrl, {
         method: "POST",
+        headers, // let browser set multipart boundary
         body: form,
       });
 
