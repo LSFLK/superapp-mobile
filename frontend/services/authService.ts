@@ -208,8 +208,9 @@ export const logout = async () => {
     // If idToken is missing, proceed with local logout
     if (!idToken) {
       console.warn("No idToken found. Performing local logout only.");
+      // Keep APPS persisted across logout so installed apps remain after re-login
       await AsyncStorage.removeItem(AUTH_DATA);
-      await AsyncStorage.removeItem(APPS);
+      // await AsyncStorage.removeItem(APPS);  
       await AsyncStorage.removeItem(USER_INFO);
       return;
     }
@@ -220,9 +221,9 @@ export const logout = async () => {
       postLogoutRedirectUrl: REDIRECT_URI,
     });
 
-    await AsyncStorage.removeItem(AUTH_DATA);
-    await AsyncStorage.removeItem(APPS);
-    await AsyncStorage.removeItem(USER_INFO);
+  await AsyncStorage.removeItem(AUTH_DATA);
+  // await AsyncStorage.removeItem(APPS);
+  await AsyncStorage.removeItem(USER_INFO);
   } catch (error) {
     console.error("Error logging out from Asgardeo:", error);
     Alert.alert(
