@@ -3,7 +3,7 @@ import ballerina/jwt;
 import ballerina/log;
 
 // To handle authorization for each resource function invocation.
-service class JwtInterceptor {
+isolated service class JwtInterceptor {
 
     *http:RequestInterceptor;
     isolated resource function default [string... path](http:RequestContext ctx, http:Request req)
@@ -32,10 +32,6 @@ service class JwtInterceptor {
         }
 
         jwt:Payload | jwt:Error payload = jwt:validate(idToken, validatorConfig);
-        
-        // if payload is jwt:Payload {
-        //     log:printInfo("JWT payload: " + payload.toString());
-        // }
 
         if (payload is jwt:Error) {
             string errorMsg = "JWT validation failed! Unauthorized !!!";

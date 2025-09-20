@@ -2,8 +2,24 @@ import ballerina/http;
 import ballerina/log;
 import ballerina/jwt;
 import ballerina/uuid; 
+import ballerina/io;
+import ballerina/lang.runtime;
 
 
+function init() {
+    io:println("Initializing the superapp backend service...");
+
+    // Registers a function that will be called during the graceful shutdown.
+    runtime:onGracefulStop(stopHandler);
+}
+
+function stopHandler() returns error? {
+    io:println("Performing shutdown tasks...");
+    // Add your cleanup logic here (e.g., close files, database connections)
+    check databaseClient.close();
+    io:println("Shutdown tasks completed.");
+    return ();
+}
 
 // Standalone function to create the microapp-specific JWT
 // Usage: string|error token = createMicroappJWT("emp-123", "app-456");
@@ -36,7 +52,7 @@ public isolated function createMicroappJWT(string empId, string microAppId) retu
     return token;
 }
 
-service class ErrorInterceptor {
+isolated service class ErrorInterceptor {
     *http:ResponseErrorInterceptor;
 
     remote function interceptResponseError(error err, http:RequestContext ctx) returns http:BadRequest|error {
@@ -62,18 +78,18 @@ service class ErrorInterceptor {
         allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     }
 }
-service http:InterceptableService / on new http:Listener(serverPort, config = {requestLimits: {maxHeaderSize}}) {
+isolated service http:InterceptableService / on new http:Listener(serverPort, config = {requestLimits: {maxHeaderSize}}) {
 
     # + return - ErrorInterceptor
     public function createInterceptors() returns http:Interceptor[] =>
-    [new ErrorInterceptor()];
-    //[new ErrorInterceptor(), new JwtInterceptor()];
+    //[new ErrorInterceptor()];
+    [new ErrorInterceptor(), new JwtInterceptor()];
     #
     # + ctx - Request context
     # + emp_id - Employee ID (passed as query parameter)
     # + micro_app_id - Microapp ID (passed as query parameter)
     # + return - JSON with JWT or an error
-    resource function get micro\-app\-token(http:RequestContext ctx, string emp_id, string micro_app_id) returns json|http:BadRequest|http:InternalServerError {
+    isolated resource function get micro\-app\-token(http:RequestContext ctx, string emp_id, string micro_app_id) returns json|http:BadRequest|http:InternalServerError {
         // Validate input parameters
         if emp_id.trim() == "" || micro_app_id.trim() == "" {
             log:printError("Missing or empty emp_id or micro_app_id");
@@ -104,7 +120,7 @@ service http:InterceptableService / on new http:Listener(serverPort, config = {r
     #
     # + ctx - Request context
     # + return - Array of User records or an error
-    resource function get users(http:RequestContext ctx) returns User[]|http:InternalServerError {
+    isolated resource function get users(http:RequestContext ctx) returns User[]|http:InternalServerError {
         User[]|error result = fetchAllUsers();
         if result is error {
             log:printError("Error fetching users from database", result);
@@ -122,7 +138,7 @@ service http:InterceptableService / on new http:Listener(serverPort, config = {r
     # + ctx - Request context
     # + email - Email of the user to retrieve
     # + return - User record or an error
-    resource function get users/[string email](http:RequestContext ctx) returns User|http:NotFound|http:InternalServerError {
+    isolated resource function get users/[string email](http:RequestContext ctx) returns User|http:NotFound|http:InternalServerError {
         User|error result = fetchUserByEmail(email);
         if result is error {
             log:printError("Error fetching user with email: " + email, result);
@@ -145,7 +161,7 @@ service http:InterceptableService / on new http:Listener(serverPort, config = {r
     #
     # + ctx - Request context
     # + return - Array of MicroApp records or an error
-    resource function get micro\-apps(http:RequestContext ctx) returns MicroApp[]|http:InternalServerError {
+    isolated resource function get micro\-apps(http:RequestContext ctx) returns MicroApp[]|http:InternalServerError {
         MicroApp[]|error result = fetchAllMicroApps();
         if result is error {
             log:printError("Error fetching micro-apps from database", result);
@@ -164,7 +180,7 @@ service http:InterceptableService / on new http:Listener(serverPort, config = {r
     # + ctx - Request context
     # + appId - App ID of the micro-app to retrieve
     # + return - MicroApp record or an error
-    resource function get micro\-apps/[string appId](http:RequestContext ctx) returns MicroApp|http:NotFound|http:InternalServerError {
+    isolated resource function get micro\-apps/[string appId](http:RequestContext ctx) returns MicroApp|http:NotFound|http:InternalServerError {
         MicroApp|error result = fetchMicroAppById(appId);
         if result is error {
             log:printError("Error fetching micro-app with app ID: " + appId, result);
@@ -187,7 +203,7 @@ service http:InterceptableService / on new http:Listener(serverPort, config = {r
     # + ctx - Request context
     # + appId - App ID of the micro-app to download
     # + return - HTTP response with ZIP file or an error
-    resource function get micro\-apps/[string appId]/download(http:RequestContext ctx) returns http:Response|http:NotFound|http:InternalServerError {
+    isolated resource function get micro\-apps/[string appId]/download(http:RequestContext ctx) returns http:Response|http:NotFound|http:InternalServerError {
         log:printInfo("Attempting to download micro-app ZIP with app ID: " + appId);
         
         MicroAppDownload|error result = fetchMicroAppZipById(appId);
@@ -223,7 +239,7 @@ service http:InterceptableService / on new http:Listener(serverPort, config = {r
     #
     # + req - HTTP request
     # + return - JSON response or error
-    resource function post micro\-apps/upload(http:Request req) returns json|http:BadRequest|http:InternalServerError {
+    isolated resource function post micro\-apps/upload(http:Request req) returns json|http:BadRequest|http:InternalServerError {
         var bodyParts = req.getBodyParts();
         if bodyParts is error {
             log:printError("Failed to parse multipart body", bodyParts);
@@ -330,7 +346,7 @@ service http:InterceptableService / on new http:Listener(serverPort, config = {r
     # + ctx - Request context
     # + iconName - App ID of the micro-app (used as iconName for compatibility)
     # + return - HTTP response with icon image or an error
-    resource function get icons/[string iconName](http:RequestContext ctx) returns http:Response|http:NotFound|http:InternalServerError {
+    isolated resource function get icons/[string iconName](http:RequestContext ctx) returns http:Response|http:NotFound|http:InternalServerError {
         log:printInfo("Attempting to fetch icon for micro-app with app ID: " + iconName);
         
         MicroAppIcon|error result = fetchMicroAppIconById(iconName);
