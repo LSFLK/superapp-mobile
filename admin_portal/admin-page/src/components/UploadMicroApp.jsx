@@ -6,11 +6,11 @@ import { useAuthContext } from "@asgardeo/auth-react";
 // Output: renders a form to upload micro-app ZIP with fields name, version, appId, iconUrlPath
 // Success criteria: POST multipart/form-data to backend and show success/error modal
 
-// In local dev we proxy through CRA to avoid CORS; if an explicit base URL is provided we use that.
-const RAW_BACKEND_BASE_URL = "https://41200aa1-4106-4e6c-babf-311dce37c04a-prod.e1-us-east-azure.choreoapis.dev/gov-superapp/superappbackendprodbranch/v1.0";
-const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-// When local: use relative path handled by setupProxy (/api/microapps). Else use absolute.
-const BACKEND_BASE_URL = IS_LOCAL ? '/api/microapps' : RAW_BACKEND_BASE_URL;
+// Always use the absolute remote micro-app upload endpoint (avoid local proxy as requested).
+// Allow override through env var REACT_APP_MICROAPPS_UPLOAD_URL.
+const DEFAULT_MICROAPPS_UPLOAD_URL = "https://41200aa1-4106-4e6c-babf-311dce37c04a-prod.e1-us-east-azure.choreoapis.dev/gov-superapp/superappbackendprodbranch/v1.0/micro-apps/upload";
+const ENV_MICROAPPS_UPLOAD_URL = process.env.REACT_APP_MICROAPPS_UPLOAD_URL;
+const RESOLVED_MICROAPPS_UPLOAD_URL = (ENV_MICROAPPS_UPLOAD_URL || DEFAULT_MICROAPPS_UPLOAD_URL).replace(/\/$/, '');
 
 export default function UploadMicroApp() {
   const auth = useAuthContext();
@@ -96,7 +96,8 @@ export default function UploadMicroApp() {
       //   headers.Authorization = 'Bearer admin-token';
       // }
 
-      const uploadUrl = IS_LOCAL ? `${BACKEND_BASE_URL}/upload` : `${BACKEND_BASE_URL}/micro-apps/upload`;
+  const uploadUrl = RESOLVED_MICROAPPS_UPLOAD_URL; // already full path
+  console.log('[UploadMicroApp] Upload endpoint =>', uploadUrl);
       // Optionally suppress x-jwt-assertion if remote gateway rejects it
       if (process.env.REACT_APP_MICROAPPS_SUPPRESS_ASSERTION === 'true' && headers['x-jwt-assertion']) {
         delete headers['x-jwt-assertion'];

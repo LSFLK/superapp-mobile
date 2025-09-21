@@ -75,34 +75,27 @@ export default function UploadExcel() {
         console.warn("Could not obtain ID token for upload", e);
       }
 
-      // Build upload endpoint
-      const directOverride = process.env.REACT_APP_PAYSLIP_UPLOAD_URL; // absolute URL override (prod)
-      const PAYSLIP_BASE = process.env.REACT_APP_PAYSLIP_API_BASE || "/api/payslips"; // legacy base path
-      const uploadEndpoint = directOverride || `${PAYSLIP_BASE.replace(/\/$/, "")}/upload`;
+      // Resolve single authoritative endpoint
+      const explicit = "https://a96477cc-362b-4509-95ad-fcdb6507c34a.e1-us-east-azure.choreoapps.dev/gov-superapp/microappbackendprodbranch/v1.0/admin-portal/upload";
+      const base = "https://a96477cc-362b-4509-95ad-fcdb6507c34a.e1-us-east-azure.choreoapps.dev"; // should already end with /admin-portal or similar
+      const resolvedEndpoint = explicit
+        || (base ? `${base.replace(/\/$/, '')}/upload` : '/upload');
 
-      const response = await fetch(uploadEndpoint, {
-        method: "POST",
-        headers,
-        body: formData,
-      });
+      console.log('[UploadExcel] Using upload endpoint:', resolvedEndpoint);
 
-      // Defensive JSON parsing: backend / gateway may return HTML (e.g., 405/404) or empty body.
-      let rawText = "";
-      let result = null;
+      const response = await fetch(resolvedEndpoint, { method: 'POST', headers, body: formData });
+      let rawText = '';
+      let parsed = null;
       try {
         rawText = await response.text();
-        result = rawText ? JSON.parse(rawText) : null;
+        parsed = rawText ? JSON.parse(rawText) : null;
       } catch (_) {
-        // Non-JSON (likely HTML error page). Truncate for message.
-        result = { message: rawText.slice(0, 300) };
+        parsed = { message: rawText.slice(0, 300) };
       }
-
       if (!response.ok) {
-        const msg = result?.message || result?.error || `Upload failed (${response.status})`;
-        throw new Error(msg);
+        throw new Error(parsed?.message || parsed?.error || `Upload failed (${response.status})`);
       }
-
-      setMessage(`${result.message}`);
+      setMessage(`${parsed?.message || 'Upload successful'}`);
       setShowModal(true);
       setIsError(false);
     } catch (error) {
