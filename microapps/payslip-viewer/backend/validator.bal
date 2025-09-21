@@ -27,6 +27,11 @@ service class JwtInterceptor {
         returns http:NextService|http:InternalServerError|error? {
 
         string fullPath = req.rawPath;
+        if fullPath.startsWith("/health") || fullPath.startsWith("/admin-portal/health"){
+            log:printInfo("Public endpoint accessed: " + fullPath);
+            return ctx.next();
+        }
+
         jwt:ValidatorConfig validatorConfig = {};
 
         if fullPath.startsWith("/admin-portal") {
