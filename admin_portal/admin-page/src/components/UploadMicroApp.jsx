@@ -78,8 +78,7 @@ export default function UploadMicroApp() {
   form.append("description", description.trim());
       if (iconUrlPath.trim()) form.append("iconUrlPath", iconUrlPath.trim());
       form.append("zipFile", file);
-  // Also append under generic key 'file' in case backend expects that
-  form.append("file", file);
+  
 
       // Build auth / invoker headers
       const headers = {};
