@@ -78,8 +78,6 @@ export default function UploadMicroApp() {
   form.append("description", description.trim());
       if (iconUrlPath.trim()) form.append("iconUrlPath", iconUrlPath.trim());
       form.append("zipFile", file);
-  // Also append under generic key 'file' in case backend expects that
-  form.append("file", file);
 
       // Build auth / invoker headers
       const headers = {};
@@ -110,29 +108,15 @@ export default function UploadMicroApp() {
         console.warn("UploadMicroApp: x-jwt-assertion header is missing before request (user likely not authenticated)");
       }
 
-      // Debug: list form entries (excluding file bytes)
-      try {
-        const debugEntries = [];
-        for (const [k, v] of form.entries()) {
-          if (v instanceof File) {
-            debugEntries.push(`${k} -> File(name=${v.name}, size=${v.size})`);
-          } else {
-            debugEntries.push(`${k} -> ${String(v).slice(0,200)}`);
-          }
-        }
-        console.log('[UploadMicroApp] Outgoing form fields:', debugEntries);
-        console.log('[UploadMicroApp] Outgoing headers:', headers);
-      } catch (e) {
-        console.warn('[UploadMicroApp] Failed to enumerate form entries', e);
-      }
+      const res = await fetch(uploadUrl, {
+        method: "POST",
+        headers, // let browser set multipart boundary
+        body: form,
+      });
 
-      const res = await fetch(uploadUrl, { method: "POST", headers, body: form });
-
-      let rawText = await res.text().catch(() => "");
-      let data = {};
-      try { data = rawText ? JSON.parse(rawText) : {}; } catch (_) { /* keep raw */ }
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const msg = data?.error || data?.message || rawText || `Upload failed (${res.status})`;
+        const msg = data?.error || data?.message || `Upload failed (${res.status})`;
         throw new Error(msg);
       }
 
@@ -148,7 +132,7 @@ export default function UploadMicroApp() {
       console.error(err);
   setIsError(true);
   setIsWarning(false);
-  setMessage(err instanceof Error ? err.message : "Upload failed");
+      setMessage(err instanceof Error ? err.message : "Upload failed");
       setShowModal(true);
     } finally {
       setLoading(false);
