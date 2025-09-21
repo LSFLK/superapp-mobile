@@ -12,7 +12,7 @@ const DEFAULT_MICROAPPS_UPLOAD_URL = "https://41200aa1-4106-4e6c-babf-311dce37c0
 const ENV_MICROAPPS_UPLOAD_URL = process.env.REACT_APP_MICROAPPS_UPLOAD_URL;
 const RESOLVED_MICROAPPS_UPLOAD_URL = (ENV_MICROAPPS_UPLOAD_URL || DEFAULT_MICROAPPS_UPLOAD_URL).replace(/\/$/, '');
 
-export default function UploadMicroApp() {
+export default function UploadMicroApp({ onSuccess }) {
   const auth = useAuthContext();
   const [name, setName] = useState("");
   const [version, setVersion] = useState("");
@@ -128,6 +128,9 @@ export default function UploadMicroApp() {
       setZipFile(null);
       setConfirmFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
+      if (typeof onSuccess === 'function') {
+        try { onSuccess(); } catch (e) { /* noop */ }
+      }
     } catch (err) {
       console.error(err);
   setIsError(true);
