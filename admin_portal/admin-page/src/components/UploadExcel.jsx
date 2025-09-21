@@ -75,14 +75,32 @@ export default function UploadExcel() {
         console.warn("Could not obtain ID token for upload", e);
       }
 
-      const response = await fetch("/api/payslips/upload", {
+      // Build upload endpoint
+      const directOverride = process.env.REACT_APP_PAYSLIP_UPLOAD_URL; // absolute URL override (prod)
+      const PAYSLIP_BASE = process.env.REACT_APP_PAYSLIP_API_BASE || "/api/payslips"; // legacy base path
+      const uploadEndpoint = directOverride || `${PAYSLIP_BASE.replace(/\/$/, "")}/upload`;
+
+      const response = await fetch(uploadEndpoint, {
         method: "POST",
         headers,
         body: formData,
       });
 
-      const result = await response.json();
-      if (!response.ok) throw new Error(result?.message || "Upload failed");
+      // Defensive JSON parsing: backend / gateway may return HTML (e.g., 405/404) or empty body.
+      let rawText = "";
+      let result = null;
+      try {
+        rawText = await response.text();
+        result = rawText ? JSON.parse(rawText) : null;
+      } catch (_) {
+        // Non-JSON (likely HTML error page). Truncate for message.
+        result = { message: rawText.slice(0, 300) };
+      }
+
+      if (!response.ok) {
+        const msg = result?.message || result?.error || `Upload failed (${response.status})`;
+        throw new Error(msg);
+      }
 
       setMessage(`${result.message}`);
       setShowModal(true);

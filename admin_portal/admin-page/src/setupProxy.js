@@ -28,18 +28,18 @@ module.exports = function(app) {
   const upstreamUploadPath = '/gov-superapp/microappbackendprodbranch/v1.0/admin-portal/upload';
   console.log('[setupProxy] Using upstream upload path =>', upstreamUploadPath);
 
-  app.use('/api/payslips', createProxyMiddleware({
+  // Provide a concise local route `/upload` (and legacy `/api/payslips/upload`) that rewrites to the full upstream path.
+  app.use(['/upload','/api/payslips/upload'], createProxyMiddleware({
     target,
     changeOrigin: true,
     // Keep debug while diagnosing; lower to 'info' later.
     logLevel: 'debug',
-    // Only rewrite the specific upload route: /api/payslips/upload -> upstreamUploadPath
     pathRewrite: (path) => {
-      if (path === '/api/payslips/upload') {
+      if (path === '/upload' || path === '/api/payslips/upload') {
         console.log(`[setupProxy] Rewriting ${path} -> ${upstreamUploadPath}`);
         return upstreamUploadPath;
       }
-      return path; // passthrough (if other endpoints are later added)
+      return path;
     },
     onProxyReq: (proxyReq, req) => {
       const host = proxyReq.getHeader('host');

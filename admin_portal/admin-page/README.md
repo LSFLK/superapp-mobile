@@ -143,6 +143,20 @@ fetch(`${PAYSLIP_BASE}/upload`, { method: 'POST', body: formData });
 ```
 and set `REACT_APP_PAYSLIP_API_BASE` during CI/CD.
 
+### Production (Choreo) 405 Troubleshooting
+If you see `405 Method Not Allowed` and an HTML response (JSON parse failing with `Unexpected token '<'`):
+1. Confirm the actual deployed backend path. Current expectation: `/gov-superapp/microappbackendprodbranch/v1.0/admin-portal/upload` (POST).
+2. Ensure your built app was provided `REACT_APP_PAYSLIP_API_BASE="https://<domain>/gov-superapp/microappbackendprodbranch/v1.0/admin-portal"` at build time.
+3. If you served the static files without setting the env var, the JS bundle still calls `/api/payslips/upload` (dev-only proxy path) which Choreo doesn't know → 405/404 HTML.
+4. Clear CDN/browser cache after redeploy so the updated bundle (with inlined env var) loads.
+5. If backend path changed (e.g., now expects `/upload` under a different base) update the env var accordingly—do not edit source references again.
+
+The `UploadExcel` component now parses non-JSON responses and shows the first 300 chars so you can see the gateway error body.
+
+#### New local shortcut & overrides
+- Local dev now also exposes a simple `/upload` route (proxy) so the component can work even if `PAYSLIP_BASE` not set.
+- To bypass base logic entirely, set `REACT_APP_PAYSLIP_UPLOAD_URL` to the full absolute endpoint; it takes precedence.
+
 Troubleshooting:
 - Seeing CORS errors still? Ensure you're hitting `http://localhost:3000` (not a file:// URL) and that you restarted after adding or editing `setupProxy.js`.
 - 404 from `/api/payslips/upload`? Confirm the path rewrite now maps exactly to `/gov-superapp/microappbackendprodbranch/v1.0/upload` (no `/payslips` segment). If backend still requires the old path, revert the rewrite.
