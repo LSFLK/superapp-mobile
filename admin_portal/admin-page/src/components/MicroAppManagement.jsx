@@ -1,16 +1,10 @@
 import React, { useState } from "react";
 import UploadMicroApp from "./UploadMicroApp";
-import MicroAppsList from "./MicroAppsList";
-import { registerAuthContext } from "./microAppsServiceAuth";
-import { useAuthContext } from "@asgardeo/auth-react";
 import UploadExcel from "./UploadExcel";
 
 export default function MicroAppManagement() {
-  const auth = useAuthContext();
-  registerAuthContext(auth);
   const [showUpload, setShowUpload] = useState(false); // micro app zip upload
   const [showPayslipUpload, setShowPayslipUpload] = useState(false); // payslip excel upload
-  const [listRefreshToken, setListRefreshToken] = useState(0);
 
   const openPayslipUpload = () => setShowPayslipUpload(true);
   const closePayslipUpload = () => setShowPayslipUpload(false);
@@ -43,10 +37,7 @@ export default function MicroAppManagement() {
           <div style={{ fontWeight: 600 }}></div>
           <button className="btn" onClick={closeZipUpload}>Close</button>
         </div>
-        <UploadMicroApp onSuccess={() => {
-          // increment token to trigger list reload when navigating back
-          setListRefreshToken(t => t + 1);
-        }} />
+        <UploadMicroApp />
       </div>
     );
   }
@@ -61,7 +52,28 @@ export default function MicroAppManagement() {
       </div>
 
       <h3 style={{ marginTop: 0, color: "#fff" }}></h3>
-      <MicroAppsList refreshToken={listRefreshToken} />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
+        {/* Payslip Viewer card - clickable */}
+        <div
+          className="card"
+          onClick={openPayslipUpload}
+          onKeyDown={onCardKeyDown}
+          role="button"
+          tabIndex={0}
+          style={{ padding: 16, background: "#fafafa", border: "1px solid #f0f0f0", cursor: "pointer" }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+            <img src="/payslip-viewer.svg" alt="Payslip Viewer" width={48} height={48} style={{ borderRadius: 8 }} />
+            <div>
+              <div style={{ fontWeight: 600, color: "#262626" }}>Payslip Viewer</div>
+              <div style={{ color: "var(--muted)", fontSize: 12 }}></div>
+            </div>
+          </div>
+          <div style={{ color: "#595959", fontSize: 12 }}>
+            
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
