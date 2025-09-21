@@ -76,8 +76,8 @@ export default function UploadExcel() {
       }
 
       // Resolve single authoritative endpoint
-      const explicit = "https://a96477cc-362b-4509-95ad-fcdb6507c34a.e1-us-east-azure.choreoapps.dev/gov-superapp/microappbackendprodbranch/v1.0/admin-portal/upload";
-      const base = "https://a96477cc-362b-4509-95ad-fcdb6507c34a.e1-us-east-azure.choreoapps.dev"; // should already end with /admin-portal or similar
+      const explicit = "https://41200aa1-4106-4e6c-babf-311dce37c04a-prod.e1-us-east-azure.choreoapis.dev/gov-superapp/microappbackendprodbranch/v1.0/admin-portal/upload";
+      const base = "https://41200aa1-4106-4e6c-babf-311dce37c04a-prod.e1-us-east-azure.choreoapis.dev/gov-superapp/microappbackendprodbranch/v1.0/admin-portal"; // should already end with /admin-portal or similar
       const resolvedEndpoint = explicit
         || (base ? `${base.replace(/\/$/, '')}/upload` : '/upload');
 
