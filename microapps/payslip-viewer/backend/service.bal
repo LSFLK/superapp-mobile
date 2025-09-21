@@ -24,7 +24,7 @@ service class ErrorInterceptor {
 // CORS configuration for frontend access
 @http:ServiceConfig {
     cors: {
-        allowOrigins: ["*"],
+        allowOrigins: ["https://a96477cc-362b-4509-95ad-fcdb6507c34a.e1-us-east-azure.choreoapps.dev"],
         allowCredentials: false,
         allowHeaders: ["Authorization", "Content-Type", "x-jwt-assertion"],
         allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
