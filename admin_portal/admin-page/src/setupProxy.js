@@ -9,7 +9,7 @@ module.exports = function(app) {
   // Upstream host (no path). Keep existing env override behavior.
   //const target = process.env.PAYSLIP_API_TARGET || 'https://41200aa1-4106-4e6c-babf-311dce37c04a-dev.e1-us-east-azure.choreoapis.dev';
   // Provided correct dev URL base (without the final resource path) so we can rewrite cleanly.
-  let target = process.env.PAYSLIP_API_TARGET || 'https://41200aa1-4106-4e6c-babf-311dce37c04a-dev.e1-us-east-azure.choreoapis.dev';
+  let target = 'https://41200aa1-4106-4e6c-babf-311dce37c04a-prod.e1-us-east-azure.choreoapis.dev';
   // Normalize common mistakes (e.g., 'http:localhost:9090' or missing protocol)
   if (/^https?:localhost:\d+/.test(target)) {
     // Insert the missing '//'
@@ -25,7 +25,7 @@ module.exports = function(app) {
   //const upstreamUploadPath = process.env.PAYSLIP_API_UPSTREAM_PATH || '/gov-superapp/microappbackendprodbranch/v1.0/admin-portal/upload';
   // Correct upstream resource path for Excel upload (dev environment)
   // Final full URL = {target}/gov-superapp/microappbackendprodbranch/v1.0/admin-portal/upload
-  const upstreamUploadPath = process.env.PAYSLIP_API_UPSTREAM_PATH || '/gov-superapp/microappbackendprodbranch/v1.0/admin-portal/upload';
+  const upstreamUploadPath = '/gov-superapp/microappbackendprodbranch/v1.0/admin-portal/upload';
   console.log('[setupProxy] Using upstream upload path =>', upstreamUploadPath);
 
   app.use('/api/payslips', createProxyMiddleware({
@@ -61,9 +61,9 @@ module.exports = function(app) {
   // Micro-app upload proxy (avoids browser CORS when calling remote gateway)
   // Frontend should call: fetch('/api/microapps/upload', { method: 'POST', body: FormData })
   // Configure target & upstream base via env for flexibility.
-  const microAppsTarget = process.env.MICROAPPS_API_TARGET || 'https://41200aa1-4106-4e6c-babf-311dce37c04a-dev.e1-us-east-azure.choreoapis.dev';
-  const microAppsBasePath = process.env.MICROAPPS_API_BASE_PATH || '/gov-superapp/superappbackendprodbranch/v1.0';
-  const microAppsUploadPath = process.env.MICROAPPS_API_UPLOAD_PATH || '/micro-apps/upload';
+  const microAppsTarget = 'https://41200aa1-4106-4e6c-babf-311dce37c04a-prod.e1-us-east-azure.choreoapis.dev';
+  const microAppsBasePath = '/gov-superapp/superappbackendprodbranch/v1.0';
+  const microAppsUploadPath = '/micro-apps/upload';
 
   console.log('[setupProxy] MICROAPPS target =>', microAppsTarget);
 

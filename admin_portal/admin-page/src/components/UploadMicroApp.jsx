@@ -7,7 +7,7 @@ import { useAuthContext } from "@asgardeo/auth-react";
 // Success criteria: POST multipart/form-data to backend and show success/error modal
 
 // In local dev we proxy through CRA to avoid CORS; if an explicit base URL is provided we use that.
-const RAW_BACKEND_BASE_URL = process.env.REACT_APP_MICROAPPS_BASE_URL || "https://41200aa1-4106-4e6c-babf-311dce37c04a-dev.e1-us-east-azure.choreoapis.dev/gov-superapp/superappbackendprodbranch/v1.0";
+const RAW_BACKEND_BASE_URL = "https://41200aa1-4106-4e6c-babf-311dce37c04a-prod.e1-us-east-azure.choreoapis.dev/gov-superapp/superappbackendprodbranch/v1.0";
 const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 // When local: use relative path handled by setupProxy (/api/microapps). Else use absolute.
 const BACKEND_BASE_URL = IS_LOCAL ? '/api/microapps' : RAW_BACKEND_BASE_URL;
