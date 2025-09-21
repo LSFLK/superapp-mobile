@@ -18,7 +18,7 @@ export default function UploadMicroApp() {
   const [version, setVersion] = useState("");
   const [appId, setAppId] = useState("");
   const [iconUrlPath, setIconUrlPath] = useState("");
-  const [description, setDescription] = useState(""); // added description state
+  const [description, setDescription] = useState("");
   const [zipFile, setZipFile] = useState(null);
 
   const [dragging, setDragging] = useState(false);
@@ -35,10 +35,10 @@ export default function UploadMicroApp() {
   const hasPending = !!getPendingFile();
 
   const validate = () => {
-    if (!name.trim() || !version.trim() || !appId.trim() || !description.trim()) { // added description requirement
+    if (!name.trim() || !version.trim() || !appId.trim() || !description.trim()) {
       setIsError(false);
       setIsWarning(true);
-      setMessage("Please provide name, version, appId, and description."); // updated message
+      setMessage("Please provide name, version, appId, and description.");
       setShowModal(true);
       return false;
     }
@@ -75,7 +75,7 @@ export default function UploadMicroApp() {
       form.append("name", name.trim());
       form.append("version", version.trim());
       form.append("appId", appId.trim());
-      form.append("description", description.trim()); // append description
+  form.append("description", description.trim());
       if (iconUrlPath.trim()) form.append("iconUrlPath", iconUrlPath.trim());
       form.append("zipFile", file);
 
@@ -222,12 +222,14 @@ export default function UploadMicroApp() {
               style={{ padding: 10, borderRadius: 10, border: "1px solid var(--border)" }}
             />
           </label>
-          <label style={{ display: "grid", gap: 6, gridColumn: "1 / span 2" }}>
-            <span style={{ color: "var(--muted)", fontSize: 12 }}>Description*</span>
+        </div>
+        <div style={{ marginTop: 12 }}>
+          <label style={{ display: "grid", gap: 6 }}>
+            <span style={{ color: "var(--muted)", fontSize: 12 }}>Description* <span style={{ fontWeight: 400, color: "var(--muted)" }}>(short summary)</span></span>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Brief description of the micro-app"
+              placeholder="Brief description of what the micro-app does"
               rows={3}
               style={{ padding: 10, borderRadius: 10, border: "1px solid var(--border)", resize: "vertical" }}
             />
@@ -271,7 +273,7 @@ export default function UploadMicroApp() {
           setVersion("");
           setAppId("");
           setIconUrlPath("");
-          setDescription(""); // clear description
+          setDescription("");
           setZipFile(null);
           setConfirmFile(null);
           if (fileInputRef.current) fileInputRef.current.value = "";
