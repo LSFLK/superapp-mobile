@@ -20,7 +20,7 @@ type User record {
     string email;
     string employee_id;
     string department;
-    json downloaded_app_ids;
+    json? downloaded_app_ids;
 };
 
 // Record for micro_app

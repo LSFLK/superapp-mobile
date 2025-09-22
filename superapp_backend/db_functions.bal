@@ -177,7 +177,11 @@ public isolated function fetchAllUsers() returns User[]|error {
 // function to fetch a user by email
 public isolated function fetchUserByEmail(string email) returns User|error {
 
-    sql:ParameterizedQuery query = `SELECT * FROM users WHERE email = ${email};`;
+    //sql:ParameterizedQuery query = `SELECT * FROM users WHERE email = ${email};`;
+    sql:ParameterizedQuery query = `SELECT user_id, first_name, last_name, email, employee_id, department,
+       COALESCE(downloaded_app_ids, JSON_ARRAY()) AS downloaded_app_ids
+    FROM users WHERE email = ${email};`;
+
 
     stream<User, sql:Error?> resultStream = databaseClient->query(query);
 
