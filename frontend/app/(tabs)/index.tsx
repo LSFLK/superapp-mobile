@@ -294,8 +294,9 @@ const styles = StyleSheet.create({
     margin: 6,
   },
   row: {
-    justifyContent: 'space-between',
+    // justifyContent: 'space-between',
     paddingHorizontal: 6,
+    
   },
   gridContent: {
     paddingBottom: 20,

@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { TouchableOpacity, Text, View, StyleSheet, Alert } from 'react-native';
+import { TouchableOpacity, Text, View, StyleSheet, Alert, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSelector, useDispatch } from 'react-redux';
@@ -16,6 +16,7 @@ import { DOWNLOADED } from '@/constants/Constants';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { MicroAppIcon } from './MicroAppIcon';
+const { width } = Dimensions.get("window");
 
 interface MicroAppCardProps {
   app: MicroApp;
@@ -123,8 +124,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
-    minHeight: 120,
     justifyContent: 'space-between',
+    width : (width - 20 * 4) / 3,
+    height: 140,
   },
   cardDisabled: {
     opacity: 0.6,
