@@ -114,6 +114,47 @@ isolated service http:InterceptableService / on new http:Listener(serverPort, co
     }
 
 
+    # Updates the downloaded app IDs for a user.
+    #
+    # + ctx - Request context
+    # + req - HTTP request containing the payload
+    # + return - JSON response or an error
+isolated resource function post users/[string email]/apps(http:RequestContext ctx, http:Request req) returns json|http:BadRequest|http:InternalServerError|http:ClientError {
+        // Parse the payload as a string array
+        // string[] appIds;
+            json payload = check req.getJsonPayload();
+        // do {
+        //     // appIds = <string[]> payload;
+        // } on fail var e {
+        //     log:printError("Invalid request payload", 'error = e);
+        //     return <http:BadRequest>{
+        //         body: { "error": "Bad Request: Payload must be an array of app IDs" }
+        //     };
+        // }
+
+        // Validate input parameters
+        // if email.trim() == "" || payload.length() == 0 {
+        //     log:printError("Missing or empty email or appIds");
+        //     return <http:BadRequest>{
+        //         body: { "error": "Bad Request: email and appIds are required" }
+        //     };
+        // }
+
+        // Call the existing function
+        error? result = updateUserDownloadedApps(email, payload);
+        if result is error {
+            log:printError("Failed to update downloaded apps for email: " + email, 'error = result);
+            return <http:InternalServerError>{
+                body: { "error": "Internal server error" }
+            };
+        }
+
+        // Send success response
+        json response = { "status": "success", "message": "Downloaded apps updated successfully" };
+        log:printInfo("Successfully updated downloaded apps for email: " + email);
+        return response;
+    }
+
 
     // Endpoint to retrieve all users from the database
     # Fetch all users from the database.

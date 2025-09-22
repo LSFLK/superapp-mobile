@@ -28,6 +28,25 @@ public isolated function insertMicroAppWithZip(string name, string version, byte
     
 }
 
+
+// Function to insert the istalled app IDs for a user
+public isolated function updateUserDownloadedApps(string email, json appIds) returns error? {
+    
+    // Convert the string[] into a JSON array string
+    string appsJson = appIds.toJsonString();
+    
+    sql:ParameterizedQuery query = 
+        `UPDATE users 
+          SET downloaded_app_ids = ${appsJson} 
+          WHERE email = ${email};`;
+
+    sql:ExecutionResult result = check databaseClient->execute(query);
+
+    io:println("Rows affected: " + result.affectedRowCount.toString());
+}
+
+
+
 // Function to fetch all micro-apps from the database
 public isolated function fetchAllMicroApps() returns MicroApp[]|error {
     sql:ParameterizedQuery query = `
