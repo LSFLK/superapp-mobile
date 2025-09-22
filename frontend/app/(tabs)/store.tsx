@@ -279,7 +279,7 @@ export default function Store() {
 const createStyles = (colorScheme: "light" | "dark") => StyleSheet.create({
   container: {
     flex: 1,
-    marginTop:-10,
+    marginTop:10,
     backgroundColor: Colors[colorScheme].primaryBackgroundColor,
   },
   contentContainer: {

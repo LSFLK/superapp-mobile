@@ -34,12 +34,7 @@ export const syncAppsFromUserInfo = createAsyncThunk(
       }
 
       const possibleFields = [
-        "downloadedApps",
-        "downloaded_app_ids",
-        "apps",
-        "app_ids",
-        "micro_apps",
-        "installed_app_ids",
+        "downloadedApps"
       ];
 
       let allowedApps: string[] = [];

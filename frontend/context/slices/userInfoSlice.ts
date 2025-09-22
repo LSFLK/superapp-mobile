@@ -23,6 +23,7 @@ export type UserInfo = {
   joinDate?: string;                    // Date of joining
   manager?: string;                     // Manager's name
   location?: string;                    // Work location
+  downloadedApps?: string[];            // List of app IDs the user has downloaded
 };
 
 /**
@@ -86,6 +87,7 @@ export const getDetailedUserInfo = createAsyncThunk(
           department: data.department,
           employeeID: data.employee_id,
           location: data.location,
+          downloadedApps: data.downloaded_app_ids || [],
         };
       } else {
         return rejectWithValue("Detailed user info not found");

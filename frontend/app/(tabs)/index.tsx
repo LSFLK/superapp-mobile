@@ -84,16 +84,6 @@ export default function HomeScreen() {
         email: userInfo.workEmail,
         onLogout: logout
       })).unwrap();
-      // After successfully fetching detailed user info from the server,
-      // run the app-sync helper so it can reconcile the local apps with
-      // the server-provided downloaded-apps list (if present).
-      // The helper expects (dispatch, onLogout).
-      // try {
-      //   // Dispatch the thunk to perform sync (prompts user if multiple changes)
-      //   await dispatch(syncAppsFromUserInfo({ onLogout: logout }) as any).unwrap();
-      // } catch (syncErr) {
-      //   console.error("syncAppsFromUserInfo failed:", syncErr);
-      // }
     } catch (error) {
       console.error("Failed to fetch detailed user info:", error);
       updateState({ error: "Failed to load user information" });
@@ -104,6 +94,18 @@ export default function HomeScreen() {
     try {
       await loadMicroAppDetails(dispatch, logout);
       updateState({ error: null });
+
+            // After successfully fetching detailed user info from the server,
+      // run the app-sync helper so it can reconcile the local apps with
+      // the server-provided downloaded-apps list (if present).
+      // The helper expects (dispatch, onLogout).
+      try {
+        // Dispatch the thunk to perform sync (prompts user if multiple changes)
+        await dispatch(syncAppsFromUserInfo({ onLogout: logout }) as any).unwrap();
+      } catch (syncErr) {
+        console.error("syncAppsFromUserInfo failed:", syncErr);
+      }
+
     } catch (error) {
       console.error("Failed to load microapps:", error);
       updateState({ error: "Failed to load applications" });
