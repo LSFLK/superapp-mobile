@@ -168,7 +168,7 @@ export default function UploadExcel() {
       >
         <p className="dropzone__hint">.xlsx, .xls, .csv</p>
   {fileName && !message && !showModal && !confirmFile && (
-          <div className="dropzone__filename">{fileName}</div>
+          <div className="dropzone__filename" style={{ color: '#666' }}>{fileName}</div>
         )}
         <div style={{ marginTop: 14 }}>
           <label

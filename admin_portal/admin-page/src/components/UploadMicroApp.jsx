@@ -249,7 +249,7 @@ export default function UploadMicroApp({ onUploaded } = {}) {
       >
         <p className="dropzone__hint">Drag & drop the .zip file here or Choose from the computer</p>
         {hasPending && (
-          <div className="dropzone__filename">Selected: {getPendingFile().name}</div>
+          <div className="dropzone__filename" style={{ color: '#666' }}>Selected: {getPendingFile().name}</div>
         )}
         <div style={{ marginTop: 14 }}>
           <label
