@@ -29,16 +29,18 @@ export const performLogout = createAsyncThunk(
   "auth/logout",
   async (_, { dispatch }) => {
     try {
-      // // Before logging out, persist local app list to backend
-      // try {
-      //   const state = store.getState();
-      //   const localAppIds = state.apps.apps.filter((a: any) => a?.status === "downloaded").map((a: any) => a.app_id);
-      //   if (localAppIds.length > 0) {
-      //     await UpdateUserAppList(localAppIds, async () => Promise.resolve());
-      //   }
-      // } catch (err) {
-      //   console.error("Failed to update app list on logout:", err);
-      // }
+      // Before logging out, persist local app list to backend
+      try {
+        console.log("Performing logout - syncing app list to backend...");
+        const state = store.getState();
+        const localAppIds = state.apps.apps.filter((a: any) => a?.status === "downloaded").map((a: any) => a.app_id);
+        if (localAppIds.length > 0) {
+          await UpdateUserAppList(localAppIds, async () => Promise.resolve());
+        }
+        console.log("App list synced successfully.");
+      } catch (err) {
+        console.error("Failed to update app list on logout:", err);
+      }
 
       await logout(); // Call Asgardeo logout
       await persistor.purge(); // Clear redux-persist storage
