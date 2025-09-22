@@ -12,7 +12,7 @@ const DEFAULT_MICROAPPS_UPLOAD_URL = "https://41200aa1-4106-4e6c-babf-311dce37c0
 const ENV_MICROAPPS_UPLOAD_URL = process.env.REACT_APP_MICROAPPS_UPLOAD_URL;
 const RESOLVED_MICROAPPS_UPLOAD_URL = (ENV_MICROAPPS_UPLOAD_URL || DEFAULT_MICROAPPS_UPLOAD_URL).replace(/\/$/, '');
 
-export default function UploadMicroApp() {
+export default function UploadMicroApp({ onUploaded } = {}) {
   const auth = useAuthContext();
   const [name, setName] = useState("");
   const [version, setVersion] = useState("");
@@ -122,12 +122,14 @@ export default function UploadMicroApp() {
 
   setIsError(false);
   setIsWarning(false);
-      setMessage(data?.message || "Micro-app uploaded successfully");
+  setMessage(data?.message || "Micro-app uploaded successfully");
       setShowModal(true);
       // Optional: clear form
       setZipFile(null);
       setConfirmFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
+  // Notify parent to refresh list / close view
+  try { onUploaded && onUploaded(); } catch (_) { /* no-op */ }
     } catch (err) {
       console.error(err);
   setIsError(true);
@@ -186,7 +188,7 @@ export default function UploadMicroApp() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g., Payslip Viewer"
-              style={{ padding: 10, borderRadius: 10, border: "1px solid var(--border)" }}
+              style={{ padding: 10, borderRadius: 10, border: "1px solid var(--border)", color: '#000' }}
             />
             {!name.trim() && <small style={{ color: "#dc2626" }}>Required</small>}
           </label>
@@ -197,7 +199,7 @@ export default function UploadMicroApp() {
               value={version}
               onChange={(e) => setVersion(e.target.value)}
               placeholder="e.g., 1.0.0"
-              style={{ padding: 10, borderRadius: 10, border: "1px solid var(--border)" }}
+              style={{ padding: 10, borderRadius: 10, border: "1px solid var(--border)", color: '#000' }}
             />
             {!version.trim() && <small style={{ color: "#dc2626" }}>Required</small>}
           </label>
@@ -208,7 +210,7 @@ export default function UploadMicroApp() {
               value={appId}
               onChange={(e) => setAppId(e.target.value)}
               placeholder="e.g., payslip-viewer"
-              style={{ padding: 10, borderRadius: 10, border: "1px solid var(--border)" }}
+              style={{ padding: 10, borderRadius: 10, border: "1px solid var(--border)", color: '#000' }}
             />
             {!appId.trim() && <small style={{ color: "#dc2626" }}>Required</small>}
           </label>
@@ -219,7 +221,7 @@ export default function UploadMicroApp() {
               value={iconUrlPath}
               onChange={(e) => setIconUrlPath(e.target.value)}
               placeholder="optional"
-              style={{ padding: 10, borderRadius: 10, border: "1px solid var(--border)" }}
+              style={{ padding: 10, borderRadius: 10, border: "1px solid var(--border)", color: '#000' }}
             />
           </label>
         </div>
@@ -231,7 +233,7 @@ export default function UploadMicroApp() {
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Brief description of what the micro-app does"
               rows={3}
-              style={{ padding: 10, borderRadius: 10, border: "1px solid var(--border)", resize: "vertical" }}
+              style={{ padding: 10, borderRadius: 10, border: "1px solid var(--border)", resize: "vertical", color: '#000' }}
             />
             {!description.trim() && <small style={{ color: "#dc2626" }}>Required</small>}
           </label>
