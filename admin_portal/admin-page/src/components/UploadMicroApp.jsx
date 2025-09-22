@@ -174,12 +174,12 @@ export default function UploadMicroApp({ onUploaded } = {}) {
 
   return (
     <div>
-      <h2 style={{ marginTop: 0, marginBottom: 8, color: "white" }}>Upload Micro-App (ZIP)</h2>
+  <h2 style={{ marginTop: 0, marginBottom: 8, color: "#003a67" }}>Upload Micro-App (ZIP)</h2>
       <p style={{ marginTop: 0, color: "var(--muted)", marginBottom: 16 }}>
         Fill details and upload a .zip for the micro-app store.
       </p>
 
-      <div className="card" style={{ marginBottom: 16 }}>
+  <div className="card" style={{ marginBottom: 16, background: '#e6f4ff', border: '1px solid #bae0ff', color: '#003a67' }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <label style={{ display: "grid", gap: 6 }}>
             <span style={{ color: "var(--muted)", fontSize: 12 }}>Name*</span>
@@ -254,7 +254,13 @@ export default function UploadMicroApp({ onUploaded } = {}) {
         <div style={{ marginTop: 14 }}>
           <label
             className="btn btn--primary"
-            style={{ cursor: loading || hasPending ? "not-allowed" : "pointer", opacity: loading || hasPending ? 0.65 : 1 }}
+            style={{
+              cursor: loading || hasPending ? "not-allowed" : "pointer",
+              opacity: loading || hasPending ? 0.65 : 1,
+              border: 'none',
+              outline: 'none',
+              boxShadow: 'none'
+            }}
           >
             Choose ZIP
             <input
@@ -269,8 +275,8 @@ export default function UploadMicroApp({ onUploaded } = {}) {
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-        <button className="btn" onClick={() => {
+  <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+    <button className="btn btn--primary" style={{ border: 'none', outline: 'none', boxShadow: 'none' }} onClick={() => {
           setName("");
           setVersion("");
           setAppId("");
@@ -280,23 +286,35 @@ export default function UploadMicroApp({ onUploaded } = {}) {
           setConfirmFile(null);
           if (fileInputRef.current) fileInputRef.current.value = "";
         }}>Clear</button>
-  <button className="btn btn--primary" onClick={handleSubmit} disabled={loading}>
+  <button className="btn btn--primary" style={{ border: 'none', outline: 'none', boxShadow: 'none' }} onClick={handleSubmit} disabled={loading}>
           {loading ? "Uploading…" : "Upload"}
         </button>
       </div>
 
       {confirmFile && (
         <div className="modal-backdrop" onClick={() => setConfirmFile(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal__header">Confirm File</div>
-            <div className="modal__body">
-              <p style={{ margin: 0 }}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{
+            background: '#e6f4ff',
+            border: '1px solid #bae0ff',
+            color: '#003a67'
+          }}>
+            <div className="modal__header" style={{ background: 'transparent', borderBottom: '1px solid #bae0ff', color: '#003a67' }}>Confirm File</div>
+            <div className="modal__body" style={{ background: 'transparent' }}>
+              <p style={{ margin: 0, color: '#003a67' }}>
                 Use <b>{confirmFile.name}</b> as the ZIP file?
               </p>
             </div>
-            <div className="modal__footer">
-              <button className="btn btn--primary" onClick={confirmSelection}>Yes</button>
-              <button className="btn" onClick={() => setConfirmFile(null)}>No</button>
+            <div className="modal__footer" style={{ borderTop: '1px solid #bae0ff', background: 'transparent' }}>
+              <button
+                className="btn btn--primary"
+                style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
+                onClick={confirmSelection}
+              >Yes</button>
+              <button
+                className="btn btn--primary"
+                style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
+                onClick={() => setConfirmFile(null)}
+              >No</button>
             </div>
           </div>
         </div>
@@ -304,13 +322,28 @@ export default function UploadMicroApp({ onUploaded } = {}) {
 
   {showModal && (
         <div className="modal-backdrop" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-    <div className="modal__header">{isWarning ? "Warning" : isError ? "Upload Failed" : "Upload Successful"}</div>
-            <div className="modal__body">
-              <p style={{ margin: 0 }}>{message}</p>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{
+            background: !isError && !isWarning ? '#e6f4ff' : 'var(--surface)',
+            border: !isError && !isWarning ? '1px solid #bae0ff' : '1px solid var(--border)',
+            color: !isError && !isWarning ? '#003a67' : 'var(--text)'
+          }}>
+            <div className="modal__header" style={{
+              background: 'transparent',
+              borderBottom: !isError && !isWarning ? '1px solid #bae0ff' : '1px solid var(--border)',
+              color: !isError && !isWarning ? '#003a67' : 'var(--text)'
+            }}>{isWarning ? "Warning" : isError ? "Upload Failed" : "Upload Successful"}</div>
+            <div className="modal__body" style={{ background: 'transparent' }}>
+              <p style={{ margin: 0, color: !isError && !isWarning ? '#003a67' : 'var(--text)' }}>{message}</p>
             </div>
-            <div className="modal__footer">
-              <button className="btn" onClick={() => setShowModal(false)}>Close</button>
+            <div className="modal__footer" style={{
+              borderTop: !isError && !isWarning ? '1px solid #bae0ff' : '1px solid var(--border)',
+              background: 'transparent'
+            }}>
+              <button
+                className={(!isError && !isWarning) ? 'btn btn--primary' : 'btn'}
+                style={(!isError && !isWarning) ? { border: 'none', outline: 'none', boxShadow: 'none' } : undefined}
+                onClick={() => setShowModal(false)}
+              >Close</button>
             </div>
           </div>
         </div>

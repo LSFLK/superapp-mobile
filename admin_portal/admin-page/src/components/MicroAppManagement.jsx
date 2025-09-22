@@ -59,10 +59,27 @@ export default function MicroAppManagement() {
   // Dedicated payslip upload view (hides everything else)
   if (showPayslipUpload) {
     return (
-      <div style={{ color: '#fff' }}>
-        <div className="card" style={{ padding: 16 }}>
+      <div style={{ color: '#003a67' }}>
+        <div
+          className="card"
+          style={{
+            padding: 20,
+            background: '#e6f4ff',
+            border: '1px solid #bae0ff',
+            borderRadius: 16,
+            boxShadow: '0 4px 12px -2px rgba(0,58,103,0.15)'
+          }}
+        >
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
-            <button className="btn" onClick={closePayslipUpload}>Close</button>
+            <button
+              className="btn btn--primary"
+              style={{ border: 'none', outline: 'none', boxShadow: 'none', minWidth: 90 }}
+              onClick={closePayslipUpload}
+              onFocus={(e) => { e.currentTarget.style.boxShadow = '0 0 0 3px rgba(24,144,255,0.35)'; }}
+              onBlur={(e) => { e.currentTarget.style.boxShadow = 'none'; }}
+            >
+              Close
+            </button>
           </div>
           <UploadExcel />
         </div>
@@ -73,10 +90,18 @@ export default function MicroAppManagement() {
   // Dedicated micro-app ZIP upload view (no header/cards shown)
   if (showUpload) {
     return (
-      <div style={{ color: '#fff' }}>
-        <div className="card" style={{ padding: 16 }}>
+      <div style={{ color: '#003a67' }}>
+        <div className="card" style={{ padding: 20, background: '#e6f4ff', border: '1px solid #bae0ff', borderRadius: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
-            <button className="btn" onClick={() => setShowUpload(false)}>Close</button>
+            <button
+              className="btn btn--primary"
+              style={{ border: 'none', outline: 'none', boxShadow: 'none', minWidth: 90 }}
+              onClick={() => setShowUpload(false)}
+              onFocus={(e) => { e.currentTarget.style.boxShadow = '0 0 0 3px rgba(24,144,255,0.35)'; }}
+              onBlur={(e) => { e.currentTarget.style.boxShadow = 'none'; }}
+            >
+              Close
+            </button>
           </div>
           <UploadMicroApp onUploaded={() => { fetchMicroApps(); setShowUpload(false); }} />
         </div>
@@ -85,15 +110,37 @@ export default function MicroAppManagement() {
   }
 
   return (
-    <div style={{ color: "#fff" }}>
+    <div style={{ color: "#003a67" }}>
       {/* Header / actions */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <h2 style={{ margin: 0, color: "#fff" }}>Available Micro Apps</h2>
+        <h2 style={{ margin: 0, color: "#003a67" }}>Available Micro Apps</h2>
         <div style={{ display: "flex", gap: 8 }}>
-          <button className="btn" onClick={fetchMicroApps} disabled={loadingList} style={{ minWidth: 96 }}>
+          <button
+            className="btn btn--primary"
+            onClick={fetchMicroApps}
+            disabled={loadingList}
+            style={{
+              minWidth: 110,
+              border: 'none',
+              outline: 'none',
+              boxShadow: 'none'
+            }}
+            onFocus={(e) => { e.currentTarget.style.boxShadow = '0 0 0 3px rgba(24,144,255,0.35)'; }}
+            onBlur={(e) => { e.currentTarget.style.boxShadow = 'none'; }}
+          >
             {loadingList ? "Refreshing…" : "Refresh"}
           </button>
-          <button className="btn btn--primary" onClick={() => setShowUpload(s => !s)}>
+          <button
+            className="btn btn--primary"
+            onClick={() => setShowUpload(s => !s)}
+            style={{
+              border: 'none',
+              outline: 'none',
+              boxShadow: 'none'
+            }}
+            onFocus={(e) => { e.currentTarget.style.boxShadow = '0 0 0 3px rgba(24,144,255,0.35)'; }}
+            onBlur={(e) => { e.currentTarget.style.boxShadow = 'none'; }}
+          >
             {showUpload ? "Close Upload" : "Add new"}
           </button>
         </div>
@@ -112,9 +159,20 @@ export default function MicroAppManagement() {
       )}
 
       {/* Micro-apps grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
+  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
         {loadingList && microApps.length === 0 && (
-          <div className="card" style={{ padding: 16, background: "#111" }}>Loading micro-apps…</div>
+          <div
+            className="card"
+            style={{
+              padding: 16,
+              background: '#e6f4ff',
+              border: '1px solid #bae0ff',
+              color: '#003a67',
+              fontWeight: 500
+            }}
+          >
+            Loading micro-apps…
+          </div>
         )}
         {!loadingList && microApps.length === 0 && !listError && (
           <div className="card" style={{ padding: 16, background: "#111" }}>No micro-apps found.</div>

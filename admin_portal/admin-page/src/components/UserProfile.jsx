@@ -39,24 +39,25 @@ export default function UserProfile({ state }) {
   const picture = basicInfo?.picture || "";
 
   return (
-    <div>
-      <h2 style={{ marginTop: 0, marginBottom: 12, color: "white" }}>User Profile</h2>
+    <div style={{ background: '#f9fcff', border: '1px solid #e3f2ff', borderRadius: 20, padding: 14 }}>
+      <div style={{ background: '#f9fcff', border: '1px solid #e3f2ff', borderRadius: 16, padding: 20, boxShadow: '0 4px 12px -2px rgba(0,58,103,0.08)', color: '#003a67' }}>
+      <h2 style={{ marginTop: 0, marginBottom: 12, color: '#003a67' }}>User Profile</h2>
 
       {loading && (
-        <div style={{ color: "var(--muted)", marginBottom: 12 }}>Loading user details…</div>
+        <div style={{ color: '#09589c', marginBottom: 12 }}>Loading user details…</div>
       )}
       {error && (
         <div style={{ color: "#f87171", marginBottom: 12 }}>{error}</div>
       )}
 
-      <div style={{ display: "grid", gap: 8, color: "white" }}>
-        <div><b>Name:</b> {displayName}</div>
-        <div><b>Username:</b> {username}</div>
-        <div><b>Email:</b> {email}</div>
-        {givenName && <div><b>Given name:</b> {givenName}</div>}
-        {familyName && <div><b>Family name:</b> {familyName}</div>}
-        {locale && <div><b>Locale:</b> {locale}</div>}
-        {updatedAt && <div><b>Updated:</b> {String(updatedAt)}</div>}
+      <div style={{ display: 'grid', gap: 8 }}>
+        <div><b style={{ color: '#003a67' }}>Name:</b> {displayName}</div>
+        <div><b style={{ color: '#003a67' }}>Username:</b> {username}</div>
+        <div><b style={{ color: '#003a67' }}>Email:</b> {email}</div>
+        {givenName && <div><b style={{ color: '#003a67' }}>Given name:</b> {givenName}</div>}
+        {familyName && <div><b style={{ color: '#003a67' }}>Family name:</b> {familyName}</div>}
+        {locale && <div><b style={{ color: '#003a67' }}>Locale:</b> {locale}</div>}
+        {updatedAt && <div><b style={{ color: '#003a67' }}>Updated:</b> {String(updatedAt)}</div>}
       </div>
 
       {picture && (
@@ -70,6 +71,7 @@ export default function UserProfile({ state }) {
           />
         </div>
       )}
+      </div>
     </div>
   );
 }

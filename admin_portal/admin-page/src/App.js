@@ -61,7 +61,15 @@ function App() {
 
               <main className="container" style={{ paddingBottom: 48 }}>
                 {activeKey === "microapp" && (
-                  <section className="card">
+                  <section
+                    style={{
+                      background: '#f2f9ff',
+                      border: '1px solid #d0ecff',
+                      borderRadius: 16,
+                      padding: 20,
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+                    }}
+                  >
                     <MicroAppManagement />
                   </section>
                 )}
@@ -77,18 +85,53 @@ function App() {
         </>
       ) : (
         <Layout>
-          <Content style={{ padding: "16px" }}>
-            <main className="container" style={{ paddingBottom: 48 }}>
-              <section className="card" style={{ textAlign: "center" }}>
-                <h2 style={{ marginTop: 0, color: "#fff" }}>Please Sign In</h2>
-                <p style={{ color: "var(--muted)", marginTop: 0 }}>
+          <Content style={{ padding: 0, minHeight: '100vh' }}>
+            <div
+              style={{
+                minHeight: '100vh',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '32px 16px',
+                background: 'linear-gradient(135deg,#f0f8ff 0%, #e6f4ff 60%, #d9edff 100%)'
+              }}
+            >
+              <section
+                className="card"
+                style={{
+                  textAlign: 'center',
+                  background: '#e6f4ff',
+                  border: '1px solid #bae0ff',
+                  color: '#003a67',
+                  maxWidth: 420,
+                  width: '100%',
+                  boxShadow: '0 6px 24px -4px rgba(0,58,103,0.15)',
+                }}
+              >
+                <h2 style={{ marginTop: 0, color: '#003a67' }}>Please Sign In</h2>
+                <p style={{ color: '#09589c', marginTop: 0 }}>
                   You must be logged in to use the admin portal.
                 </p>
-                <button className="btn btn--primary" onClick={() => signIn && signIn()}>
+                <button
+                  className="btn btn--primary"
+                  style={{
+                    minWidth: 160,
+                    border: 'none',
+                    boxShadow: 'none',
+                    outline: 'none',
+                  }}
+                  onClick={() => signIn && signIn()}
+                  onFocus={(e) => {
+                    // Provide accessible focus feedback without border
+                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(24,144,255,0.45)';
+                  }}
+                  onBlur={(e) => { e.currentTarget.style.boxShadow = 'none'; }}
+                >
                   Sign In
                 </button>
               </section>
-            </main>
+            </div>
           </Content>
         </Layout>
       )}

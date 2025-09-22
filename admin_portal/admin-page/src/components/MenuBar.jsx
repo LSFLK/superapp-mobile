@@ -33,8 +33,7 @@ export default function MenuBar({ onNavigate, isAuthed, onSignOut, activeKey, pl
       width={240}
       style={{
         background: colorBgContainer,
-        borderInlineEnd: placement === "left" ? "1px solid var(--border, #f0f0f0)" : undefined,
-        borderInlineStart: placement === "right" ? "1px solid var(--border, #f0f0f0)" : undefined,
+        // Removed vertical separator lines per request
         position: "sticky",
         top: 0,
         height: "100vh",

@@ -155,8 +155,8 @@ export default function UploadExcel() {
 
   return (
     <div>
-  <h2 style={{ marginTop: 0, marginBottom: 8, color: "white" }}>Upload Excel / CSV</h2>
-      <p style={{ marginTop: 0, color: "var(--muted)", marginBottom: 16 }}>
+  <h2 style={{ marginTop: 0, marginBottom: 8, color: "#003a67" }}>Upload Excel / CSV</h2>
+      <p style={{ marginTop: 0, color: "#09589c", marginBottom: 16 }}>
         Drag & drop a file here, or choose a file from your computer.
       </p>
 
@@ -176,6 +176,9 @@ export default function UploadExcel() {
             style={{
               cursor: loading ? "not-allowed" : "pointer",
               opacity: loading ? 0.8 : 1,
+              border: 'none',
+              outline: 'none',
+              boxShadow: 'none'
             }}
           >
             {loading ? "Uploading…" : "Choose File"}
@@ -199,27 +202,32 @@ export default function UploadExcel() {
       {/* ✅ Confirmation Modal */}
       {confirmFile && (
         <div className="modal-backdrop" onClick={() => setConfirmFile(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal__header">Confirm Upload</div>
-            <div className="modal__body">
-              <p style={{ margin: 0 }}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{
+            background: '#e6f4ff',
+            border: '1px solid #bae0ff',
+            color: '#003a67'
+          }}>
+            <div className="modal__header" style={{ background: 'transparent', borderBottom: '1px solid #bae0ff' }}>Confirm Upload</div>
+            <div className="modal__body" style={{ background: 'transparent' }}>
+              <p style={{ margin: 0, color: '#003a67' }}>
                 Do you want to upload <b>{confirmFile.name}</b>?
               </p>
             </div>
-            <div className="modal__footer">
+            <div className="modal__footer" style={{ borderTop: '1px solid #bae0ff', background: 'transparent' }}>
               <button
                 className="btn btn--primary"
+                style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
                 onClick={async () => {
                   const file = confirmFile;
                   setConfirmFile(null); // close dialog immediately
                   await processFile(file);
                 }}
-              >
-                Yes
-              </button>
-              <button className="btn" onClick={() => setConfirmFile(null)}>
-                No
-              </button>
+              >Yes</button>
+              <button
+                className="btn btn--primary"
+                style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
+                onClick={() => setConfirmFile(null)}
+              >No</button>
             </div>
           </div>
         </div>
@@ -228,15 +236,28 @@ export default function UploadExcel() {
       {/* ✅ Success/Error Modal */}
   {showModal && (
         <div className="modal-backdrop" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-    <div className="modal__header">{isWarning ? "Warning" : isError ? "Upload Failed" : "Upload Successful"}</div>
-            <div className="modal__body">
-              <p style={{ margin: 0 }}>{message}</p>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{
+            background: !isError && !isWarning ? '#e6f4ff' : 'var(--surface)',
+            border: !isError && !isWarning ? '1px solid #bae0ff' : '1px solid var(--border)',
+            color: !isError && !isWarning ? '#003a67' : 'var(--text)'
+          }}>
+            <div className="modal__header" style={{
+              background: 'transparent',
+              borderBottom: !isError && !isWarning ? '1px solid #bae0ff' : '1px solid var(--border)',
+              color: !isError && !isWarning ? '#003a67' : 'var(--text)'
+            }}>{isWarning ? "Warning" : isError ? "Upload Failed" : "Upload Successful"}</div>
+            <div className="modal__body" style={{ background: 'transparent' }}>
+              <p style={{ margin: 0, color: !isError && !isWarning ? '#003a67' : 'var(--text)' }}>{message}</p>
             </div>
-            <div className="modal__footer">
-              <button className="btn" onClick={() => setShowModal(false)}>
-                Close
-              </button>
+            <div className="modal__footer" style={{
+              borderTop: !isError && !isWarning ? '1px solid #bae0ff' : '1px solid var(--border)',
+              background: 'transparent'
+            }}>
+              <button
+                className={(!isError && !isWarning) ? 'btn btn--primary' : 'btn'}
+                style={(!isError && !isWarning) ? { border: 'none', outline: 'none', boxShadow: 'none' } : undefined}
+                onClick={() => setShowModal(false)}
+              >Close</button>
             </div>
           </div>
         </div>
