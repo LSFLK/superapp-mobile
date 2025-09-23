@@ -124,7 +124,6 @@ export default function UserProfile({ state }) {
         {familyName && <div><b style={{ color: '#003a67' }}>Family name:</b> {familyName}</div>}
         {locale && <div><b style={{ color: '#003a67' }}>Locale:</b> {locale}</div>}
         {updatedAt && <div><b style={{ color: '#003a67' }}>Updated:</b> {String(updatedAt)}</div>}
-        {profile?.user_id !== undefined && <div><b style={{ color: '#003a67' }}>User ID:</b> {profile.user_id}</div>}
         {profile?.first_name && <div><b style={{ color: '#003a67' }}>First name:</b> {profile.first_name}</div>}
         {profile?.last_name && <div><b style={{ color: '#003a67' }}>Last name:</b> {profile.last_name}</div>}
         {profile?.employee_id && <div><b style={{ color: '#003a67' }}>Employee ID:</b> {profile.employee_id}</div>}

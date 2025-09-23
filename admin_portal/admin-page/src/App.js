@@ -54,15 +54,25 @@ function App() {
 
           {/* Main content area */}
           <Layout>
+            <div className="greeting" style={{ 
+              textAlign: 'center',
+              marginLeft: '330px',
+              marginTop: '1px',
+              marginBottom: '20px',
+              fontSize: '24px',
+              fontWeight: '500',
+              color: '#1f2937'
+            }}>Hi {firstName},</div>
             <Content style={{ padding: "16px" }}>
               <div className="container" style={{ marginTop: 0, marginBottom: 8 }}>
-                <div className="greeting">Hi {firstName},</div>
+                
               </div>
 
               <main className="container" style={{ paddingBottom: 48 }}>
                 {activeKey === "microapp" && (
                   <section
                     style={{
+                      marginTop: '60px',
                       lineHeight: 1.15,
                       WebkitTextSizeAdjust: '100%',
                       WebkitTapHighlightColor: 'rgba(0,0,0,0)',

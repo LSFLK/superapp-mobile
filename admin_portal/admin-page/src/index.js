@@ -19,11 +19,11 @@ root.render(
   <AuthProvider
 
     config={ {
-            signInRedirectURL: "http://localhost:3000",
-            signOutRedirectURL: "http://localhost:3000",
-            //signInRedirectURL: "https://a96477cc-362b-4509-95ad-fcdb6507c34a.e1-us-east-azure.choreoapps.dev",
-            //signOutRedirectURL: "https://a96477cc-362b-4509-95ad-fcdb6507c34a.e1-us-east-azure.choreoapps.dev",
-            clientID: "0wv2HisKzajiEfWm8ghp_M3c1wEa",
+            //signInRedirectURL: "http://localhost:3000",
+            //signOutRedirectURL: "http://localhost:3000",
+            signInRedirectURL: "https://a96477cc-362b-4509-95ad-fcdb6507c34a.e1-us-east-azure.choreoapps.dev",
+            signOutRedirectURL: "https://a96477cc-362b-4509-95ad-fcdb6507c34a.e1-us-east-azure.choreoapps.dev",
+            clientID: "aVro3ATf5ZSglZHItEDj0Kd7M4wa",
             baseUrl: "https://api.asgardeo.io/t/lsfproject",
             scope: [ "openid","profile" ]
         } }  
