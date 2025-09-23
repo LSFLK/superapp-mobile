@@ -48,7 +48,7 @@ export default function UserProfile({ state }) {
         // Construct endpoint; allow override via env var
   // Expecting GET /users/{email}
   const encoded = encodeURIComponent(email);
-  const endpoint = `${base}/users/${encoded}`.replace(/([^:]?)\/\//g, '$1/');
+  const endpoint = `${base}/users/${encoded}`.replace(/([^:])\/\//g, '$1/');
 
         const headers = {};
         try {
