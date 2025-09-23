@@ -29,7 +29,28 @@ import {
 } from "@/constants/Constants";
 import { UpdateUserConfiguration } from "./userConfigService";
 
-// File handle services
+/**
+ * App Store Service
+ *
+ * Handles the complete lifecycle of micro-apps: downloading, installation, removal, and updates.
+ * Manages ZIP file downloads, extraction, file system operations, and app state synchronization.
+ *
+ * Key Flows:
+ * 1. Download: Fetch ZIP → Extract files → Update app status → Store locally
+ * 2. Load: Fetch app list from API → Compare versions → Auto-update if needed
+ * 3. Remove: Delete extracted files → Reset app status → Clean up storage
+ */
+
+/**
+ * Download and install a micro-app
+ *
+ * Flow:
+ * 1. Set downloading status in Redux
+ * 2. Download ZIP file from server
+ * 3. Extract ZIP contents to file system
+ * 4. Update app status to DOWNLOADED
+ * 5. Clear downloading status
+ */
 export const downloadMicroApp = async (
   dispatch: AppDispatch,
   appId: string,
@@ -44,7 +65,7 @@ export const downloadMicroApp = async (
       return;
     }
 
-  await downloadAndSaveFile(appId, downloadUrl, onLogout); // Download react production build
+    await downloadAndSaveFile(appId, downloadUrl, onLogout); // Download react production build
     await unzipFile(dispatch, appId); // Unzip downloaded zip file
     // Skip user configuration update for now
     // await UpdateUserConfiguration(appId, DOWNLOADED, onLogout);
@@ -59,13 +80,21 @@ export const downloadMicroApp = async (
   }
 };
 
+/**
+ * Download ZIP file from server and save to device storage
+ *
+ * Flow:
+ * 1. Create micro-apps directory if needed
+ * 2. Make authenticated API request for ZIP data
+ * 3. Convert response to base64 and save to file system
+ */
 const downloadAndSaveFile = async (
   appId: string,
   downloadUrl: string,
   onLogout: () => Promise<void>
 ) => {
   const fileName = `${appId}.zip`;
-  const customDir = `${documentDirectory}wso2/micro-apps/`;
+  const customDir = `${documentDirectory}lsf/micro-apps/`;
 
   if (!(await getInfoAsync(customDir)).exists) {
     await makeDirectoryAsync(customDir, { intermediates: true });
@@ -113,9 +142,10 @@ const downloadAndSaveFile = async (
 };
 
 const unzipFile = async (dispatch: AppDispatch, appId: string) => {
+
   try {
     const fileName = `${appId}.zip`;
-    const customDir = `${documentDirectory}wso2/micro-apps/`;
+    const customDir = `${documentDirectory}lsf/micro-apps/`;
     const fileUri = `${customDir}${fileName}`;
     const extractedDir = `${customDir}${appId}-extracted/`;
 
@@ -125,6 +155,17 @@ const unzipFile = async (dispatch: AppDispatch, appId: string) => {
       return;
     }
 
+    /**
+     * Extract ZIP file contents
+     *
+     * Flow:
+     * 1. Read ZIP file as base64
+     * 2. Load ZIP using JSZip library
+     * 3. Create extraction directory
+     * 4. Extract all files (excluding macOS metadata)
+     * 5. Find index.html and microapp.json
+     * 6. Update app status with webViewUri
+     */
     const zipContent = await readAsStringAsync(fileUri, {
       encoding: EncodingType.Base64,
     });
@@ -197,8 +238,7 @@ const unzipFile = async (dispatch: AppDispatch, appId: string) => {
       updateAppStatus({
         appId,
         status: DOWNLOADED,
-        webViewUri: relativeUri,
-        clientId: clientId || "default-microapp-client-id",
+        webViewUri: relativeUri
       })
     );
   } catch (error: any) {
@@ -207,11 +247,14 @@ const unzipFile = async (dispatch: AppDispatch, appId: string) => {
   }
 };
 
+/**
+ * Find the index.html file in the extracted micro-app directory
+ * This serves as the entry point for the web micro-app
+ */
 const getIndexPath = async (extractedDir: string) => {
   try {
     const possiblePaths = [
-      `${extractedDir}index.html`,
-      `${extractedDir}build/index.html`,
+      `${extractedDir}index.html`
     ];
 
     for (const path of possiblePaths) {
@@ -231,6 +274,10 @@ const getIndexPath = async (extractedDir: string) => {
   }
 };
 
+/** This was in original implementation (no need this as now use app id instead of client id)
+ * Extract client ID from microapp.json configuration file
+ * Used for OAuth/authentication flows specific to the micro-app
+ */
 const getClientId = async (extractedDir: string) => {
   try {
     const possiblePaths = [
@@ -262,13 +309,22 @@ const getClientId = async (extractedDir: string) => {
   }
 };
 
+/**
+ * Remove an installed micro-app from device storage
+ *
+ * Flow:
+ * 1. Delete extracted files directory
+ * 2. Delete ZIP file
+ * 3. Update app status to NOT_DOWNLOADED
+ * 4. Clear webViewUri
+ */
 export const removeMicroApp = async (
   dispatch: AppDispatch,
   appId: string,
   onLogout: () => Promise<void>
 ) => {
   try {
-    const customDir = `${documentDirectory}wso2/micro-apps/`;
+    const customDir = `${documentDirectory}lsf/micro-apps/`;
     await deleteAsync(`${customDir}/${appId}-extracted/`, {
       idempotent: true,
     });
@@ -281,8 +337,6 @@ export const removeMicroApp = async (
         appId,
         status: NOT_DOWNLOADED,
         webViewUri: "",
-        clientId: "",
-        exchangedToken: "",
       })
     );
     // Skip user configuration update for now
@@ -294,8 +348,16 @@ export const removeMicroApp = async (
   }
 };
 
-// API services
-// Load app list and if updates available update apps
+/**
+ * Load micro-app details from API and synchronize with local storage
+ *
+ * Flow:
+ * 1. Load stored apps from AsyncStorage
+ * 2. Fetch latest app list from server
+ * 3. Compare versions and auto-update if needed
+ * 4. Merge server data with local status information
+ * 5. Update Redux store and persist to AsyncStorage
+ */
 export const loadMicroAppDetails = async (
   dispatch: AppDispatch,
   onLogout: () => Promise<void>
@@ -307,9 +369,6 @@ export const loadMicroAppDetails = async (
       ? JSON.parse(storedAppsJson)
       : [];
 
-    // Dispatch stored apps initially
-    // If no stored apps and we're in development, inject a mock app so
- 
     dispatch(setApps(storedApps));
 
     // Fetch latest micro apps list from API
@@ -319,7 +378,14 @@ export const loadMicroAppDetails = async (
     );
 
     if (response?.data) {
-      // Update apps list with status and webViewUri
+      /**
+       * Process server app data and merge with local state
+       *
+       * For each app from server:
+       * - Check if we have local version with status/webViewUri
+       * - Auto-download if server version is newer
+       * - Preserve local status and configuration
+       */
       let apps: MicroApp[] = response.data.map((app: MicroApp) => {
         const storedApp = storedApps.find(
           (stored) => stored.app_id === app.app_id

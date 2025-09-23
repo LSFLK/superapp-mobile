@@ -3,36 +3,45 @@ import { Alert } from "react-native";
 import { fetchMicroAppToken, MicroAppTokenParams } from "@/services/microAppTokenService";
 
 /**
- * SINGLE PLACE TO ADD/MODIFY BRIDGE FUNCTIONS
- * 
- * This registry defines all bridge functions in one place.
- * To add a new bridge function:
- * 1. Add it to this registry
- * 2. That's it! Everything else is auto-generated.
+ * Bridge Registry - Central Hub for Native-Web Communication
+ *
+ * Architecture Flow:
+ * 1. Web micro-app calls window.nativebridge.requestMethod(data)
+ * 2. Message is posted to React Native via WebView.postMessage()
+ * 3. Native app receives message and looks up handler in this registry
+ * 4. Handler executes logic mentioned in the handler function
+ * 5. Handler calls sendResponseToWeb() to send results back
+ * 6. Web app receives response via custom DOM events
+ *
+ * Adding New Bridge Functions:
+ * - Add entry to BRIDGE_REGISTRY array
+ * - Define topic, handler function, and webViewMethods
+ * - JavaScript injection is auto-generated from this registry
  */
 
 export interface BridgeFunction {
-  topic: string;
-  handler: (params: any, context: BridgeContext) => Promise<void> | void;
+  topic: string; // Unique identifier for the bridge function
+  handler: (params: any, context: BridgeContext) => Promise<void> | void; // Native handler function
   webViewMethods: {
-    request?: string;
-    resolve?: string;
-    reject?: string;
-    helper?: string;
+    request?: string; // Method name web apps call to initiate request
+    resolve?: string; // Method name for success responses
+    reject?: string; // Method name for error responses
+    helper?: string; // Method name for data getters (creates global storage)
   };
 }
 
 export interface BridgeContext {
-  empID: string;
-  appID: string;
-  token: string | null;
-  setScannerVisible: (visible: boolean) => void;
-  sendResponseToWeb: (method: string, data?: any) => void;
-  pendingTokenRequests: ((token: string) => void)[];
+  empID: string; // Employee ID from authentication
+  appID: string; // Micro-app identifier
+  token: string | null; // Authentication token
+  setScannerVisible: (visible: boolean) => void; // Control QR scanner visibility
+  sendResponseToWeb: (method: string, data?: any) => void; // Send responses to web
+  pendingTokenRequests: ((token: string) => void)[]; // Queue for token requests
 }
 
-// 🎯 THE ONLY PLACE DEVS NEED TO MODIFY TO ADD BRIDGE FUNCTIONS
+// ADD NEW BRIDGE FUNCTIONS HERE
 export const BRIDGE_REGISTRY: BridgeFunction[] = [
+
   {
     topic: "token",
     handler: async (params, context) => {
@@ -57,6 +66,7 @@ export const BRIDGE_REGISTRY: BridgeFunction[] = [
     }
   },
 
+
   {
     topic: "emp_id", 
     handler: async (params, context) => {
@@ -65,9 +75,10 @@ export const BRIDGE_REGISTRY: BridgeFunction[] = [
     webViewMethods: {
       request: "requestEmpId",
       resolve: "resolveEmpId", 
-      helper: "getEmpId"
+      reject: "regectEmpId",
     }
   },
+
 
   {
     topic: "qr_request",
@@ -78,6 +89,7 @@ export const BRIDGE_REGISTRY: BridgeFunction[] = [
       request: "requestQr"
     }
   },
+
 
   {
     topic: "alert",
@@ -90,6 +102,12 @@ export const BRIDGE_REGISTRY: BridgeFunction[] = [
     }
   },
 
+  /**
+   * Confirm Alert Bridge - Shows native confirmation dialogs
+   * 
+   * Flow: Web app requests confirmation → Native shows Alert with buttons → 
+   * User choice ("confirm" or "cancel") sent back to web app
+   */
   {
     topic: "confirm_alert",
     handler: async (params, context) => {
@@ -117,6 +135,12 @@ export const BRIDGE_REGISTRY: BridgeFunction[] = [
     }
   },
 
+  /**
+   * Local Storage Bridge - Saves data to AsyncStorage
+   * 
+   * Flow: Web app provides key/value → Native saves to AsyncStorage → 
+   * Success/failure response sent back
+   */
   {
     topic: "save_local_data",
     handler: async (params, context) => {
@@ -136,6 +160,12 @@ export const BRIDGE_REGISTRY: BridgeFunction[] = [
     }
   },
 
+  /**
+   * Local Storage Retrieval Bridge - Gets data from AsyncStorage
+   * 
+   * Flow: Web app provides key → Native retrieves from AsyncStorage → 
+   * Value sent back (null if not found)
+   */
   {
     topic: "get_local_data",
     handler: async (params, context) => {
@@ -155,6 +185,12 @@ export const BRIDGE_REGISTRY: BridgeFunction[] = [
     }
   },
 
+  /**
+   * Micro-app Token Bridge - Fetches app-specific authentication tokens
+   * 
+   * Flow: Web app requests token → Native calls microAppTokenService → 
+   * Token data (token, expiry, app_id) sent back or error reported
+   */
   {
     topic: "microapp_token",
     handler: async (params, context) => {
@@ -229,10 +265,19 @@ export const BRIDGE_REGISTRY: BridgeFunction[] = [
 ];
 
 // Utility functions to work with the registry
+/**
+ * Get all available bridge topics
+ */
 export const getBridgeTopics = () => BRIDGE_REGISTRY.map(fn => fn.topic);
 
+/**
+ * Get handler function for a specific bridge topic
+ */
 export const getBridgeHandler = (topic: string) => 
   BRIDGE_REGISTRY.find(fn => fn.topic === topic)?.handler;
 
+/**
+ * Get complete bridge function definition for a topic
+ */
 export const getBridgeFunction = (topic: string) =>
   BRIDGE_REGISTRY.find(fn => fn.topic === topic);

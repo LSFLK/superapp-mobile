@@ -15,10 +15,15 @@ const LoginScreen = () => {
   const version = Constants.expoConfig?.version;
   const { accessToken, email, idToken } = useSelector((state: RootState) => state.auth);
   const { userInfo } = useSelector((state: RootState) => state.userInfo);
-
   const dispatch = useDispatch<AppDispatch>();
 
-  // Handle navigation when user is authenticated
+  /**
+   * Effect to handle automatic navigation when user is authenticated
+   *
+   * This useEffect monitors the accessToken and navigates the user to the main app tabs
+   * once authentication is confirmed. The setTimeout ensures navigation occurs after
+   * the component has fully mounted, preventing potential navigation conflicts.
+   */
   useEffect(() => {
     if (accessToken) {
       // Use setTimeout to ensure navigation happens after component mount
@@ -30,6 +35,14 @@ const LoginScreen = () => {
     }
   }, [accessToken , dispatch]);
 
+  /**
+   * Effect to decode JWT token and extract user information
+   *
+   * When a user is authenticated (has accessToken) but userInfo is not yet set,
+   * this effect decodes the ID token to extract user details like name and email.
+   * The extracted information is then dispatched to the Redux store for global state management.
+   * This ensures user data is available throughout the app without redundant API calls.
+   */
     useEffect(() => {
       if (accessToken && !userInfo) {
         try {
@@ -58,14 +71,25 @@ const LoginScreen = () => {
       }
     }, [accessToken, dispatch, userInfo]);
 
-  // Log when userInfo from Redux actually updates
+  /**
+   * for debugging purposes
+   *
+   * This useEffect is primarily for development and debugging. It logs whenever
+   * the userInfo state in Redux is updated
+   */
   useEffect(() => {
     if (userInfo) {
       console.log("User info updated in Redux:", userInfo);
     }
   }, [userInfo]);
 
-  // Show loading state if user is authenticated but navigation hasn't happened yet
+  /**
+   * Render loading state during authentication and navigation
+   *
+   * If the user has an accessToken (is authenticated) but hasn't been navigated yet,
+   * display a loading indicator with a "Redirecting..." message. This provides
+   * visual feedback during the brief delay before navigation occurs.
+   */
   if (accessToken) {
     return (
       <SafeAreaView style={styles(colorScheme).container}>
@@ -77,6 +101,12 @@ const LoginScreen = () => {
     );
   }
 
+  /**
+   * Render the main login screen UI
+   *
+   * Displays the welcome interface with app branding, sign-in prompt, and version info.
+   * This screen is shown when the user is not authenticated and needs to sign in.
+   */
   return (
     <SafeAreaView style={styles(colorScheme).container}>
       <View style={styles(colorScheme).contentContainer}>
@@ -102,6 +132,7 @@ const LoginScreen = () => {
 };
 
 export default LoginScreen;
+
 
 const styles = (colorScheme: "light" | "dark") =>
   StyleSheet.create({
@@ -144,9 +175,6 @@ const styles = (colorScheme: "light" | "dark") =>
       borderRadius: 20,
       padding: 32,
       marginHorizontal: 4,
-      // shadowColor: Colors[colorScheme].secondaryTextColor,
-      // shadowOpacity: 0,
-      // elevation: 20,
     },
     versionContainer: {
       alignItems: 'center',

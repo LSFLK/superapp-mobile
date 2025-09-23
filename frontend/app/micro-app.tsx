@@ -53,10 +53,17 @@ import * as Google from "expo-auth-session/providers/google";
 
 WebBrowser.maybeCompleteAuthSession();
 
+/**
+ * MicroApp Component
+ *
+ * Renders a WebView for individual micro-applications within the super app.
+ * Handles bidirectional communication between the native app and web micro-apps
+ * through a bridge system, manages authentication tokens, and provides error recovery.
+ *
+ */
 const MicroApp = () => {
   const [isScannerVisible, setScannerVisible] = useState(false);
-  const { webViewUri, appName, clientId, exchangedToken, appId, empID } =
-    useLocalSearchParams<MicroAppParams>();
+  const { webViewUri, appName, appId, empID } = useLocalSearchParams<MicroAppParams>();
   const [hasError, setHasError] = useState(false);
   const webviewRef = useRef<WebView>(null);
   const [token, setToken] = useState<string | null>();
@@ -65,23 +72,16 @@ const MicroApp = () => {
   const [webUri, setWebUri] = useState<string>(DEVELOPER_APP_DEFAULT_URL);
   const colorScheme = useColorScheme();
   const styles = createStyles(colorScheme ?? "light");
-  // const isDeveloper: boolean = appId.includes("developer");
+  // Developer mode flag (temporarily disabled)
   const isDeveloper: boolean = false; // Temporarily disable developer mode
   // const isTotp: boolean = appId.includes("totp");
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    iosClientId: GOOGLE_IOS_CLIENT_ID,
-    webClientId: GOOGLE_WEB_CLIENT_ID,
-    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
-    scopes: GOOGLE_SCOPES,
-  });
-
-  // Function to send response to micro app
-  const sendResponseToWeb = (method: string, data?: any) => {
-    webviewRef.current?.injectJavaScript(
-      `window.nativebridge.${method}(${JSON.stringify(data)});`
-    );
-  };
+  // const [request, response, promptAsync] = Google.useAuthRequest({
+  //   iosClientId: GOOGLE_IOS_CLIENT_ID,
+  //   webClientId: GOOGLE_WEB_CLIENT_ID,
+  //   androidClientId: GOOGLE_ANDROID_CLIENT_ID,
+  //   scopes: GOOGLE_SCOPES,
+  // });
 
 
   /* Handle Google authentication response
@@ -123,28 +123,39 @@ const MicroApp = () => {
     fetchToken();
   }, [clientId]);*/
 
-  useEffect(() => {
-    // console.log("recieved emp ID ; " , empID);
-    // Send empID to WebView when it's available
-    if (empID) {
-      sendResponseToWeb("resolveEmpId", empID);
-    }
-  }, [empID]);
 
-  // Handle messages from WebView - Now using registry-based approach
+  /**
+   * Sends responses from native code back to the web micro-app
+   * through the injected bridge JavaScript interface.
+   */
+  const sendResponseToWeb = (method: string, data?: any) => {
+    webviewRef.current?.injectJavaScript(
+      `window.nativebridge.${method}(${JSON.stringify(data)});`
+    );
+  };
+
+
+  /**
+   * Main message handler for communication from web micro-apps
+   * 
+   * Flow:
+   * 1. Parses incoming JSON message with topic and data
+   * 2. Looks up the appropriate handler in the bridge registry
+   * 3. Creates a bridge context with app-specific data
+   * 4. Executes the handler to process the request
+   */
   const onMessage = async (event: WebViewMessageEvent) => {
     try {
       const { topic, data } = JSON.parse(event.nativeEvent.data);
       if (!topic) throw new Error("Invalid message format: Missing topic");
-      
+
       // Get handler from registry
       const handler = getBridgeHandler(topic);
       if (!handler) {
         console.error("Unknown topic:", topic);
         return;
       }
-      // console.log("micro-app.tsx : app id : " , appId);
-      // Create bridge context
+      // Create bridge context for passing data
       const bridgeContext: BridgeContext = {
         empID,
         appID: appId as string,
@@ -161,16 +172,31 @@ const MicroApp = () => {
     }
   };
 
+  /**
+   * Handles WebView loading errors by setting error state
+   */
   const handleError = (syntheticEvent: any) => {
     setHasError(true);
     console.error("WebView error:", syntheticEvent.nativeEvent);
   };
 
+  /**
+   * Resets error state and reloads the WebView
+   */
   const reloadWebView = () => {
     setHasError(false);
     webviewRef.current?.reload();
   };
 
+  /**
+   * Renders the WebView component with appropriate configuration
+   * 
+   * Flow:
+   * 1. Validates that a URI is provided
+   * 2. Determines if it's a URL-based or file-based micro-app (for developer mode)
+   * 3. Configures WebView with appropriate permissions and settings
+   * 4. Shows error UI if loading failed, otherwise renders WebView
+   */
   const renderWebView = (webViewUri: string) => {
     // webViewUri = "http://10.100.5.83:5173/";
     // Check if web view uri is available
@@ -181,10 +207,10 @@ const MicroApp = () => {
 
     // Determine if this is a URL-based microapp (for testing) or file-based
     const isUrlBased = webViewUri.startsWith('http://') || webViewUri.startsWith('https://');
-    const sourceUri = isUrlBased 
-      ? webViewUri 
-      : isDeveloper 
-        ? webViewUri 
+    const sourceUri = isUrlBased
+      ? webViewUri
+      : isDeveloper
+        ? webViewUri
         : `${documentDirectory}${webViewUri}`;
 
     return (
@@ -193,7 +219,7 @@ const MicroApp = () => {
           <View style={styles.errorContainer}>
             <Text style={styles.errorTitle}>Failed to load the microapp</Text>
             <Text style={styles.errorMessage}>
-              {isUrlBased 
+              {isUrlBased
                 ? `Please check if the microapp is available at: ${webViewUri}`
                 : isDeveloper
                   ? `Please check if your development server is running on ${webViewUri}`
@@ -213,7 +239,7 @@ const MicroApp = () => {
             originWhitelist={["*"]}
             source={{ uri: sourceUri }}
             allowFileAccess={!isUrlBased} // Only allow file access for local apps
-            allowUniversalAccessFromFileURLs={!isUrlBased}
+            allowUniversalAccessFromFileURLs={false}
             allowingReadAccessToURL={isUrlBased ? undefined : "file:///"}
             style={{ flex: 1 }}
             onMessage={onMessage}
@@ -234,6 +260,9 @@ const MicroApp = () => {
     );
   };
 
+  /**
+   * Main render method
+   */
   return (
     <>
       <Stack.Screen
@@ -245,50 +274,50 @@ const MicroApp = () => {
                 onPressIn={() => {
                   isIos
                     ? Alert.prompt(
-                        "App URL",
-                        "Enter App URL",
-                        [
-                          {
-                            text: "Cancel",
-                            style: "cancel",
-                          },
-                          {
-                            text: "OK",
-                            onPress: (value) => {
-                              if (value) {
-                                setWebUri(value);
-                              }
-                            },
-                          },
-                        ],
-                        "plain-text",
-                        webUri
-                      )
-                    : prompt(
-                        "App URL",
-                        "Enter App URL",
-                        [
-                          {
-                            text: "Cancel",
-                            onPress: () => console.log("Cancel Pressed"),
-                            style: "cancel",
-                          },
-                          {
-                            text: "OK",
-                            onPress: (value) => {
-                              if (value) {
-                                setWebUri(value);
-                              }
-                            },
-                            style: "default",
-                          },
-                        ],
+                      "App URL",
+                      "Enter App URL",
+                      [
                         {
-                          type: "plain-text",
-                          cancelable: false,
-                          defaultValue: webUri,
-                        }
-                      );
+                          text: "Cancel",
+                          style: "cancel",
+                        },
+                        {
+                          text: "OK",
+                          onPress: (value) => {
+                            if (value) {
+                              setWebUri(value);
+                            }
+                          },
+                        },
+                      ],
+                      "plain-text",
+                      webUri
+                    )
+                    : prompt(
+                      "App URL",
+                      "Enter App URL",
+                      [
+                        {
+                          text: "Cancel",
+                          onPress: () => console.log("Cancel Pressed"),
+                          style: "cancel",
+                        },
+                        {
+                          text: "OK",
+                          onPress: (value) => {
+                            if (value) {
+                              setWebUri(value);
+                            }
+                          },
+                          style: "default",
+                        },
+                      ],
+                      {
+                        type: "plain-text",
+                        cancelable: false,
+                        defaultValue: webUri,
+                      }
+                    );
                 }}
                 hitSlop={20}
               >

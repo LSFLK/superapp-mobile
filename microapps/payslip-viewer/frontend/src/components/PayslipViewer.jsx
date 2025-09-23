@@ -45,29 +45,20 @@ export default function PayslipViewer() {
     }
 
     const getMicroappToken = () => {
-      // setConsoleLogs((logs) => [...logs, 'Attempting to get microapp token from native bridge...']);
-
-      // Add debug info
-      // setConsoleLogs((logs) => [...logs, 'Bridge methods available: ' + Object.keys(window.nativebridge).join(', ')]);
-
       window.nativebridge.requestMicroAppToken({ app_id: "payslip-viewer" });
 
       // Listen for the response
       const handleMicroAppTokenReceived = async (event) => {
         setMicroappToken(event.detail.token);
-        // setConsoleLogs((logs) => [...logs, `Received microapp token from native bridge: ${event.detail.token}`]);
-        // Load payslip once we have the token
         await loadPayslip(event.detail.token);
       };
       window.addEventListener('resolveMicroAppToken', handleMicroAppTokenReceived);
 
       // Also listen for errors
       const handleMicroAppTokenError = (event) => {
-        // setConsoleLogs((logs) => [...logs, `Error getting microapp token: ${event.detail}`]);
-        setError(`Failed to get microapp token: ${event.detail}`);
+        setError(`Failed to get microapp token: ${event.detail}.`);
       };
       window.addEventListener('rejectMicroAppToken', handleMicroAppTokenError);
-
     }
 
     const getEmpID = () => {
@@ -78,6 +69,12 @@ export default function PayslipViewer() {
         // setConsoleLogs((logs) => [...logs, `Received employee ID: ${event.detail}`]);
       };
       window.addEventListener('resolveEmpId', handleEmpIDReceived);
+
+      // Also listen for errors
+      const handleMicroAppTokenError = (event) => {
+        setError(`Failed to get microapp token: ${event.detail}`);
+      };
+      window.addEventListener('rejectMicroAppToken', handleMicroAppTokenError);
 
     }
 
@@ -141,7 +138,7 @@ export default function PayslipViewer() {
         {/* No token available */}
         {!payslip && !loading && microappToken === "No Microapp Token" && (
           <div className="text-center text-gray-600">
-            <p>No microapp token available. Please run this in the mobile app.</p>
+            <p>Something went wrong. Please refresh the app.</p>
           </div>
         )}
 

@@ -1,9 +1,13 @@
 import { BRIDGE_REGISTRY } from './bridgeRegistry';
 
 /**
- * Auto-generates the injected JavaScript code from the bridge registry
- * This eliminates the need to maintain two separate implementations
+ * Bridge Utility for WebView Communication
+ *
+ * This module auto-generates JavaScript code that gets injected into WebViews to enable
+ * bidirectional communication between React Native and web micro-apps.
+ *
  */
+
 export const generateInjectedJavaScript = () => {
   const methods: string[] = [];
   const globalHelpers: string[] = [];
@@ -12,7 +16,10 @@ export const generateInjectedJavaScript = () => {
   BRIDGE_REGISTRY.forEach(bridgeFunction => {
     const { topic, webViewMethods } = bridgeFunction;
 
-    // Generate request method
+    /**
+     * Generate request method - allows web app to send requests to native
+     * This creates window.nativebridge.someMethod(data) that posts messages to React Native
+     */
     if (webViewMethods.request) {
       methods.push(`
     ${webViewMethods.request}: (data) => {
@@ -23,7 +30,10 @@ export const generateInjectedJavaScript = () => {
     },`);
     }
 
-    // Generate resolve method
+    /**
+     * Generate resolve method - allows native to send success responses to web
+     * Dispatches custom events that web apps can listen to
+     */
     if (webViewMethods.resolve) {
       methods.push(`
     ${webViewMethods.resolve}: (data) => {
@@ -32,7 +42,10 @@ export const generateInjectedJavaScript = () => {
     },`);
     }
 
-    // Generate reject method  
+    /**
+     * Generate reject method - allows native to send error responses to web
+     * Dispatches custom events for error handling
+     */
     if (webViewMethods.reject) {
       methods.push(`
     ${webViewMethods.reject}: (error) => {
@@ -41,7 +54,10 @@ export const generateInjectedJavaScript = () => {
     },`);
     }
 
-    // Generate helper methods (global variables and getters)
+    /**
+     * Generate helper methods for data persistence across page reloads
+     * Creates global variables and getter methods for storing resolved data
+     */
     if (webViewMethods.helper) {
       // Create a generic global variable for this topic
       const globalVarName = `native${topic.split('_').map(word => 
@@ -56,7 +72,10 @@ export const generateInjectedJavaScript = () => {
       return window.${globalVarName};
     },`);
       
-      // If there's a resolve method, enhance it to store the value globally
+      /**
+       * Enhance resolve method to store data globally when helper is present
+       * This allows web apps to access resolved data even after page navigation
+       */
       if (webViewMethods.resolve) {
         const resolveMethodName = webViewMethods.resolve;
         const resolveIndex = methods.findIndex(m => m.includes(resolveMethodName));
@@ -77,6 +96,11 @@ export const generateInjectedJavaScript = () => {
     }
   });
 
+  /**
+   * Return the complete injected JavaScript code
+   * This creates a nativebridge object on window with all generated methods
+   * and initializes global helper variables
+   */
   return `
   // Initialize global variables
 ${globalHelpers.join('\n')}

@@ -106,21 +106,14 @@ const appsSlice = createSlice({
         appId: string;
         status: string;
         webViewUri: string;
-        clientId: string;
-        exchangedToken?: string;
       }>
     ) => {
-      const { appId, status, webViewUri, clientId, exchangedToken } =
-        action.payload;
+      const { appId, status, webViewUri } = action.payload;
       const app = state.apps.find((app) => app.app_id === appId);
       if (app) {
         app.status = status;
         app.webViewUri = webViewUri;
-        app.clientId = clientId;
-        if (exchangedToken) {
-          app.exchangedToken = exchangedToken;
-        } else app.exchangedToken = "";
-        
+
         // Set downloadedAt timestamp when app is newly downloaded
         if (status === "downloaded") {
           app.downloadedAt = Date.now();

@@ -13,6 +13,21 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
+
+/**
+ * Authentication Service
+ *
+ * Handles OAuth 2.0 / OpenID Connect authentication flows for the Gov Super App.
+ * Manages token lifecycle including acquisition, refresh, exchange, and logout.
+ *
+ * Key Flows:
+ * 1. Login: Authorization Code Flow → Token Exchange → JWT Decoding → Storage
+ * 2. Token Refresh: Automatic refresh before expiry → Storage update
+ * 3. Token Exchange: Convert app tokens for micro-app authentication
+ * 4. Logout: Server logout → Local storage cleanup
+ * 5. Auto-recovery: Handle network errors and token expiry gracefully
+ */
+
 import { AUTH_CONFIG } from "@/config/authConfig";
 import {
   APPS,
@@ -35,29 +50,50 @@ import { jwtDecode } from "jwt-decode";
 import { Alert } from "react-native";
 import { logout as appLogout, AuthorizeResult } from "react-native-app-auth";
 
+// OAuth 2.0 Grant Types
 const GRANT_TYPE_AUTHORIZATION_CODE = "authorization_code";
 const GRANT_TYPE_REFRESH_TOKEN = "refresh_token";
 const GRANT_TYPE_TOKEN_EXCHANGE =
   "urn:ietf:params:oauth:grant-type:token-exchange";
+
+// Token Exchange Parameters
 const SUBJECT_TOKEN_TYPE = "urn:ietf:params:oauth:token-type:jwt";
 const REQUESTED_TOKEN_TYPE = "urn:ietf:params:oauth:token-type:access_token";
 const MILLISECONDS_IN_A_SECOND = 1000;
 const SCOPE = "openid email groups";
 
+// Global promise to prevent concurrent token refresh requests
 let refreshPromise: Promise<AuthData | null> | null = null;
 
+/**
+ * Decoded ID Token interface for JWT claims
+ */
 export interface DecodedIdToken {
   email?: string;
 }
 
+/**
+ * Authentication data structure containing all tokens and metadata
+ */
 export interface AuthData {
   accessToken: string;
   refreshToken: string;
   idToken: string;
   email?: string;
-  expiresAt: number;
+  expiresAt: number; // Unix timestamp in milliseconds
 }
 
+/**
+ * Exchange authorization code for access tokens
+ *
+ * Flow:
+ * 1. Validate successful authorization response
+ * 2. Create token request with authorization code
+ * 3. Call token endpoint with form-encoded data
+ * 4. Decode JWT tokens to extract user info
+ * 5. Store auth data in AsyncStorage
+ * 6. Return structured auth data
+ */
 export const getAccessToken = async (
   request: any,
   result: any,
@@ -110,6 +146,19 @@ export const getAccessToken = async (
   return null;
 };
 
+/**
+ * Refresh expired access tokens using refresh token
+ *
+ * Flow:
+ * 1. Check for existing refresh in progress (prevent concurrent requests)
+ * 2. Load stored auth data from AsyncStorage
+ * 3. Validate refresh token exists
+ * 4. Call token endpoint with refresh_token grant type
+ * 5. Handle 400 errors by triggering logout
+ * 6. Decode and validate new tokens
+ * 7. Update stored auth data
+ * 8. Return updated auth data or null on failure
+ */
 export const refreshAccessToken = async (
   onLogout: () => Promise<void>
 ): Promise<AuthData | null> => {
@@ -204,6 +253,16 @@ export const refreshAccessToken = async (
   return refreshPromise;
 };
 
+/**
+ * Perform logout from authentication provider and clean up local storage
+ *
+ * Flow:
+ * 1. Load stored auth data to get ID token
+ * 2. Call server logout endpoint with ID token
+ * 3. Clean up local storage (auth data, user info)
+ * 4. Keep installed apps data for re-login convenience
+ * 5. Handle errors gracefully with user alerts
+ */
 export const logout = async () => {
   try {
     // Retrieve stored authentication data
@@ -255,7 +314,18 @@ export const loadAuthData = async (): Promise<AuthData | null> => {
   return storedData ? JSON.parse(storedData) : null;
 };
 
-// token exchange
+/** This was in original implementation (no need this as now use app id instead of client id)
+ * Exchange main app tokens for micro-app specific tokens
+ *
+ * Flow:
+ * 1. Validate client ID and check for existing valid exchanged token
+ * 2. Load main app access token from storage
+ * 3. Refresh main token if expired
+ * 4. Perform token exchange with OAuth server
+ * 5. Handle 401 errors by refreshing main token and retrying
+ * 6. Store exchanged token in Redux for the specific micro-app
+ * 7. Return exchanged token or null on failure
+ */
 export const tokenExchange = async (
   dispatch: AppDispatch,
   clientId: string,
@@ -389,7 +459,17 @@ const isAccessTokenExpired = (accessToken: string): boolean => {
 };
 
 /**
- * Process authentication data from react-native-app-auth
+ * Process authentication result from react-native-app-auth library
+ *
+ * Converts native auth library result into standardized AuthData format
+ *
+ * Flow:
+ * 1. Validate that required tokens are present
+ * 2. Decode ID token to extract user email
+ * 3. Calculate token expiry timestamp
+ * 4. Structure data into AuthData format
+ * 5. Persist to AsyncStorage
+ * 6. Return processed auth data
  */
 export const processNativeAuthResult = async (
   authResult: AuthorizeResult

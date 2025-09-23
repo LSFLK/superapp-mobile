@@ -14,11 +14,12 @@
 // specific language governing permissions and limitations
 // under the License.
 
+// OPTIONAL to add types for global window extensions and bridge interfaces
+
 // Global window extensions
 declare global {
   interface Window {
     nativeToken: string | null;
-    // nativeEmpId: string | null;
     nativebridge: NativeBridge;
     ReactNativeWebView: {
       postMessage(message: string): void;
@@ -32,15 +33,11 @@ declare global {
 
 // Auto-generated bridge interface
 export interface NativeBridge {
+  
   // Token methods
   requestToken: () => void;
   resolveToken: (token: string) => void;
   getToken: () => string | null;
-
-  // Employee ID methods  
-  // requestEmpId: () => void;
-  // resolveEmpId: (empId: string) => void;
-  // getEmpId: () => string | null;
 
   // QR Scanner methods
   requestQr: () => void;
@@ -72,7 +69,6 @@ export interface NativeBridge {
 export interface BridgeEvents {
   // Core events that are always available
   nativeTokenReceived: CustomEvent<string>;
-  // nativeEmpIdReceived: CustomEvent<string>;
   resolveConfirmAlert: CustomEvent<"confirm" | "cancel">;
   resolveSaveLocalData: CustomEvent<void>;
   rejectSaveLocalData: CustomEvent<string>;
