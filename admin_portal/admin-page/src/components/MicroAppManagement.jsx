@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
 import UploadMicroApp from "./UploadMicroApp";
-import UploadExcel from "./UploadExcel";
 import { useAuthContext } from "@asgardeo/auth-react";
 
 const DEFAULT_MICROAPPS_LIST_URL = "https://41200aa1-4106-4e6c-babf-311dce37c04a-prod.e1-us-east-azure.choreoapis.dev/gov-superapp/superappbackendprodbranch/v1.0/micro-apps";
@@ -8,7 +7,6 @@ const DEFAULT_MICROAPPS_LIST_URL = "https://41200aa1-4106-4e6c-babf-311dce37c04a
 export default function MicroAppManagement() {
   const auth = useAuthContext();
   const [showUpload, setShowUpload] = useState(false); // micro app zip upload panel
-  const [showPayslipUpload, setShowPayslipUpload] = useState(false); // payslip excel upload panel
   const [microApps, setMicroApps] = useState([]);
   const [loadingList, setLoadingList] = useState(false);
   const [listError, setListError] = useState("");
@@ -44,73 +42,8 @@ export default function MicroAppManagement() {
 
   useEffect(() => { fetchMicroApps(); }, [fetchMicroApps]);
 
-  const openPayslipUpload = () => setShowPayslipUpload(true);
-  const closePayslipUpload = () => setShowPayslipUpload(false);
-  const closeZipUpload = () => setShowUpload(false);
-
-  const onCardKeyDown = (e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      openPayslipUpload();
-    }
-  };
-
-  // Combined view with conditional panels stacked vertically
-  // Dedicated payslip upload view (hides everything else)
-  if (showPayslipUpload) {
-    return (
-      <div style={{ color: '#003a67' }}>
-        <div
-          className="card"
-          style={{
-            padding: 20,
-            background: '#e6f4ff',
-            border: '1px solid #bae0ff',
-            borderRadius: 16,
-            boxShadow: '0 4px 12px -2px rgba(0,58,103,0.15)'
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
-            <button
-              className="btn btn--primary"
-              style={{ border: 'none', outline: 'none', boxShadow: 'none', minWidth: 90 }}
-              onClick={closePayslipUpload}
-              onFocus={(e) => { e.currentTarget.style.boxShadow = '0 0 0 3px rgba(24,144,255,0.35)'; }}
-              onBlur={(e) => { e.currentTarget.style.boxShadow = 'none'; }}
-            >
-              Close
-            </button>
-          </div>
-          <UploadExcel />
-        </div>
-      </div>
-    );
-  }
-
-  // Dedicated micro-app ZIP upload view (no header/cards shown)
-  if (showUpload) {
-    return (
-      <div style={{ color: '#003a67' }}>
-        <div className="card" style={{ padding: 20, background: '#e6f4ff', border: '1px solid #bae0ff', borderRadius: 16 }}>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
-            <button
-              className="btn btn--primary"
-              style={{ border: 'none', outline: 'none', boxShadow: 'none', minWidth: 90 }}
-              onClick={() => setShowUpload(false)}
-              onFocus={(e) => { e.currentTarget.style.boxShadow = '0 0 0 3px rgba(24,144,255,0.35)'; }}
-              onBlur={(e) => { e.currentTarget.style.boxShadow = 'none'; }}
-            >
-              Close
-            </button>
-          </div>
-          <UploadMicroApp onUploaded={() => { fetchMicroApps(); setShowUpload(false); }} />
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div style={{ color: "#003a67" }}>
+    <div style={{ color: "#003a67", lineHeight: 1.15 }}>
       {/* Header / actions */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
         <h2 style={{ margin: 0, color: "#003a67" }}>Available Micro Apps</h2>
@@ -159,7 +92,7 @@ export default function MicroAppManagement() {
       )}
 
       {/* Micro-apps grid */}
-  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
         {loadingList && microApps.length === 0 && (
           <div
             className="card"
@@ -177,37 +110,26 @@ export default function MicroAppManagement() {
         {!loadingList && microApps.length === 0 && !listError && (
           <div className="card" style={{ padding: 16, background: "#111" }}>No micro-apps found.</div>
         )}
-        {microApps.map(app => {
-          const isPayslip = app.app_id === 'payslip-viewer';
-          const handleClick = () => { if (isPayslip) openPayslipUpload(); };
-          return (
-            <div
-              key={app.micro_app_id || app.app_id}
-              className="card"
-              role={isPayslip ? 'button' : undefined}
-              tabIndex={isPayslip ? 0 : undefined}
-              onClick={handleClick}
-              onKeyDown={(e) => { if (isPayslip && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); handleClick(); } }}
-              style={{ padding: 16, background: '#fafafa', border: '1px solid #f0f0f0', cursor: isPayslip ? 'pointer' : 'default', display: 'flex', flexDirection: 'column', gap: 8 }}
-            >
-              <div style={{ display: 'flex', gap: 12 }}>
-                <div style={{ width: 48, height: 48, background: '#e6f4ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, borderRadius: 8, color: '#1677ff' }}>
-                  {(app.name || app.app_id || '?').slice(0,2).toUpperCase()}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, color: '#262626' }}>{app.name || app.app_id}</div>
-                  <div style={{ color: '#8c8c8c', fontSize: 12 }}>v{app.version || '—'}</div>
-                </div>
+        {microApps.map(app => (
+          <div
+            key={app.micro_app_id || app.app_id}
+            className="card"
+            style={{ padding: 16, background: '#f5faff', border: '1px solid #e6f4ff', cursor: 'default', display: 'flex', flexDirection: 'column', gap: 8, borderRadius: 14, boxShadow: '0 3px 8px -2px rgba(0,58,103,0.15)' }}
+          >
+            <div style={{ display: 'flex', gap: 12 }}>
+              <div style={{ width: 48, height: 48, background: '#e6f4ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, borderRadius: 8, color: '#1677ff' }}>
+                {(app.name || app.app_id || '?').slice(0,2).toUpperCase()}
               </div>
-              <div style={{ color: '#595959', fontSize: 12, flexGrow: 1 }}>
-                {app.description || 'No description'}
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, color: '#262626' }}>{app.name || app.app_id}</div>
+                <div style={{ color: '#8c8c8c', fontSize: 12 }}>v{app.version || '—'}</div>
               </div>
-              {isPayslip && (
-                <div style={{ fontSize: 11, color: '#1677ff', marginTop: 4 }}></div>
-              )}
             </div>
-          );
-        })}
+            <div style={{ color: '#595959', fontSize: 12, flexGrow: 1 }}>
+              {app.description || 'No description'}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -63,11 +63,28 @@ function App() {
                 {activeKey === "microapp" && (
                   <section
                     style={{
-                      background: '#f2f9ff',
-                      border: '1px solid #d0ecff',
+                      lineHeight: 1.15,
+                      WebkitTextSizeAdjust: '100%',
+                      WebkitTapHighlightColor: 'rgba(0,0,0,0)',
+                      '--radius': '12px',
+                      '--bg': '#0b1220',
+                      '--bg-2': '#0f172a',
+                      '--surface': '#111827',
+                      '--text': '#f9fafb',
+                      '--muted': '#9ca3af',
+                      '--border': '#1f2937',
+                      '--shadow': '0 8px 24px rgba(0,0,0,0.4)',
+                      '--primary-600': '#60a5fa',
+                      '--primary-700': '#3b82f6',
+                      WebkitFontSmoothing: 'antialiased',
+                      fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji'",
+                      fontSize: 14,
+                      color: 'rgba(0,0,0,0.88)',
+                      boxSizing: 'border-box',
+                      background: '#ffffff',
+                      border: '1px solid rgb(208, 236, 255)',
                       borderRadius: 16,
-                      padding: 20,
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+                      padding: 20
                     }}
                   >
                     <MicroAppManagement />

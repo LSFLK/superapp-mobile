@@ -102,16 +102,24 @@ body {
 .hero p { margin: 0; color: var(--muted); }
 
 .greeting {
+  position: fixed;
+  top: 20px;
+  left: 20px;
   color: #000;
   font-size: 1.25rem;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 8px 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* Cards */
 .card {
-  //background: var(--surface);
-  //border: 1px solid var(--border);
+  /* background: var(--surface); */
+  /* border: 1px solid var(--border); */
   border-radius: var(--radius);
-  //box-shadow: var(--shadow);
+  /* box-shadow: var(--shadow); */
   padding: 24px;
 }
 
