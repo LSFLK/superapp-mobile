@@ -9,7 +9,9 @@
     "eject": "react-scripts eject"
   },
   "dependencies": {
+    "@ant-design/icons": "^6.0.2",
     "@asgardeo/auth-react": "^5.4.2",
+    "antd": "^5.27.4",
     "http-proxy-middleware": "^3.0.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

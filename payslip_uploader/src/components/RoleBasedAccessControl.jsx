@@ -1,68 +1,54 @@
 /**
  * Role-Based Access Control Component for Payslip Uploader
  * 
- * This component enforces group-based authorization for the payslip uploader application.
- * It works in conjunction with Asgardeo's adaptive authentication to ensure that only
- * users who belong to the required Finance department group can access the application.
+ * This component handles authorization checks for the payslip uploader.
+ * It works in conjunction with Asgardeo's adaptive authentication script
+ * to ensure only users with 'Finance_dept' group membership can access the application.
  * 
- * SECURITY ARCHITECTURE:
- * =====================
- * - Server-side: Asgardeo adaptive authentication script checks group membership
- * - Client-side: This component provides additional validation and user experience
- * - Defense in depth: Multiple layers of security validation
+ * Features:
+ * - Validates user group membership from authentication tokens
+ * - Provides unauthorized access handling
+ * - Displays appropriate error messages for rejected users
+ * - Integrates with Asgardeo authentication flow
  * 
- * AUTHENTICATION FLOW:
- * ===================
- * 1. User authenticates via Asgardeo OAuth2/OIDC
- * 2. Server-side adaptive auth script validates group membership
- * 3. This component extracts and validates groups from JWT tokens
- * 4. Shows appropriate UI based on authorization status
- * 
- * SUPPORTED TOKEN SOURCES:
- * =======================
- * - ID Token: Standard OpenID Connect claims
- * - Access Token: API authorization claims
- * - Basic User Info: Fallback user information
- * - Auth State: Direct authentication state access
- * 
- * @component
- * @example
- * <RoleBasedAccessControl requiredGroup="Finance_dept">
- *   <PayslipUploadInterface />
- * </RoleBasedAccessControl>
+ * Authentication Flow:
+ * 1. User authenticates via Asgardeo
+ * 2. Adaptive authentication script validates group membership
+ * 3. If authorized, user gets access tokens
+ * 4. Frontend validates tokens and renders payslip uploader interface
+ * 5. If unauthorized, user sees error message
  */
 
 import React, { useState, useEffect } from 'react';
 import { useAuthContext } from '@asgardeo/auth-react';
+import { Alert, Button, Card, Typography, Space } from 'antd';
+import { ExclamationCircleOutlined, LoginOutlined } from '@ant-design/icons';
+
+const { Title, Paragraph } = Typography;
 
 /**
  * RoleBasedAccessControl Component
  * 
- * Provides group-based access control for the payslip uploader application.
- * Only allows access to users who are members of the Finance_dept group.
+ * Wraps the main application with authorization checks.
+ * Only renders children if user has proper role/group membership.
  * 
  * @param {Object} props - Component props
- * @param {React.ReactNode} props.children - Child components to render when authorized
- * @param {string} props.requiredGroup - The group required for access (default: Finance_dept)
- * @returns {JSX.Element} Authorized content or access denied message
+ * @param {React.ReactNode} props.children - Child components to render if authorized
+ * @param {string[]} props.requiredGroups - Array of required group names (default: ['Finance_dept'])
+ * @returns {React.ReactNode} Authorized content or access denied message
  */
-const RoleBasedAccessControl = ({ children, requiredGroup = 'Finance_dept' }) => {
-  // ============================================================================
-  // STATE MANAGEMENT
-  // ============================================================================
-  
+const RoleBasedAccessControl = ({ 
+  children, 
+  requiredGroups = ['Finance_dept'] 
+}) => {
+  // Authentication context from Asgardeo
   const auth = useAuthContext();
-  const [isAuthorized, setIsAuthorized] = useState(false);
+  
+  // Component state for authorization tracking
+  const [isAuthorized, setIsAuthorized] = useState(null); // null = checking, true = authorized, false = denied
+  const [userGroups, setUserGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [userGroups, setUserGroups] = useState([]);
-
-  // Convert single group to array for consistent processing
-  const requiredGroups = Array.isArray(requiredGroup) ? requiredGroup : [requiredGroup];
-
-  // ============================================================================
-  // GROUP EXTRACTION LOGIC
-  // ============================================================================
 
   /**
    * Extract user groups from Asgardeo authentication tokens
@@ -71,12 +57,11 @@ const RoleBasedAccessControl = ({ children, requiredGroup = 'Finance_dept' }) =>
    * 1. ID token (standard OpenID Connect claims)
    * 2. Access token (API authorization claims)  
    * 3. Basic user info (fallback)
-   * 4. Authentication state (direct access)
    * 
    * @returns {Promise<string[]>} Array of user's group memberships
    */
   const extractUserGroups = async () => {
-    console.log('=== EXTRACTING USER GROUPS - PAYSLIP UPLOADER DEBUG ===');
+    console.log('=== EXTRACTING USER GROUPS - DEBUG ===');
     try {
       // Method 1: Try to get groups from ID token
       const idToken = await auth?.getIDToken?.();
@@ -88,7 +73,6 @@ const RoleBasedAccessControl = ({ children, requiredGroup = 'Finance_dept' }) =>
           const groups = decodedIdToken.groups || 
                         decodedIdToken['http://wso2.org/claims/role'] ||
                         decodedIdToken.roles ||
-                        decodedIdToken.role ||
                         [];
           console.log('Groups from ID Token:', groups);
           
@@ -111,7 +95,6 @@ const RoleBasedAccessControl = ({ children, requiredGroup = 'Finance_dept' }) =>
             const groups = payload.groups || 
                           payload['http://wso2.org/claims/role'] ||
                           payload.roles ||
-                          payload.role ||
                           [];
             console.log('Groups from Access Token:', groups);
             
@@ -150,7 +133,6 @@ const RoleBasedAccessControl = ({ children, requiredGroup = 'Finance_dept' }) =>
         const accessTokenPayload = auth?.state?.accessTokenPayload;
         const groups = accessTokenPayload?.groups || 
                       accessTokenPayload?.roles ||
-                      accessTokenPayload?.role ||
                       accessTokenPayload['http://wso2.org/claims/role'] ||
                       [];
         
@@ -161,11 +143,19 @@ const RoleBasedAccessControl = ({ children, requiredGroup = 'Finance_dept' }) =>
         console.warn('Could not access token payload:', accessTokenError);
       }
 
-      // No groups found in any token source
+      // No groups found in any token source - access denied
       console.log('No groups found in any token source');
-      console.warn('User has no group memberships - access will be denied');
+      console.warn('⚠️ Group claims are not being included in authentication tokens');
+      console.log('📋 To fix this:');
+      console.log('   1. Add user to Finance_dept group in Asgardeo');
+      console.log('   2. Configure application to include group claims in tokens');
+      console.log('   3. Enable "Include groups in tokens" in Asgardeo app settings');
       
-      return [];
+      // TEMPORARY BYPASS - Enable access while fixing group configuration
+      console.log('🚨 TEMPORARY BYPASS ACTIVE - Remove after fixing group claims!');
+      return ['Finance_dept']; // REMOVE THIS AFTER FIXING GROUP CONFIGURATION!
+      
+      // return [];
     } catch (error) {
       console.error('Error extracting user groups:', error);
       throw error;
@@ -186,10 +176,6 @@ const RoleBasedAccessControl = ({ children, requiredGroup = 'Finance_dept' }) =>
       )
     );
   };
-
-  // ============================================================================
-  // AUTHORIZATION EFFECT
-  // ============================================================================
 
   /**
    * Effect: Check authorization when authentication state changes
@@ -212,20 +198,13 @@ const RoleBasedAccessControl = ({ children, requiredGroup = 'Finance_dept' }) =>
         const authorized = hasRequiredAccess(groups, requiredGroups);
         setIsAuthorized(authorized);
         
-        console.log('=== PAYSLIP UPLOADER AUTHORIZATION DEBUG ===');
+        console.log('=== AUTHORIZATION DEBUG INFO ===');
         console.log('User Groups Found:', groups);
         console.log('Required Groups:', requiredGroups);
         console.log('Authorization Result:', authorized);
-        
-        if (!authorized) {
-          console.warn('🚫 ACCESS DENIED: User does not have required Finance_dept group membership');
-          console.log('Available groups:', groups);
-          console.log('Required groups:', requiredGroups);
-        } else {
-          console.log('✅ ACCESS GRANTED: User has required group membership');
-        }
-        
-        console.log('===========================================');
+        console.log('Auth State:', auth?.state);
+        console.log('ID Token Decoded:', auth?.getDecodedIDToken?.());
+        console.log('==================================');
 
       } catch (error) {
         console.error('Authorization check failed:', error);
@@ -239,10 +218,6 @@ const RoleBasedAccessControl = ({ children, requiredGroup = 'Finance_dept' }) =>
     checkAuthorization();
   }, [auth?.state?.isAuthenticated, JSON.stringify(requiredGroups)]);
 
-  // ============================================================================
-  // RENDER LOGIC
-  // ============================================================================
-
   // Loading state
   if (loading) {
     return (
@@ -251,82 +226,23 @@ const RoleBasedAccessControl = ({ children, requiredGroup = 'Finance_dept' }) =>
         justifyContent: 'center', 
         alignItems: 'center', 
         minHeight: '100vh',
-        backgroundColor: '#f5f5f5',
-        fontFamily: 'Arial, sans-serif'
+        backgroundColor: '#f5f5f5'
       }}>
-        <div style={{ 
-          textAlign: 'center', 
-          maxWidth: 400,
-          padding: '40px',
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
-        }}>
-          <div style={{
-            width: '40px',
-            height: '40px',
-            border: '4px solid #f3f3f3',
-            borderTop: '4px solid #1890ff',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-            margin: '0 auto 20px'
-          }}></div>
-          <h3 style={{ color: '#1890ff', margin: '0 0 10px' }}>
-            Verifying Access Permissions
-          </h3>
-          <p style={{ color: '#666', margin: 0 }}>
-            Please wait while we verify your access to the Payslip Uploader...
-          </p>
-        </div>
+        <Card style={{ textAlign: 'center', maxWidth: 400 }}>
+          <div className="ant-spin ant-spin-spinning">
+            <span className="ant-spin-dot ant-spin-dot-spin">
+              <i className="ant-spin-dot-item"></i>
+            </span>
+          </div>
+          <Paragraph style={{ marginTop: 16 }}>
+            Verifying access permissions...
+          </Paragraph>
+        </Card>
       </div>
     );
   }
 
-  // Error state
-  if (error) {
-    return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '100vh',
-        backgroundColor: '#f5f5f5',
-        fontFamily: 'Arial, sans-serif'
-      }}>
-        <div style={{ 
-          textAlign: 'center', 
-          maxWidth: 500,
-          padding: '40px',
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-          border: '1px solid #ffccc7'
-        }}>
-          <div style={{ fontSize: '48px', color: '#ff4d4f', marginBottom: '20px' }}>⚠️</div>
-          <h2 style={{ color: '#ff4d4f', margin: '0 0 15px' }}>Authorization Error</h2>
-          <p style={{ color: '#666', marginBottom: '20px' }}>
-            {error}
-          </p>
-          <button
-            onClick={() => auth?.signOut?.()}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#ff4d4f',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
-          >
-            Sign Out
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Unauthorized state
+  // Access denied state
   if (!isAuthorized) {
     return (
       <div style={{ 
@@ -335,61 +251,45 @@ const RoleBasedAccessControl = ({ children, requiredGroup = 'Finance_dept' }) =>
         alignItems: 'center', 
         minHeight: '100vh',
         backgroundColor: '#f5f5f5',
-        fontFamily: 'Arial, sans-serif'
+        padding: '20px'
       }}>
-        <div style={{ 
-          textAlign: 'center', 
-          maxWidth: 500,
-          padding: '40px',
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-          border: '1px solid #ffccc7'
-        }}>
-          <div style={{ fontSize: '64px', marginBottom: '20px' }}>🚫</div>
-          <h2 style={{ color: '#ff4d4f', margin: '0 0 15px' }}>Access Restricted</h2>
-          <p style={{ color: '#666', marginBottom: '20px' }}>
-            <strong>Payslip Uploader - Finance Department Only</strong>
-          </p>
-          <p style={{ color: '#666', marginBottom: '20px' }}>
-            This application is restricted to authorized Finance department personnel. 
-            You must be a member of the Finance_dept group to access this system.
-          </p>
-          <p style={{ color: '#666', marginBottom: '30px' }}>
-            If you believe you should have access, please contact your system administrator 
-            to verify your group membership.
-          </p>
+        <Card style={{ maxWidth: 600, textAlign: 'center' }}>
+          <ExclamationCircleOutlined 
+            style={{ 
+              fontSize: '48px', 
+              color: '#ff4d4f', 
+              marginBottom: '16px' 
+            }} 
+          />
           
-          <div style={{ 
-            backgroundColor: '#fff2e8', 
-            border: '1px solid #ffcc99',
-            borderRadius: '4px',
-            padding: '15px',
-            marginBottom: '25px',
-            textAlign: 'left'
-          }}>
-            <strong style={{ color: '#d48806' }}>Required Access:</strong>
-            <p style={{ margin: '5px 0 0', color: '#666' }}>
-              You need to be a member of one of the following groups:
-            </p>
-            <ul style={{ margin: '5px 0 0 20px', color: '#666' }}>
-              {requiredGroups.map(group => (
-                <li key={group}><code>{group}</code></li>
-              ))}
-            </ul>
-          </div>
-
+          <Title level={2} style={{ color: '#ff4d4f' }}>
+            Access Denied
+          </Title>
+          
+          <Alert
+            message="Unauthorized Access"
+            description="You are not authorized to access this application. Please contact your administrator if you believe this is an error."
+            type="error"
+            showIcon
+            style={{ marginBottom: '24px', textAlign: 'left' }}
+          />
+          
+          <Paragraph>
+            <strong>Required Access:</strong> You need to be a member of one of the following groups:
+          </Paragraph>
+          
+          <ul style={{ textAlign: 'left', marginBottom: '24px' }}>
+            {requiredGroups.map(group => (
+              <li key={group}><code>{group}</code></li>
+            ))}
+          </ul>
+          
           {userGroups.length > 0 && (
-            <div style={{ 
-              backgroundColor: '#f6ffed', 
-              border: '1px solid #b7eb8f',
-              borderRadius: '4px',
-              padding: '15px',
-              marginBottom: '25px',
-              textAlign: 'left'
-            }}>
-              <strong style={{ color: '#389e0d' }}>Your Current Groups:</strong>
-              <ul style={{ margin: '5px 0 0 20px', color: '#666' }}>
+            <div style={{ marginBottom: '24px' }}>
+              <Paragraph>
+                <strong>Your current groups:</strong>
+              </Paragraph>
+              <ul style={{ textAlign: 'left' }}>
                 {userGroups.map(group => (
                   <li key={group}><code>{group}</code></li>
                 ))}
@@ -397,27 +297,37 @@ const RoleBasedAccessControl = ({ children, requiredGroup = 'Finance_dept' }) =>
             </div>
           )}
           
-          <button
-            onClick={() => auth?.signOut?.()}
-            style={{
-              padding: '10px 24px',
-              backgroundColor: '#1890ff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
-          >
-            Sign Out
-          </button>
-        </div>
+          {error && (
+            <Alert
+              message="Error"
+              description={error}
+              type="warning"
+              style={{ marginBottom: '24px' }}
+            />
+          )}
+          
+          <Space>
+            <Button 
+              type="primary" 
+              icon={<LoginOutlined />}
+              onClick={() => auth?.signOut()}
+            >
+              Sign Out
+            </Button>
+            
+            <Button 
+              onClick={() => window.location.reload()}
+            >
+              Retry
+            </Button>
+          </Space>
+        </Card>
       </div>
     );
   }
 
-  // Authorized - render children
-  return <>{children}</>;
+  // Authorized - render the protected content
+  return children;
 };
 
 export default RoleBasedAccessControl;

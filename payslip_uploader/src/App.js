@@ -236,10 +236,6 @@ export default function App() {
             - Backend API communication
             - Upload progress and status feedback
             - Data display table with uploaded records
-            
-            NOTE: If you need to debug group membership issues, temporarily add:
-            import GroupDebugger from './components/GroupDebugger';
-            <GroupDebugger />
           */}
           <PayslipUpload />
 
