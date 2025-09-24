@@ -14,7 +14,7 @@ export default defineConfig({
     proxy: {
       // Proxy API requests to bypass CORS during development
       '/api/proxy': {
-        target: 'https://41200aa1-4106-4e6c-babf-311dce37c04a-prod.e1-us-east-azure.choreoapis.dev',
+        target: 'https://your-backend-server-url.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/proxy/, ''),
         configure: (proxy, _options) => {

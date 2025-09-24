@@ -2,16 +2,7 @@
 
 ## Overview
 
-The Bridge is a commu```typescript
-interface BridgeContext {
-  userId: string;                              // User ID from authentication
-  appID: string;                              // Current MicroApp ID
-  token: string | null;                       // Authentication token
-  setScannerVisible: (visible: boolean) => void; // Control QR scanner visibility
-  sendResponseToWeb: (method: string, data?: any) => void; // Send response to MicroApp
-  pendingTokenRequests: ((token: string) => void)[]; // Token request queue
-}
-```ayer that enables secure, bidirectional messaging between the SuperApp (React Native) and embedded MicroApps (web applications running in WebViews). This architecture allows MicroApps to access native device capabilities and SuperApp services while maintaining security boundaries.
+The Bridge is a communication layer that enables secure, bidirectional messaging between the SuperApp (React Native) and embedded MicroApps (web applications running in WebViews). This architecture allows MicroApps to access native device capabilities and SuperApp services while maintaining security boundaries.
 
 ### Underlying Technology
 
@@ -69,7 +60,7 @@ interface BridgeFunction {
 
 ### Context Object
 
-The handler receives a `BridgeContext` with:
+The handler receives a `BridgeContext` (This is used for passing objects) with:
 
 ```typescript
 interface BridgeContext {
@@ -81,6 +72,7 @@ interface BridgeContext {
   pendingTokenRequests: ((token: string) => void)[]; // Token request queue
 }
 ```
+
 
 ### Adding a New Bridge Function
 
@@ -267,53 +259,6 @@ async function loadUserData() {
 3. **Test promise resolution**: Use browser dev tools to inspect promise states
 4. **Network monitoring**: Look for postMessage calls in network tab
 
-### Error Messages
-
-- `"app_id parameter is required"`: MicroApp token request missing app ID
-- `"Employee ID is not available"`: User context not properly initialized
-- `"Unknown error"`: Generic error, check native console for details
-
-## Migration Guide
-
-### From Event-based to Promise-based API
-
-The bridge has been updated from an event-based system to a promise-based system for cleaner asynchronous handling. Variable names have also been made more generic:
-
-**Naming Changes:**
-- `empID` → `userId` (more generic for different organization types)
-- `requestEmpId()` → `requestUserId()`
-- `resolveEmpId` → `resolveUserId`
-- `rejectEmpId` → `rejectUserId`
-
-**Before (Event-based):**
-```javascript
-window.nativebridge.requestToken();
-window.addEventListener('resolveToken', (event) => {
-  const token = event.detail;
-  // handle success
-});
-window.addEventListener('rejectToken', (event) => {
-  const error = event.detail;
-  // handle error
-});
-```
-
-**After (Promise-based):**
-```javascript
-try {
-  const token = await window.nativebridge.requestToken();
-  // handle success
-} catch (error) {
-  // handle error
-}
-```
-
-### When updating bridge functions:
-
-1. **Add new function** to registry (maintains backward compatibility)
-2. **Update MicroApps** to use promise-based API
-3. **Remove deprecated functions** after all MicroApps updated
-4. **Update documentation** and TypeScript definitions
 
 ## Support
 
@@ -329,70 +274,3 @@ For bridge-related issues:
 <parameter name="filePath">superapp-mobile/docs/BRIDGE_GUIDE.md
 
 <br>.  
-----
-# Additional Information :
-
-
-## SuperApp - MicroApp Flow
-
-### The Process:
-
-1. **MicroApp Makes Request** (via postMessage):
-```javascript
-// In MicroApp
-window.nativebridge.requestToken();
-```
-
-2. **SuperApp Receives & Processes** (in React Native):
-```typescript
-// In micro-app.tsx - onMessage handler
-const onMessage = async (event: WebViewMessageEvent) => {
-  const { topic, data } = JSON.parse(event.nativeEvent.data);
-  const handler = getBridgeHandler(topic);
-  // Execute the handler...
-};
-```
-
-3. **SuperApp Sends Response** (via JavaScript injection):
-```typescript
-// sendResponseToWeb function in micro-app.tsx
-const sendResponseToWeb = (method: string, data?: any) => {
-  webviewRef.current?.injectJavaScript(
-    `window.nativebridge.${method}(${JSON.stringify(data)});`
-  );
-};
-
-// Handler calls this:
-context.sendResponseToWeb("resolveToken", token);
-```
-
-4. **Injected JavaScript Creates Custom Event** (in WebView):
-```javascript
-// Auto-generated injected JavaScript (from bridge.ts)
-window.nativebridge = {
-  resolveToken: (data) => {
-    console.log("token resolved:", data);
-    window.dispatchEvent(new CustomEvent('resolveToken', { detail: data }));
-  },
-  // ...
-};
-```
-
-5. **MicroApp Receives via Event Listener**:
-```javascript
-// In MicroApp
-window.addEventListener('resolveToken', (event) => {
-  const token = event.detail; // The actual data
-  console.log('Received token:', token);
-});
-```
-
-
-### Why Custom Events?
-
-- **Asynchronous**: Allows MicroApps to respond to events at any time
-- **Decoupled**: MicroApp doesn't need to know when the response will arrive
-- **Standard Web API**: Uses native DOM events that web developers are familiar with
-- **Multiple Listeners**: Multiple parts of the MicroApp can listen to the same event
-
-This creates a clean, event-driven architecture where the SuperApp can send responses back to the MicroApp asynchronously, just like how web APIs work! 🚀

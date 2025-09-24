@@ -1,11 +1,10 @@
 # Frontend Developer Onboarding Guide.   
 
-## Welcome to the SuperApp Mobile Frontend.    
-
+## Welcome to the SuperApp Mobile Frontend.  
+    
 This Super App is an all-in-one platform designed to bring essential tools and services to your fingertips for a seamless mobile experience. Built with **React Native Expo**, **TypeScript**, and **Redux**, this Super App integrates secure authentication via **Asgardeo**, a micro-app architecture, and a dynamic app store for downloading and managing features.
-This guide provides project setup, architecture, communication flows, and essential development practices.   
----
-
+This guide provides project setup, architecture, communication flows, and essential development practices. 
+     
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -206,7 +205,7 @@ sequenceDiagram
     User ->> Super App: Open Micro App
     Super App ->> Micro App: Initiate Micro App loading
     Micro App ->> Super App: Request microapp specific access_token
-    Super App ->> backend (app_id of Micro App + user_id)
+    Super App ->> backend: (app_id of Micro App + user_id)
     backend -->> Super App: microapp specific access_token
     Super App -->> Micro App: Provide microapp specific access_token
     Micro App ->> Choreo: Resource Access (using microapp specific access_token)

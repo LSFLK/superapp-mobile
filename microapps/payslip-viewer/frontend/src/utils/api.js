@@ -83,7 +83,6 @@ async function apiRequest(endpoint, options = {}) {
     
     return data;
   } catch (error) {
-    // // Enhanced error logging
     // terminal.log(`API request error:`, {
     //   name: error.name,
     //   message: error.message,
