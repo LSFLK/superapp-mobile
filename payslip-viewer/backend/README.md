@@ -3,6 +3,12 @@
 A microservice for managing employee payslips.  
 Supports JWT-based authentication, CSV upload for bulk payslips, health checks, and admin-specific endpoints.
 
+<p align="left">
+  <a href="https://opensource.org/license/apache-2-0">
+    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-green.svg">
+  </a>
+</p>
+
 ---
 
 ## Table of Contents
@@ -13,7 +19,6 @@ Supports JWT-based authentication, CSV upload for bulk payslips, health checks, 
 - [Running Locally](#running-locally)
 - [Project Structure](#project-structure)
 - [API Endpoints](#api-endpoints)
-- [License](#license)
 
 
 ---
@@ -112,8 +117,3 @@ bal run
 └── README.md
 ```
 
----
-
-## License
-
-MIT License
