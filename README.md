@@ -7,6 +7,8 @@
     <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-green.svg">
   </a>
 </p>
+<!-- Credit line acknowledging WSO2 Superapp -->
+<p style="margin-top: 0.5rem;"><em>Originally adapted from and inspired by the WSO2 Superapp project.</em></p>
 This repository is the foundation for hosting and managing many small web-based micro-apps with seamless authentication, secure token exchange, and centralized management. Micro-apps run inside the host app and communicate with it using a lightweight, reliable bridge, making onboarding and integration straightforward for both in-house and third‑party apps.
 
 
@@ -64,3 +66,5 @@ Please do not report security issues via GitHub issues. Instead, follow the [WSO
 ## 🤝 Contributing
 
 If you are planning on contributing to the development efforts of LSF Superapp Mobile, you can do so by checking out the latest development version. The main branch holds the latest unreleased source code.
+
+
