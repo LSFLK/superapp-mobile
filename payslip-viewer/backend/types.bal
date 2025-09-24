@@ -20,6 +20,14 @@ public type Payslip record {|
     string? location; // Optional field for future expansion
 |};
 
+public type DatabaseConfig record {
+    string DB_HOST;
+    int DB_PORT;
+    string DB_NAME;
+    string DB_USER;
+    string DB_PASSWORD;
+};
+
 // API Response wrapper types
 public type PayslipResponse record {|
     string status;
@@ -46,7 +54,6 @@ public type HealthResponse record {|
     string message;
     string timestamp;
     string version;
-    string environment;
 |};
 
 // Request validation types

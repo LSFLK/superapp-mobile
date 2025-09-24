@@ -10,6 +10,8 @@
 import ballerina/log;
 import ballerina/time;
 
+configurable string serviceVersion = "1.0.0";
+
 // Health check utilities
 public function createHealthResponse() returns HealthResponse {
     time:Utc currentTime = time:utcNow();
@@ -18,19 +20,8 @@ public function createHealthResponse() returns HealthResponse {
         status: "healthy",
         message: "Payslip service is operational",
         timestamp: time:utcToString(currentTime),
-        version: serviceVersion,
-        environment: environment
+        version: serviceVersion
     };
-}
-
-// Authentication utilities
-public function isPublicEndpoint(string path) returns boolean {
-    foreach string endpoint in authConfig.publicEndpoints {
-        if path == endpoint {
-            return true;
-        }
-    }
-    return false;
 }
 
 // Logging utilities

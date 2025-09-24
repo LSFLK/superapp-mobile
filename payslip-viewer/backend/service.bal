@@ -16,6 +16,8 @@ import ballerina/log;
 import ballerina/io;
 import ballerina/lang.runtime as runtime;
 
+configurable int serverPort = 9090;
+
 // Interceptor for logging and custom error handling
 service class ErrorInterceptor {
     *http:ResponseErrorInterceptor;
