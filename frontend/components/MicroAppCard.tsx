@@ -108,6 +108,15 @@ export const MicroAppCard: React.FC<MicroAppCardProps> = ({
         { backgroundColor: Colors[colorScheme].overLayColor, shadowColor: Colors[colorScheme].overLayColor, elevation: 10 },
         !isAvailable && styles.iconContainerDisabled,
       ]}>
+      
+      {/* "Ready" badge shown only for newly downloaded apps */}
+      {isNewlyDownloaded && (
+        <View style={[styles.badge, { backgroundColor: Colors.actionButtonTextColor }]}>
+          <Ionicons name="checkmark-circle" size={12} color="#FFFFFF" />
+          <Text style={styles.badgeText}>Ready</Text>
+        </View>
+      )}        
+
         <MicroAppIcon
           iconUrl={app.icon_url}
           appId={app.app_id}
@@ -129,13 +138,6 @@ export const MicroAppCard: React.FC<MicroAppCardProps> = ({
         {app.name}
       </Text>
 
-      {/* "Ready" badge shown only for newly downloaded apps */}
-      {isNewlyDownloaded && (
-        <View style={[styles.badge, { backgroundColor: Colors.actionButtonTextColor }]}>
-          <Ionicons name="checkmark-circle" size={12} color="#FFFFFF" />
-          <Text style={styles.badgeText}>Ready</Text>
-        </View>
-      )}
     </TouchableOpacity>
   );
 };
@@ -162,6 +164,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
+    position: 'relative',
   },
   // Further reduce opacity for disabled icon
   iconContainerDisabled: {
@@ -183,6 +186,10 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 8,
     marginTop: 4,
+    position: 'absolute',
+    top: -15,
+    right: -18,
+
   },
   // Badge text styling
   badgeText: {
