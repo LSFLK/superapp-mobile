@@ -1,38 +1,69 @@
+/**
+ * UploadMicroApp Component
+ * 
+ * Provides a comprehensive interface for uploading micro-application packages
+ * to the SuperApp ecosystem. Handles file upload, validation, and form submission
+ * with proper authentication and error handling.
+ * 
+ * Features:
+ * - Drag and drop file upload interface
+ * - Form validation for required fields
+ * - ZIP file type validation
+ * - Authentication-aware API calls
+ * - Progress feedback and error handling
+ * - Modal confirmation dialogs
+ * - Success/failure notifications
+ * 
+ * Upload Process:
+ * 1. User fills out micro-app metadata (name, version, appId, description)
+ * 2. User selects or drags ZIP file containing micro-app
+ * 3. Form validation ensures all required fields are completed
+ * 4. Authenticated multipart/form-data POST request to backend
+ * 5. Success callback triggers parent component refresh
+ * 
+ * Props:
+ * @param {Function} onUploaded - Callback function executed after successful upload
+ * 
+ * Form Fields:
+ * - name: Display name for the micro-app
+ * - version: Semantic version string (e.g., "1.0.0")
+ * - appId: Unique identifier for the micro-app
+ * - description: Brief description of the micro-app functionality
+ * - iconUrlPath: Optional path to app icon (URL or relative path)
+ * - zipFile: ZIP archive containing the micro-app code and assets
+ */
+
 import React, { useRef, useState } from "react";
 import { useAuthContext } from "@asgardeo/auth-react";
-
-// Contract
-// Inputs: none (uses internal state)
-// Output: renders a form to upload micro-app ZIP with fields name, version, appId, iconUrlPath
-// Success criteria: POST multipart/form-data to backend and show success/error modal
-
-// Always use the absolute remote micro-app upload endpoint (avoid local proxy as requested).
-// Allow override through env var REACT_APP_MICROAPPS_UPLOAD_URL.
-const DEFAULT_MICROAPPS_UPLOAD_URL = "https://41200aa1-4106-4e6c-babf-311dce37c04a-prod.e1-us-east-azure.choreoapis.dev/gov-superapp/superappbackendprodbranch/v1.0/micro-apps/upload";
-const ENV_MICROAPPS_UPLOAD_URL = process.env.REACT_APP_MICROAPPS_UPLOAD_URL;
-const RESOLVED_MICROAPPS_UPLOAD_URL = (ENV_MICROAPPS_UPLOAD_URL || DEFAULT_MICROAPPS_UPLOAD_URL).replace(/\/$/, '');
+import { getEndpoint } from "../constants/api";
 
 export default function UploadMicroApp({ onUploaded } = {}) {
+  // Authentication context for secure API calls
   const auth = useAuthContext();
-  const [name, setName] = useState("");
-  const [version, setVersion] = useState("");
-  const [appId, setAppId] = useState("");
-  const [iconUrlPath, setIconUrlPath] = useState("");
-  const [description, setDescription] = useState("");
-  const [zipFile, setZipFile] = useState(null);
+  
+  // Form field state management
+  const [name, setName] = useState("");             // Micro-app display name
+  const [version, setVersion] = useState("");       // Version string (e.g., "1.0.0")
+  const [appId, setAppId] = useState("");           // Unique app identifier
+  const [iconUrlPath, setIconUrlPath] = useState(""); // Optional icon path/URL
+  const [description, setDescription] = useState(""); // App description
+  const [zipFile, setZipFile] = useState(null);     // Selected ZIP file
+  
+  // UI interaction state
+  const [dragging, setDragging] = useState(false);  // Drag and drop visual state
+  const [loading, setLoading] = useState(false);    // Upload progress state
+  const [message, setMessage] = useState("");       // Status/error messages
+  const [isError, setIsError] = useState(false);    // Error flag for styling
+  const [isWarning, setIsWarning] = useState(false); // Warning flag for styling
+  const [showModal, setShowModal] = useState(false); // Modal visibility
+  const [confirmFile, setConfirmFile] = useState(null); // File pending confirmation
 
-  const [dragging, setDragging] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [isError, setIsError] = useState(false);
-  const [isWarning, setIsWarning] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [confirmFile, setConfirmFile] = useState(null);
-
+  // Reference to hidden file input element
   const fileInputRef = useRef(null);
 
-  const getPendingFile = () => zipFile || confirmFile;
-  const hasPending = !!getPendingFile();
+  // Utility functions for file management
+  const getPendingFile = () => zipFile || confirmFile; // Get current file selection
+  const hasPending = !!getPendingFile();              // Check if file is selected
 
   const validate = () => {
     if (!name.trim() || !version.trim() || !appId.trim() || !description.trim()) {
@@ -98,7 +129,7 @@ export default function UploadMicroApp({ onUploaded } = {}) {
       //   headers.Authorization = 'Bearer admin-token';
       // }
 
-  const uploadUrl = RESOLVED_MICROAPPS_UPLOAD_URL; // already full path
+        const uploadUrl = getEndpoint('MICROAPPS_UPLOAD');
   console.log('[UploadMicroApp] Upload endpoint =>', uploadUrl);
       // Optionally suppress x-jwt-assertion if remote gateway rejects it
       if (process.env.REACT_APP_MICROAPPS_SUPPRESS_ASSERTION === 'true' && headers['x-jwt-assertion']) {

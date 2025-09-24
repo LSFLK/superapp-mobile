@@ -1,27 +1,61 @@
+/**
+ * Admin Portal Main Application Component
+ * 
+ * This is the root component for the admin portal that handles:
+ * - Authentication state management via Asgardeo
+ * - Main application routing and navigation
+ * - User session management and token handling
+ * - Layout structure with sidebar navigation and main content area
+ * 
+ * Authentication Flow:
+ * 1. Check if user is authenticated via Asgardeo context
+ * 2. If authenticated, show admin interface with navigation
+ * 3. If not authenticated, show sign-in screen
+ * 4. Handle token retrieval and logging for debugging
+ * 
+ * Layout Structure:
+ * - Authenticated: Sidebar navigation + main content area
+ * - Unauthenticated: Centered sign-in form
+ */
+
 import React, { useEffect, useState } from "react";
-// import UploadExcel from "./components/UploadExcel"; // removed from UI per new menu
-// import UploadMicroApp from "./components/UploadMicroApp"; // handled inside MicroAppManagement
+import { useAuthContext } from "@asgardeo/auth-react";
+import { Layout } from "antd";
 import UserProfile from "./components/UserProfile";
 import MicroAppManagement from "./components/MicroAppManagement";
-import { useAuthContext } from "@asgardeo/auth-react";
 import MenuBar from "./components/MenuBar";
-import { Layout } from "antd";
+import { COMMON_STYLES, COLORS } from "./constants/styles";
 
 const { Content } = Layout;
 
 function App() {
+  // Extract authentication context and methods from Asgardeo provider
   const ctx = useAuthContext();
   const state = ctx?.state;
   const signIn = ctx?.signIn;
   const signOut = ctx?.signOut;
 
+  // Authentication state derived from Asgardeo context
   const isAuthed = Boolean(state?.isAuthenticated);
+  
+  // Extract user information from authentication state with fallbacks
   const username = state?.username || "";
   const emailLocalPart = username.includes("@") ? username.split("@")[0] : "";
-  const firstName = ( state?.displayName || emailLocalPart || state?.given_name || username || "").split(" ")[0];
+  const firstName = (state?.displayName || emailLocalPart || state?.given_name || username || "").split(" ")[0];
 
+  // Navigation state for switching between admin sections
   const [activeKey, setActiveKey] = useState("microapp");
 
+  /**
+   * Effect: Handle authentication state changes and token management
+   * 
+   * When user becomes authenticated:
+   * 1. Log authentication status for debugging
+   * 2. Retrieve and log access token for backend API calls
+   * 3. Handle token retrieval errors gracefully
+   * 
+   * The access token is used for authenticating requests to the backend API
+   */
   useEffect(() => {
     if (isAuthed) {
       console.log("User is authenticated:", username);
@@ -41,62 +75,36 @@ function App() {
         }
       })();
     }
-  }, [isAuthed, username]);
+  }, [isAuthed, username, ctx]);
 
+  // Navigation handler for switching between admin sections
   const onNavigate = (key) => setActiveKey(key);
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
       {isAuthed ? (
         <>
-          {/* Left sidebar */}
-          <MenuBar onNavigate={onNavigate} isAuthed={isAuthed} onSignOut={signOut} activeKey={activeKey} />
+          {/* Authenticated Layout: Sidebar Navigation + Main Content */}
+          
+          {/* Left sidebar navigation menu */}
+          <MenuBar 
+            onNavigate={onNavigate} 
+            isAuthed={isAuthed} 
+            onSignOut={signOut} 
+            activeKey={activeKey} 
+          />
 
           {/* Main content area */}
           <Layout>
-            <div className="greeting" style={{ 
-              textAlign: 'center',
-              marginLeft: '330px',
-              marginTop: '1px',
-              marginBottom: '20px',
-              fontSize: '24px',
-              fontWeight: '500',
-              color: '#1f2937'
-            }}>Hi {firstName},</div>
+            {/* Personalized greeting for authenticated user */}
+            <div className="greeting" style={COMMON_STYLES.greeting}>
+              Hi {firstName},
+            </div>
             <Content style={{ padding: "16px" }}>
-              <div className="container" style={{ marginTop: 0, marginBottom: 8 }}>
-                
-              </div>
-
               <main className="container" style={{ paddingBottom: 48 }}>
+                {/* Conditional rendering based on active navigation */}
                 {activeKey === "microapp" && (
-                  <section
-                    style={{
-                      marginTop: '60px',
-                      lineHeight: 1.15,
-                      WebkitTextSizeAdjust: '100%',
-                      WebkitTapHighlightColor: 'rgba(0,0,0,0)',
-                      '--radius': '12px',
-                      '--bg': '#0b1220',
-                      '--bg-2': '#0f172a',
-                      '--surface': '#111827',
-                      '--text': '#f9fafb',
-                      '--muted': '#9ca3af',
-                      '--border': '#1f2937',
-                      '--shadow': '0 8px 24px rgba(0,0,0,0.4)',
-                      '--primary-600': '#60a5fa',
-                      '--primary-700': '#3b82f6',
-                      WebkitFontSmoothing: 'antialiased',
-                      fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji'",
-                      fontSize: 14,
-                      color: 'rgba(0,0,0,0.88)',
-                      boxSizing: 'border-box',
-                      background: '#ffffff',
-                      border: '1px solid rgb(208, 236, 255)',
-                      borderRadius: 16,
-                      padding: 20
-                    }}
-                  >
+                  <section style={COMMON_STYLES.section}>
                     <MicroAppManagement />
                   </section>
                 )}
@@ -111,6 +119,7 @@ function App() {
           </Layout>
         </>
       ) : (
+        /* Unauthenticated Layout: Centered Sign-in Form */
         <Layout>
           <Content style={{ padding: 0, minHeight: '100vh' }}>
             <div
@@ -121,37 +130,33 @@ function App() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 padding: '32px 16px',
-                background: 'linear-gradient(135deg,#f0f8ff 0%, #e6f4ff 60%, #d9edff 100%)'
+                background: `linear-gradient(135deg, ${COLORS.background} 0%, #e6f4ff 60%, #d9edff 100%)`
               }}
             >
+              {/* Sign-in card with call-to-action */}
               <section
                 className="card"
                 style={{
                   textAlign: 'center',
                   background: '#e6f4ff',
-                  border: '1px solid #bae0ff',
-                  color: '#003a67',
+                  border: `1px solid ${COLORS.border}`,
+                  color: COLORS.primary,
                   maxWidth: 420,
                   width: '100%',
                   boxShadow: '0 6px 24px -4px rgba(0,58,103,0.15)',
                 }}
               >
-                <h2 style={{ marginTop: 0, color: '#003a67' }}>Please Sign In</h2>
-                <p style={{ color: '#09589c', marginTop: 0 }}>
+                <h2 style={{ marginTop: 0, color: COLORS.primary }}>Please Sign In</h2>
+                <p style={{ color: COLORS.secondary, marginTop: 0 }}>
                   You must be logged in to use the admin portal.
                 </p>
+                {/* Sign-in button with Asgardeo authentication */}
                 <button
                   className="btn btn--primary"
-                  style={{
-                    minWidth: 160,
-                    border: 'none',
-                    boxShadow: 'none',
-                    outline: 'none',
-                  }}
+                  style={COMMON_STYLES.button}
                   onClick={() => signIn && signIn()}
                   onFocus={(e) => {
-                    // Provide accessible focus feedback without border
-                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(24,144,255,0.45)';
+                    e.currentTarget.style.boxShadow = COMMON_STYLES.buttonFocus.boxShadow;
                   }}
                   onBlur={(e) => { e.currentTarget.style.boxShadow = 'none'; }}
                 >

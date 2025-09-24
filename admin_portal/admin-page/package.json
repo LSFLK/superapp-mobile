@@ -21,8 +21,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-  "eject": "react-scripts eject",
-  "print:token": "node ./scripts/print-token.js"
+    "eject": "react-scripts eject",
+    "print:token": "node ./scripts/print-token.js"
   },
   "eslintConfig": {
     "extends": [

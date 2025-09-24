@@ -1,156 +1,254 @@
-import React, { useEffect, useState, useCallback } from "react";
-import UploadMicroApp from "./UploadMicroApp";
-import { useAuthContext } from "@asgardeo/auth-react";
+/**
+ * MicroAppManagement Component
+ * 
+ * The main interface for managing micro-applications in the SuperApp ecosystem.
+ * Provides functionality to view, upload, and manage micro-apps through a clean,
+ * card-based interface.
+ * 
+ * Features:
+ * - Display grid of available micro-applications
+ * - Upload new micro-app packages (ZIP files)
+ * - Real-time loading states and error handling
+ * - Authentication-aware API calls
+ * - Responsive grid layout
+ * - Refresh functionality for up-to-date data
+ * 
+ * Key Workflows:
+ * 1. List View: Shows all available micro-apps in a card grid
+ * 2. Upload Mode: Provides interface for uploading new micro-apps
+ * 3. Error Handling: Graceful error display and recovery
+ * 4. Authentication: Uses Asgardeo tokens for secure API calls
+ * 
+ * State Management:
+ * - showUpload: Controls visibility of upload interface
+ * - microApps: Array of micro-app data from backend
+ * - loadingList: Loading state for micro-app fetching
+ * - listError: Error state for failed operations
+ */
 
-const DEFAULT_MICROAPPS_LIST_URL = "https://41200aa1-4106-4e6c-babf-311dce37c04a-prod.e1-us-east-azure.choreoapis.dev/gov-superapp/superappbackendprodbranch/v1.0/micro-apps";
+import React, { useEffect, useState, useCallback } from "react";
+import { useAuthContext } from "@asgardeo/auth-react";
+import UploadMicroApp from "./UploadMicroApp";
+import Button from "./common/Button";
+import Loading from "./common/Loading";
+import Card from "./common/Card";
+import { COLORS } from "../constants/styles";
+import { getEndpoint } from "../constants/api";
 
 export default function MicroAppManagement() {
+  // Authentication context for secure API calls
   const auth = useAuthContext();
-  const [showUpload, setShowUpload] = useState(false); // micro app zip upload panel
-  const [microApps, setMicroApps] = useState([]);
-  const [loadingList, setLoadingList] = useState(false);
-  const [listError, setListError] = useState("");
+  
+  // Component state management
+  const [showUpload, setShowUpload] = useState(false); // Controls upload panel visibility
+  const [microApps, setMicroApps] = useState([]);      // Array of micro-app data
+  const [loadingList, setLoadingList] = useState(false); // Loading state for API calls
+  const [listError, setListError] = useState("");      // Error message display
 
+  /**
+   * Fetch Micro-Applications from Backend
+   * 
+   * Retrieves the list of available micro-applications from the backend API.
+   * Includes authentication headers and proper error handling.
+   * 
+   * Authentication Flow:
+   * 1. Check if user is authenticated via Asgardeo
+   * 2. Retrieve ID token and access token
+   * 3. Include tokens in API request headers
+   * 4. Handle authentication failures gracefully
+   * 
+   * Error Handling:
+   * - Network failures
+   * - Authentication errors
+   * - Invalid response format
+   * - Backend service unavailability
+   */
   const fetchMicroApps = useCallback(async () => {
     setLoadingList(true);
     setListError("");
+    
     try {
+      // Prepare authentication headers
       const headers = {};
       try {
         if (auth?.state?.isAuthenticated) {
+          // Get ID token for user identity verification
           const idToken = await auth.getIDToken().catch(() => undefined);
           if (idToken) headers["x-jwt-assertion"] = idToken;
+          
+          // Get access token for API authorization
           const access = await auth.getAccessToken().catch(() => undefined);
           if (access) headers["Authorization"] = `Bearer ${access}`;
         }
       } catch (e) {
-        // non-fatal
+        // Non-fatal: continue without tokens (backend may reject)
+        console.warn("Authentication token acquisition failed:", e);
       }
-      const endpoint = (process.env.REACT_APP_MICROAPPS_LIST_URL || DEFAULT_MICROAPPS_LIST_URL).replace(/\/$/, "");
+      
+      // Make API request to fetch micro-apps
+      const endpoint = getEndpoint('MICROAPPS_LIST');
       const res = await fetch(endpoint, { headers });
-      if (!res.ok) throw new Error(`Failed to load micro-apps (${res.status})`);
+      
+      if (!res.ok) {
+        throw new Error(`Failed to load micro-apps (${res.status})`);
+      }
+      
+      // Parse response and handle different response formats
       const data = await res.json();
-      if (Array.isArray(data)) setMicroApps(data);
-      else if (Array.isArray(data?.items)) setMicroApps(data.items);
-      else setMicroApps([]);
+      if (Array.isArray(data)) {
+        setMicroApps(data);
+      } else if (Array.isArray(data?.items)) {
+        setMicroApps(data.items); // Handle paginated response format
+      } else {
+        setMicroApps([]); // Fallback for unexpected format
+      }
+      
     } catch (e) {
-      setListError(e instanceof Error ? e.message : "Error loading apps");
+      const errorMessage = e instanceof Error ? e.message : "Error loading apps";
+      setListError(errorMessage);
+      console.error("Micro-app fetch error:", e);
     } finally {
       setLoadingList(false);
     }
   }, [auth]);
 
-  useEffect(() => { fetchMicroApps(); }, [fetchMicroApps]);
+  // Load micro-apps when component mounts
+  useEffect(() => { 
+    fetchMicroApps(); 
+  }, [fetchMicroApps]);
 
   return (
-    <div style={{ color: "#003a67", lineHeight: 1.15 }}>
-      {/* Header / actions - only show when not uploading */}
+    <div style={{ color: COLORS.primary, lineHeight: 1.15 }}>
+      {/* Header Controls - Only visible when not in upload mode */}
       {!showUpload && (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <h2 style={{ margin: 0, color: "#003a67" }}>Available Micro Apps</h2>
+        <div style={{ 
+          display: "flex", 
+          flexWrap: "wrap", 
+          gap: 8, 
+          justifyContent: "space-between", 
+          alignItems: "center", 
+          marginBottom: 12 
+        }}>
+          <h2 style={{ margin: 0, color: COLORS.primary }}>Available Micro Apps</h2>
           <div style={{ display: "flex", gap: 8 }}>
-            <button
-              className="btn btn--primary"
+            {/* Refresh button to reload micro-app list */}
+            <Button
               onClick={fetchMicroApps}
               disabled={loadingList}
-              style={{
-                minWidth: 110,
-                border: 'none',
-                outline: 'none',
-                boxShadow: 'none'
-              }}
-              onFocus={(e) => { e.currentTarget.style.boxShadow = '0 0 0 3px rgba(24,144,255,0.35)'; }}
-              onBlur={(e) => { e.currentTarget.style.boxShadow = 'none'; }}
             >
               {loadingList ? "Refreshing…" : "Refresh"}
-            </button>
-            <button
-              className="btn btn--primary"
-              onClick={() => setShowUpload(s => !s)}
-              style={{
-                border: 'none',
-                outline: 'none',
-                boxShadow: 'none'
-              }}
-              onFocus={(e) => { e.currentTarget.style.boxShadow = '0 0 0 3px rgba(24,144,255,0.35)'; }}
-              onBlur={(e) => { e.currentTarget.style.boxShadow = 'none'; }}
-            >
+            </Button>
+            
+            {/* Toggle button for upload interface */}
+            <Button onClick={() => setShowUpload(s => !s)}>
               {showUpload ? "Close Upload" : "Add new"}
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
-      {/* Show only Add new button when uploading */}
+      {/* Upload Mode Controls - Only visible during upload */}
       {showUpload && (
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
-          <button
-            className="btn btn--primary"
-            onClick={() => setShowUpload(false)}
-            style={{
-              border: 'none',
-              outline: 'none',
-              boxShadow: 'none'
-            }}
-            onFocus={(e) => { e.currentTarget.style.boxShadow = '0 0 0 3px rgba(24,144,255,0.35)'; }}
-            onBlur={(e) => { e.currentTarget.style.boxShadow = 'none'; }}
-          >
+          <Button onClick={() => setShowUpload(false)}>
             Close
-          </button>
+          </Button>
         </div>
       )}
 
+      {/* Error Display - Show API errors when not in upload mode */}
       {listError && !showUpload && (
-        <div className="card" style={{ background: "#2d1f1f", border: "1px solid #5a2f2f", color: "#fca5a5", padding: 12, marginBottom: 16 }}>
+        <Card style={{ 
+          background: "#2d1f1f", 
+          border: "1px solid #5a2f2f", 
+          color: "#fca5a5", 
+          padding: 12, 
+          marginBottom: 16 
+        }}>
           {listError}
-        </div>
+        </Card>
       )}
 
+      {/* Upload Interface - Embedded upload component */}
       {showUpload && (
-        <div className="card" style={{ padding: 16, marginBottom: 20 }}>
-          <UploadMicroApp onUploaded={() => { fetchMicroApps(); setShowUpload(false); }} />
-        </div>
+        <Card style={{ padding: 16, marginBottom: 20 }}>
+          <UploadMicroApp 
+            onUploaded={() => { 
+              fetchMicroApps(); // Refresh list after successful upload
+              setShowUpload(false); // Close upload panel
+            }} 
+          />
+        </Card>
       )}
 
-      {/* Micro-apps grid - only show when not uploading */}
+      {/* Micro-Apps Grid Display - Main content area */}
       {!showUpload && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
+        <div style={{ 
+          display: "grid", 
+          gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", 
+          gap: 12 
+        }}>
+          {/* Loading State - Show when fetching data and no existing data */}
           {loadingList && microApps.length === 0 && (
-            <div
-              className="card"
-              style={{
-                padding: 16,
-                background: '#e6f4ff',
-                border: '1px solid #bae0ff',
-                color: '#003a67',
-                fontWeight: 500
+            <Loading message="Loading micro-apps…" />
+          )}
+          
+          {/* Empty State - Show when no apps available and not loading */}
+          {!loadingList && microApps.length === 0 && !listError && (
+            <Card style={{ padding: 16, background: "#111" }}>
+              No micro-apps found.
+            </Card>
+          )}
+          
+          {/* Micro-App Cards - Render each micro-app as a card */}
+          {microApps.map(app => (
+            <Card
+              key={app.micro_app_id || app.app_id} // Use available ID field
+              style={{ 
+                padding: 16, 
+                background: '#f5faff', 
+                border: '1px solid #e6f4ff', 
+                cursor: 'default', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: 8, 
+                borderRadius: 14, 
+                boxShadow: '0 3px 8px -2px rgba(0,58,103,0.15)' 
               }}
             >
-              Loading micro-apps…
-            </div>
-          )}
-          {!loadingList && microApps.length === 0 && !listError && (
-            <div className="card" style={{ padding: 16, background: "#111" }}>No micro-apps found.</div>
-          )}
-          {microApps.map(app => (
-            <div
-              key={app.micro_app_id || app.app_id}
-              className="card"
-              style={{ padding: 16, background: '#f5faff', border: '1px solid #e6f4ff', cursor: 'default', display: 'flex', flexDirection: 'column', gap: 8, borderRadius: 14, boxShadow: '0 3px 8px -2px rgba(0,58,103,0.15)' }}
-            >
+              {/* App Header with Icon and Basic Info */}
               <div style={{ display: 'flex', gap: 12 }}>
-                <div style={{ width: 48, height: 48, background: '#e6f4ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, borderRadius: 8, color: '#1677ff' }}>
+                {/* App Icon - Generated from name initials */}
+                <div style={{ 
+                  width: 48, 
+                  height: 48, 
+                  background: '#e6f4ff', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  fontWeight: 600, 
+                  borderRadius: 8, 
+                  color: '#1677ff' 
+                }}>
                   {(app.name || app.app_id || '?').slice(0,2).toUpperCase()}
                 </div>
+                
+                {/* App Name and Version */}
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, color: '#262626' }}>{app.name || app.app_id}</div>
-                  <div style={{ color: '#8c8c8c', fontSize: 12 }}>v{app.version || '—'}</div>
+                  <div style={{ fontWeight: 600, color: '#262626' }}>
+                    {app.name || app.app_id}
+                  </div>
+                  <div style={{ color: '#8c8c8c', fontSize: 12 }}>
+                    v{app.version || '—'}
+                  </div>
                 </div>
               </div>
+              
+              {/* App Description */}
               <div style={{ color: '#595959', fontSize: 12, flexGrow: 1 }}>
                 {app.description || 'No description'}
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       )}
