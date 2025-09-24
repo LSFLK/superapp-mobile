@@ -61,7 +61,7 @@ root.render(
         baseUrl: "https://api.asgardeo.io/t/lsfproject", // Asgardeo tenant URL
         
         // OpenID Connect scopes - determines what user information is available
-        scope: ["openid", "profile"] // openid = authentication, profile = user details
+        scope: ["openid", "profile", "groups"] // openid = authentication, profile = user details, groups = group membership
       }}
     >
       <App />

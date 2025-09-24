@@ -24,6 +24,8 @@ import { Layout } from "antd";
 import UserProfile from "./components/UserProfile";
 import MicroAppManagement from "./components/MicroAppManagement";
 import MenuBar from "./components/MenuBar";
+import RoleBasedAccessControl from "./components/RoleBasedAccessControl";
+import GroupDebugger from "./components/GroupDebugger";
 import { COMMON_STYLES, COLORS } from "./constants/styles";
 
 const { Content } = Layout;
@@ -83,7 +85,7 @@ function App() {
   return (
     <Layout style={{ minHeight: "100vh" }}>
       {isAuthed ? (
-        <>
+        <RoleBasedAccessControl requiredGroup="superapp_admin">
           {/* Authenticated Layout: Sidebar Navigation + Main Content */}
           
           {/* Left sidebar navigation menu */}
@@ -102,6 +104,9 @@ function App() {
             </div>
             <Content style={{ padding: "16px" }}>
               <main className="container" style={{ paddingBottom: 48 }}>
+                {/* TEMPORARY: Group Debugger - REMOVE IN PRODUCTION */}
+                {/* <GroupDebugger /> */}
+
                 {/* Conditional rendering based on active navigation */}
                 {activeKey === "microapp" && (
                   <section style={COMMON_STYLES.section}>
@@ -117,7 +122,7 @@ function App() {
               </main>
             </Content>
           </Layout>
-        </>
+        </RoleBasedAccessControl>
       ) : (
         /* Unauthenticated Layout: Centered Sign-in Form */
         <Layout>
