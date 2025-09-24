@@ -34,12 +34,12 @@ export default function App() {
       holiday.categories.includes("Bank") &&
       holiday.categories.includes("Mercantile")
     )
-      return "public";
+      return "holiday_type_1";
     if (
       holiday.categories.includes("Public") &&
       holiday.categories.includes("Bank")
     )
-      return "bank";
+      return "holiday_type_2";
     return null;
   };
 
@@ -109,8 +109,8 @@ export default function App() {
               if (isToday) {
                 className += " bg-neutral-300 shadow-sm font-semibold";
               }
-              if (type === "public") className += " bg-blue-500 text-white";
-              else if (type === "bank") className += " bg-yellow-200";
+              if (type === "holiday_type_1") className += " bg-blue-500 text-white";
+              else if (type === "holiday_type_2") className += " bg-yellow-200";
 
               return (
                 <div key={idx} className="p-1">
