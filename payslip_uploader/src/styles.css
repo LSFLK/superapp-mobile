@@ -406,3 +406,13 @@ code.inline { background:#eef7ff; padding:2px 6px; border-radius:6px; font-size:
     max-height: 350px;
   }
 }
+
+/* ============================================================================
+ * ROLE-BASED ACCESS CONTROL ANIMATIONS
+ * ============================================================================ */
+
+/* Spinning animation for loading states */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

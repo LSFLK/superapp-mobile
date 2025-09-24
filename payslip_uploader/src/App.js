@@ -45,6 +45,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuthContext } from '@asgardeo/auth-react';
 import PayslipUpload from './PayslipUpload';
+import RoleBasedAccessControl from './components/RoleBasedAccessControl';
 import { CSS_CLASSES } from './constants';
 import './styles.css';
 
@@ -200,58 +201,64 @@ export default function App() {
    * principles for optimal user experience across devices.
    */
   return (
-    <div className="app-shell">
-      <div className={CSS_CLASSES.CARD}>
-        {/* ===== APPLICATION HEADER ===== */}
-        <div className={CSS_CLASSES.HEADER_SECTION}>
-          <div className={CSS_CLASSES.HEADER_CONTENT}>
-            {/* Main Application Title */}
-            <h1 className="title">Payslip Upload</h1>
-            
-            {/* User Information and Session Management */}
-            <div className={CSS_CLASSES.USER_INFO}>
-              <span className="welcome-text">Welcome, {displayName}</span>
-              <button 
-                className={`${CSS_CLASSES.BUTTON_SECONDARY} ${CSS_CLASSES.BUTTON_SMALL}`} 
-                onClick={() => auth?.signOut()}
-                aria-label="Sign out and end current session"
-                title="Sign out from the application"
-              >
-                Sign Out
-              </button>
+    <RoleBasedAccessControl requiredGroup="Finance_dept">
+      <div className="app-shell">
+        <div className={CSS_CLASSES.CARD}>
+          {/* ===== APPLICATION HEADER ===== */}
+          <div className={CSS_CLASSES.HEADER_SECTION}>
+            <div className={CSS_CLASSES.HEADER_CONTENT}>
+              {/* Main Application Title */}
+              <h1 className="title">Payslip Upload</h1>
+              
+              {/* User Information and Session Management */}
+              <div className={CSS_CLASSES.USER_INFO}>
+                <span className="welcome-text">Welcome, {displayName}</span>
+                <button 
+                  className={`${CSS_CLASSES.BUTTON_SECONDARY} ${CSS_CLASSES.BUTTON_SMALL}`} 
+                  onClick={() => auth?.signOut()}
+                  aria-label="Sign out and end current session"
+                  title="Sign out from the application"
+                >
+                  Sign Out
+                </button>
+              </div>
             </div>
+            
+            {/* File Format Instructions */}
+            <p className="subtitle">Upload an <strong>Excel</strong> or <strong>CSV</strong> file.</p>
           </div>
+
+          {/* ===== MAIN UPLOAD FUNCTIONALITY ===== */}
+          {/* 
+            PayslipUpload component handles:
+            - Drag-and-drop file upload interface
+            - File format validation and conversion
+            - Backend API communication
+            - Upload progress and status feedback
+            - Data display table with uploaded records
+            
+            NOTE: If you need to debug group membership issues, temporarily add:
+            import GroupDebugger from './components/GroupDebugger';
+            <GroupDebugger />
+          */}
+          <PayslipUpload />
+
+          {/* ===== DIVIDER ===== */}
+          <hr className="hr" />
           
-          {/* File Format Instructions */}
-          <p className="subtitle">Upload an <strong>Excel</strong> or <strong>CSV</strong> file.</p>
-        </div>
-
-        {/* ===== MAIN UPLOAD FUNCTIONALITY ===== */}
-        {/* 
-          PayslipUpload component handles:
-          - Drag-and-drop file upload interface
-          - File format validation and conversion
-          - Backend API communication
-          - Upload progress and status feedback
-          - Data display table with uploaded records
-        */}
-        <PayslipUpload />
-
-        {/* ===== DIVIDER ===== */}
-        <hr className="hr" />
-        
-        {/* ===== FOOTER INFORMATION ===== */}
-        {/* 
-          Critical information about required data format
-          Helps users structure their files correctly for successful uploads
-        */}
-        <div className="footer-note">
-          Ensure the column headers follow the required format:{' '}
-          <code className="inline">
-            employee_id, designation, name, department, pay_period, basic_salary, allowances, deductions, net_salary
-          </code>
+          {/* ===== FOOTER INFORMATION ===== */}
+          {/* 
+            Critical information about required data format
+            Helps users structure their files correctly for successful uploads
+          */}
+          <div className="footer-note">
+            Ensure the column headers follow the required format:{' '}
+            <code className="inline">
+              employee_id, designation, name, department, pay_period, basic_salary, allowances, deductions, net_salary
+            </code>
+          </div>
         </div>
       </div>
-    </div>
+    </RoleBasedAccessControl>
   );
 }
