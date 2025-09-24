@@ -1,28 +1,53 @@
+/**
+ * Government Calendar App 🇱🇰
+ *
+ * A simple React + Vite + TailwindCSS calendar that:
+ * - Displays holidays from year-specific JSON files under /events/
+ * - Highlights holidays in different colors depending on type
+ * - Marks today's date with a neutral highlight
+ * - Supports navigating between months and automatically loads events for the correct year
+ */
+
+
 import { useState, useEffect } from "react";
 
+// Weekday headers for the calendar
 const dayNames = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
 export default function App() {
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 0)); // default: January 2025
-  const [events, setEvents] = useState([]);
+
+  const [currentDate, setCurrentDate] = useState(new Date(2025, 0)); // Default starting month → January 2025
+  const [events, setEvents] = useState([]); // Holds holidays for the current year
 
   const month = currentDate.getMonth();
   const year = currentDate.getFullYear();
 
-  // dynamically load JSON based on year
+  /**
+   * Dynamically load holiday data JSON for the current year.
+   * Files are expected at: /events/{year}.json
+   */
   useEffect(() => {
     import(`../events/${year}.json`)
       .then((data) => setEvents(data.default))
       .catch(() => setEvents([])); // fallback if file missing
   }, [year]);
 
+  
+  // First weekday of the month (0 = Sunday, 6 = Saturday)
   const firstDay = new Date(year, month, 1).getDay();
+
+  // Total number of days in the month
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
+  // Navigate to previous / next month
   const prevMonth = () => setCurrentDate(new Date(year, month - 1));
   const nextMonth = () => setCurrentDate(new Date(year, month + 1));
 
-  // check if a date has a holiday
+
+  /**
+   * Determine holiday type for a given date.
+   * Returns either "holiday_type_1", "holiday_type_2", or null if no holiday.
+   */
   const getHolidayType = (date) => {
     const dateStr = date.toISOString().split("T")[0];
     const holiday = events.find(
@@ -43,7 +68,11 @@ export default function App() {
     return null;
   };
 
-  // build calendar grid
+
+  /**
+   * Build the grid of days for the calendar.
+   * Includes padding (nulls) for days before the first of the month.
+   */
   const calendarDays = [];
   for (let i = 0; i < firstDay; i++) {
     calendarDays.push(null);
@@ -51,6 +80,7 @@ export default function App() {
   for (let d = 1; d <= daysInMonth; d++) {
     calendarDays.push(new Date(year, month, d));
   }
+
 
   return (
     <div className="flex items-start justify-center min-h-screen bg-gray-50 pt-20">
