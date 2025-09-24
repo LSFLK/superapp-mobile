@@ -13,4 +13,43 @@ The calendar:
 ## Tech Stack
 - [React](https://reactjs.org/) (with Hooks)  
 - [Vite](https://vitejs.dev/) (fast bundler)  
-- [TailwindCSS](https://tailwindcss.com/) (styling) 
+- [TailwindCSS](https://tailwindcss.com/) (styling)  
+
+---
+
+## Setup & Development
+
+### 1. Clone the repo
+```bash
+git clone https://github.com/your-username/government-calendar.git
+cd government-calendar
+```
+
+### 2. Install Dependencies
+```bash
+npm install
+```
+
+### 3. Run locally
+```bash
+npm run dev
+```
+
+---
+
+## Build to insert in the Super App
+
+```bash
+npm run build
+```
+- This will generate a dist/ folder containing the index.html 
+- The index.html file should be zipped and added in the superapp database (micro_apps) in order to view the government-calendar within the superapp.
+
+To preview:
+```bash
+npm run preview
+```
+---
+## License
+
+MIT License © 2025
