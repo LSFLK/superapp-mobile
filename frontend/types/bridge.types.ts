@@ -39,10 +39,10 @@ export interface NativeBridge {
   resolveToken: (token: string, requestId: string) => void;
   getToken: () => string | null;
 
-  // Employee ID methods
-  requestEmpId(): Promise<string>;
-  resolveEmpId: (empId: string, requestId: string) => void;
-  rejectEmpId: (error: string, requestId: string) => void;
+  // User ID methods
+  requestUserId(): Promise<string>;
+  resolveUserId: (userId: string, requestId: string) => void;
+  rejectUserId: (error: string, requestId: string) => void;
 
   // QR Scanner methods
   requestQr(): void;
@@ -103,10 +103,10 @@ export interface BridgeHelpers {
   getToken(): string | null;
 
   /**
-   * Get the current employee ID
-   * @returns The current employee ID or null if not available
+   * Get the current user ID
+   * @returns The current user ID or null if not available
    */
-  // getEmpId(): string | null;
+  // getUserId(): string | null;
 
   /**
    * Request authentication token from native app
@@ -115,10 +115,10 @@ export interface BridgeHelpers {
   requestToken(): Promise<string>;
 
   /**
-   * Request employee ID from native app
-   * @returns Promise that resolves to the employee ID
+   * Request user ID from native app
+   * @returns Promise that resolves to the user ID
    */
-  requestEmpId(): Promise<string>;
+  requestUserId(): Promise<string>;
 
   /**
    * Show a native alert dialog

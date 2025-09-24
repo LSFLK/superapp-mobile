@@ -63,7 +63,7 @@ WebBrowser.maybeCompleteAuthSession();
  */
 const MicroApp = () => {
   const [isScannerVisible, setScannerVisible] = useState(false);
-  const { webViewUri, appName, appId, empID } = useLocalSearchParams<MicroAppParams>();
+  const { webViewUri, appName, appId, userId } = useLocalSearchParams<MicroAppParams>();
   const [hasError, setHasError] = useState(false);
   const webviewRef = useRef<WebView>(null);
   const [token, setToken] = useState<string | null>();
@@ -148,7 +148,7 @@ const MicroApp = () => {
       }
       // Create bridge context for passing data
       const bridgeContext: BridgeContext = {
-        empID,
+        userId,
         appID: appId as string,
         token: token || null,
         setScannerVisible,

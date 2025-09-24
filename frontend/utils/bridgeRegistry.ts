@@ -31,7 +31,7 @@ export interface BridgeFunction {
 }
 
 export interface BridgeContext {
-  empID: string; // Employee ID from authentication
+  userId: string; // User ID from authentication
   appID: string; // Micro-app identifier
   token: string | null; // Authentication token
   setScannerVisible: (visible: boolean) => void; // Control QR scanner visibility
@@ -68,14 +68,14 @@ export const BRIDGE_REGISTRY: BridgeFunction[] = [
 
 
   {
-    topic: "emp_id", 
+    topic: "user_id", 
     handler: async (params, context) => {
-      context.sendResponseToWeb("resolveEmpId", context.empID);
+      context.sendResponseToWeb("resolveUserId", context.userId);
     },
     webViewMethods: {
-      request: "requestEmpId",
-      resolve: "resolveEmpId", 
-      reject: "rejectEmpId",
+      request: "requestUserId",
+      resolve: "resolveUserId", 
+      reject: "rejectUserId",
     }
   },
 
@@ -195,22 +195,22 @@ export const BRIDGE_REGISTRY: BridgeFunction[] = [
     topic: "microapp_token",
     handler: async (params, context) => {
       try {
-        const { appID, empID } = context;
+        const { appID, userId } = context;
         // console.log("app id in context", appID);
         if (!appID) {
           throw new Error("app_id parameter is required");
         }
 
-        if (!empID) {
-          throw new Error("Employee ID is not available");
+        if (!userId) {
+          throw new Error("User ID is not available");
         }
 
         const tokenParams: MicroAppTokenParams = {
-          emp_id: empID,
+          emp_id: userId,
           app_id: appID
         };
 
-        console.log(`Requesting microapp token for app: ${appID}, emp: ${empID}`);
+        console.log(`Requesting microapp token for app: ${appID}, user: ${userId}`);
 
         const tokenData = await fetchMicroAppToken(tokenParams);
         

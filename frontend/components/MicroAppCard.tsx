@@ -72,7 +72,7 @@ export const MicroAppCard: React.FC<MicroAppCardProps> = ({
           appId: app.app_id,
           appName: app.name,
           webViewUri: app.webViewUri,
-          empID: userInfo?.employeeID || "",
+          userId: userInfo?.employeeID || "",
         },
       });
     } else {

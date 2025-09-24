@@ -2,7 +2,16 @@
 
 ## Overview
 
-The Bridge is a communication layer that enables secure, bidirectional messaging between the SuperApp (React Native) and embedded MicroApps (web applications running in WebViews). This architecture allows MicroApps to access native device capabilities and SuperApp services while maintaining security boundaries.
+The Bridge is a commu```typescript
+interface BridgeContext {
+  userId: string;                              // User ID from authentication
+  appID: string;                              // Current MicroApp ID
+  token: string | null;                       // Authentication token
+  setScannerVisible: (visible: boolean) => void; // Control QR scanner visibility
+  sendResponseToWeb: (method: string, data?: any) => void; // Send response to MicroApp
+  pendingTokenRequests: ((token: string) => void)[]; // Token request queue
+}
+```ayer that enables secure, bidirectional messaging between the SuperApp (React Native) and embedded MicroApps (web applications running in WebViews). This architecture allows MicroApps to access native device capabilities and SuperApp services while maintaining security boundaries.
 
 ### Underlying Technology
 
@@ -141,12 +150,12 @@ try {
   console.error('Token request failed:', error);
 }
 
-// Request employee ID
+// Request user ID
 try {
-  const empId = await window.nativebridge.requestEmpId();
-  console.log('Employee ID:', empId);
+  const userId = await window.nativebridge.requestUserId();
+  console.log('User ID:', userId);
 } catch (error) {
-  console.error('Failed to get employee ID:', error);
+  console.error('Failed to get user ID:', error);
 }
 ```
 
@@ -176,13 +185,13 @@ if (token) {
 // Example with proper error handling
 async function loadUserData() {
   try {
-    const [token, empId] = await Promise.all([
+    const [token, userId] = await Promise.all([
       window.nativebridge.requestToken(),
-      window.nativebridge.requestEmpId()
+      window.nativebridge.requestUserId()
     ]);
     
-    // Use token and empId
-    console.log('User authenticated:', { token, empId });
+    // Use token and userId
+    console.log('User authenticated:', { token, userId });
   } catch (error) {
     console.error('Failed to load user data:', error);
     // Handle error appropriately
@@ -199,9 +208,9 @@ async function loadUserData() {
 - **Helper**: `window.nativebridge.getToken()` → `string | null`
 - **Purpose**: Retrieve authentication token for API calls
 
-#### Employee ID
-- **Request**: `await window.nativebridge.requestEmpId()` → `Promise<string>`
-- **Purpose**: Get current user's employee identifier
+#### User ID
+- **Request**: `await window.nativebridge.requestUserId()` → `Promise<string>`
+- **Purpose**: Get current user's identifier
 
 #### MicroApp Token
 - **Request**: `await window.nativebridge.requestMicroAppToken(params)` → `Promise<{token: string, expiresAt: string, app_id: string}>`
@@ -268,7 +277,13 @@ async function loadUserData() {
 
 ### From Event-based to Promise-based API
 
-The bridge has been updated from an event-based system to a promise-based system for cleaner asynchronous handling:
+The bridge has been updated from an event-based system to a promise-based system for cleaner asynchronous handling. Variable names have also been made more generic:
+
+**Naming Changes:**
+- `empID` → `userId` (more generic for different organization types)
+- `requestEmpId()` → `requestUserId()`
+- `resolveEmpId` → `resolveUserId`
+- `rejectEmpId` → `rejectUserId`
 
 **Before (Event-based):**
 ```javascript

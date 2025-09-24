@@ -10,7 +10,7 @@ export default function PayslipViewer() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [microappToken, setMicroappToken] = useState("No Microapp Token"); // Default fallback
-  const [empID, setEmpID] = useState(null);
+  const [userId, setUserId] = useState(null);
   const [consoleLogs, setConsoleLogs] = useState([]);
   const [showDebugInfo, setShowDebugInfo] = useState(false);
 
@@ -59,13 +59,13 @@ export default function PayslipViewer() {
             }
           }
 
-          // Get employee ID
-          if (window.nativebridge.requestEmpId) {
+          // Get user ID
+          if (window.nativebridge.requestUserId) {
             try {
-              const empId = await window.nativebridge.requestEmpId();
-              setEmpID(empId);
+              const userIdValue = await window.nativebridge.requestUserId();
+              setUserId(userIdValue);
             } catch (error) {
-              console.error('Failed to get employee ID:', error);
+              console.error('Failed to get user ID:', error);
             }
           }
         } else {
@@ -90,7 +90,7 @@ export default function PayslipViewer() {
         {/* Header */}
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Payslip</h1>
-          <p className="text-gray-600 text-sm">Employee ID: {empID || 'Not Available'}</p>
+          <p className="text-gray-600 text-sm">User ID: {userId || 'Not Available'}</p>
         </div>
 
         {/* Loading */}
