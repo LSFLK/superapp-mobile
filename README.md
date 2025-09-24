@@ -21,7 +21,7 @@ The calendar:
 
 ### 1. Clone the repo
 ```bash
-git clone https://github.com/your-username/government-calendar.git
+git clone <git-repo>
 cd government-calendar
 ```
 
