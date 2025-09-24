@@ -74,9 +74,9 @@ cd payslip-service
 ```
 2. Ensure your MySQL database is running and the user has appropriate privileges.
 
-3. Build and run the service using the TOML configuration:
+3. Build and run the service:
 ```bash
-ballerina run service --config config.toml
+bal run
 ```
 4. By default, the service will start on port 9090. Example endpoints:
 - Health check:`GET http://localhost:9090/health`
