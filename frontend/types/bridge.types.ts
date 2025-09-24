@@ -35,37 +35,41 @@ declare global {
 export interface NativeBridge {
   
   // Token methods
-  requestToken: () => void;
-  resolveToken: (token: string) => void;
+  requestToken(): Promise<string>;
+  resolveToken: (token: string, requestId: string) => void;
   getToken: () => string | null;
 
+  // Employee ID methods
+  requestEmpId(): Promise<string>;
+  resolveEmpId: (empId: string, requestId: string) => void;
+  rejectEmpId: (error: string, requestId: string) => void;
+
   // QR Scanner methods
-  requestQr: () => void;
+  requestQr(): void;
 
   // Alert methods
   requestAlert: (title: string, message: string, buttonText: string) => void;
 
   // Confirm Alert methods
-  requestConfirmAlert: (title: string, message: string, confirmButtonText: string, cancelButtonText: string) => void;
-  resolveConfirmAlert: (result: "confirm" | "cancel") => void;
+  requestConfirmAlert: (title: string, message: string, confirmButtonText: string, cancelButtonText: string) => Promise<"confirm" | "cancel">;
+  resolveConfirmAlert: (result: "confirm" | "cancel", requestId: string) => void;
 
   // Local Storage methods
-  requestSaveLocalData: (key: string, value: string) => void;
-  resolveSaveLocalData: () => void;
-  rejectSaveLocalData: (error: string) => void;
+  requestSaveLocalData: (key: string, value: string) => Promise<void>;
+  resolveSaveLocalData: (requestId: string) => void;
+  rejectSaveLocalData: (error: string, requestId: string) => void;
 
-  requestGetLocalData: (key: string) => void;
-  resolveGetLocalData: (data: { value: string | null }) => void;
-  rejectGetLocalData: (error: string) => void;
+  requestGetLocalData: (key: string) => Promise<{ value: string | null }>;
+  resolveGetLocalData: (data: { value: string | null }, requestId: string) => void;
+  rejectGetLocalData: (error: string, requestId: string) => void;
 
-  // When you add new bridge functions to bridgeRegistry.ts, add their type signatures here
-  // Example:
-  // requestUserSettings: () => void;
-  // resolveUserSettings: (settings: any) => void;
-  // getUserSettings: () => any;
+  // Micro-app Token methods
+  requestMicroAppToken: (params?: any) => Promise<{ token: string; expiresAt: string; app_id: string }>;
+  resolveMicroAppToken: (data: { token: string; expiresAt: string; app_id: string }, requestId: string) => void;
+  rejectMicroAppToken: (error: string, requestId: string) => void;
 }
 
-// Event types for bridge communication
+// Event types for bridge communication (deprecated - use promises instead)
 export interface BridgeEvents {
   // Core events that are always available
   nativeTokenReceived: CustomEvent<string>;
@@ -106,13 +110,15 @@ export interface BridgeHelpers {
 
   /**
    * Request authentication token from native app
+   * @returns Promise that resolves to the token
    */
-  requestToken(): void;
+  requestToken(): Promise<string>;
 
   /**
    * Request employee ID from native app
+   * @returns Promise that resolves to the employee ID
    */
-  // requestEmpId(): void;
+  requestEmpId(): Promise<string>;
 
   /**
    * Show a native alert dialog

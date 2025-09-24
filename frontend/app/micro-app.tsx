@@ -124,15 +124,6 @@ const MicroApp = () => {
   }, [clientId]);*/
 
 
-  /**
-   * Sends responses from native code back to the web micro-app
-   * through the injected bridge JavaScript interface.
-   */
-  const sendResponseToWeb = (method: string, data?: any) => {
-    webviewRef.current?.injectJavaScript(
-      `window.nativebridge.${method}(${JSON.stringify(data)});`
-    );
-  };
 
 
   /**
@@ -146,7 +137,7 @@ const MicroApp = () => {
    */
   const onMessage = async (event: WebViewMessageEvent) => {
     try {
-      const { topic, data } = JSON.parse(event.nativeEvent.data);
+      const { topic, data, requestId } = JSON.parse(event.nativeEvent.data);
       if (!topic) throw new Error("Invalid message format: Missing topic");
 
       // Get handler from registry
@@ -161,7 +152,14 @@ const MicroApp = () => {
         appID: appId as string,
         token: token || null,
         setScannerVisible,
-        sendResponseToWeb,
+  //    * Sends responses from native code back to the web micro-app
+  //    * through the injected bridge JavaScript interface.
+        sendResponseToWeb: (method: string, data?: any, reqId?: string) => {
+          const idToUse = reqId || requestId;
+          webviewRef.current?.injectJavaScript(
+            `window.nativebridge.${method}(${JSON.stringify(data)}, "${idToUse}");`
+          );
+        },
         pendingTokenRequests
       };
 

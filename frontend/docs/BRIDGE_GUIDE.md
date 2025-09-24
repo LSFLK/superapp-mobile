@@ -9,7 +9,7 @@ The Bridge is a communication layer that enables secure, bidirectional messaging
 The Bridge leverages React Native's WebView component and the `postMessage` API for cross-context communication:
 
 - **Message Passing**: Uses `window.ReactNativeWebView.postMessage()` for MicroApp → SuperApp communication
-- **Event System**: Custom DOM events for SuperApp → MicroApp responses
+- **Promise System**: Promise-based responses for SuperApp → MicroApp communication
 - **Type Safety**: Auto-generated TypeScript definitions ensure compile-time safety
 - **Registry Pattern**: Centralized function registry for maintainable bridge management
 
@@ -20,7 +20,7 @@ The Bridge leverages React Native's WebView component and the `postMessage` API 
 │   MicroApp      │ ────────────────► │   SuperApp      │
 │   (WebView)     │                   │   (React Native)│
 │                 │ ◄───────────────  │                 │
-└─────────────────┘   Custom Events   └─────────────────┘
+└─────────────────┘     Promises      └─────────────────┘
 ```
 
 ## Developer Roles
@@ -34,8 +34,8 @@ Responsible for maintaining the bridge infrastructure and implementing native fu
 
 ### MicroApp Developer
 Develops web applications that integrate with the SuperApp through the bridge. Responsibilities include:
-- Using bridge APIs to access native features
-- Handling asynchronous responses via event listeners
+- Using bridge APIs to access native features via promises
+- Handling asynchronous responses with async/await
 - Managing bridge state and error conditions
 - Following security best practices for cross-origin communication
 
@@ -130,23 +130,24 @@ if (window.nativebridge) {
 
 ### Making Requests
 
-All bridge functions follow an asynchronous request-response pattern:
+All bridge functions now return promises for cleaner asynchronous handling:
 
 ```javascript
-// Request operation
-window.nativebridge.requestToken();
-
-// Listen for response
-window.addEventListener('resolveToken', (event) => {
-  const token = event.detail;
+// Request token with promise-based API
+try {
+  const token = await window.nativebridge.requestToken();
   console.log('Received token:', token);
-});
-
-// Listen for errors
-window.addEventListener('rejectToken', (event) => {
-  const error = event.detail;
+} catch (error) {
   console.error('Token request failed:', error);
-});
+}
+
+// Request employee ID
+try {
+  const empId = await window.nativebridge.requestEmpId();
+  console.log('Employee ID:', empId);
+} catch (error) {
+  console.error('Failed to get employee ID:', error);
+}
 ```
 
 ### Synchronous Helpers
@@ -160,38 +161,33 @@ if (token) {
   // Use cached token
 } else {
   // Request fresh token
-  window.nativebridge.requestToken();
+  const freshToken = await window.nativebridge.requestToken();
 }
 ```
 
-### Event Handling Best Practices
+### Promise-based Best Practices
 
-- **Use unique event listeners**: Avoid duplicate listeners for the same event
-- **Clean up listeners**: Remove event listeners when components unmount
-- **Handle both resolve and reject**: Always implement error handling
-- **Type event data**: Use TypeScript for better development experience
+- **Use async/await**: For cleaner, more readable asynchronous code
+- **Handle errors**: Always wrap bridge calls in try/catch blocks
+- **Type responses**: Use TypeScript for better development experience
+- **Avoid blocking**: Don't call bridge functions in render loops
 
 ```javascript
-// Example with proper cleanup
-useEffect(() => {
-  const handleResolve = (event) => {
-    const data = event.detail;
-    // Process data
-  };
-
-  const handleReject = (event) => {
-    const error = event.detail;
-    // Handle error
-  };
-
-  window.addEventListener('resolveMyFunction', handleResolve);
-  window.addEventListener('rejectMyFunction', handleReject);
-
-  return () => {
-    window.removeEventListener('resolveMyFunction', handleResolve);
-    window.removeEventListener('rejectMyFunction', handleReject);
-  };
-}, []);
+// Example with proper error handling
+async function loadUserData() {
+  try {
+    const [token, empId] = await Promise.all([
+      window.nativebridge.requestToken(),
+      window.nativebridge.requestEmpId()
+    ]);
+    
+    // Use token and empId
+    console.log('User authenticated:', { token, empId });
+  } catch (error) {
+    console.error('Failed to load user data:', error);
+    // Handle error appropriately
+  }
+}
 ```
 
 ## Available Bridge Functions
@@ -199,32 +195,26 @@ useEffect(() => {
 ### Authentication & Identity
 
 #### Token Management
-- **Request**: `window.nativebridge.requestToken()`
-- **Resolve Event**: `resolveToken` (data: string)
-- **Helper**: `window.nativebridge.getToken()` → string | null
+- **Request**: `await window.nativebridge.requestToken()` → `Promise<string>`
+- **Helper**: `window.nativebridge.getToken()` → `string | null`
 - **Purpose**: Retrieve authentication token for API calls
 
 #### Employee ID
-- **Request**: `window.nativebridge.requestEmpId()`
-- **Resolve Event**: `resolveEmpId` (data: string)
-- **Helper**: `window.nativebridge.getEmpId()` → string | null
+- **Request**: `await window.nativebridge.requestEmpId()` → `Promise<string>`
 - **Purpose**: Get current user's employee identifier
 
 #### MicroApp Token
-- **Request**: `window.nativebridge.requestMicroAppToken()`
-- **Resolve Event**: `resolveMicroAppToken` (data: {token: string, expiresAt: string, app_id: string})
-- **Reject Event**: `rejectMicroAppToken` (error: string)
+- **Request**: `await window.nativebridge.requestMicroAppToken(params)` → `Promise<{token: string, expiresAt: string, app_id: string}>`
 - **Purpose**: Get app-specific authentication token
 
 ### User Interface
 
 #### Alert Dialog
 - **Request**: `window.nativebridge.requestAlert(title, message, buttonText)`
-- **Purpose**: Display native alert dialog
+- **Purpose**: Display native alert dialog (fire-and-forget)
 
 #### Confirmation Dialog
-- **Request**: `window.nativebridge.requestConfirmAlert(title, message, confirmButtonText, cancelButtonText)`
-- **Resolve Event**: `resolveConfirmAlert` (data: "confirm" | "cancel")
+- **Request**: `await window.nativebridge.requestConfirmAlert(title, message, confirmButtonText, cancelButtonText)` → `Promise<"confirm" | "cancel">`
 - **Purpose**: Display native confirmation dialog
 
 ### Device Features
@@ -237,15 +227,11 @@ useEffect(() => {
 ### Data Storage
 
 #### Save Local Data
-- **Request**: `window.nativebridge.requestSaveLocalData(key, value)`
-- **Resolve Event**: `resolveSaveLocalData`
-- **Reject Event**: `rejectSaveLocalData` (error: string)
+- **Request**: `await window.nativebridge.requestSaveLocalData(key, value)` → `Promise<void>`
 - **Purpose**: Persist data using AsyncStorage
 
 #### Get Local Data
-- **Request**: `window.nativebridge.requestGetLocalData(key)`
-- **Resolve Event**: `resolveGetLocalData` (data: {value: string | null})
-- **Reject Event**: `rejectGetLocalData` (error: string)
+- **Request**: `await window.nativebridge.requestGetLocalData(key)` → `Promise<{value: string | null}>`
 - **Purpose**: Retrieve persisted data
 
 ## Security Considerations
@@ -261,7 +247,7 @@ useEffect(() => {
 ### Common Issues
 
 1. **Bridge not available**: Ensure WebView has finished loading and bridge is injected
-2. **Events not firing**: Check event listener attachment and naming
+2. **Promises not resolving**: Check that bridge methods are called correctly with await
 3. **TypeScript errors**: Regenerate types after adding new functions
 4. **Async operations failing**: Verify proper async/await usage in handlers
 
@@ -269,7 +255,7 @@ useEffect(() => {
 
 1. **Check console logs**: Both native and web consoles show bridge activity
 2. **Verify function registration**: Ensure topic names match exactly
-3. **Test event listeners**: Use browser dev tools to inspect attached listeners
+3. **Test promise resolution**: Use browser dev tools to inspect promise states
 4. **Network monitoring**: Look for postMessage calls in network tab
 
 ### Error Messages
@@ -280,10 +266,37 @@ useEffect(() => {
 
 ## Migration Guide
 
-When updating bridge functions:
+### From Event-based to Promise-based API
+
+The bridge has been updated from an event-based system to a promise-based system for cleaner asynchronous handling:
+
+**Before (Event-based):**
+```javascript
+window.nativebridge.requestToken();
+window.addEventListener('resolveToken', (event) => {
+  const token = event.detail;
+  // handle success
+});
+window.addEventListener('rejectToken', (event) => {
+  const error = event.detail;
+  // handle error
+});
+```
+
+**After (Promise-based):**
+```javascript
+try {
+  const token = await window.nativebridge.requestToken();
+  // handle success
+} catch (error) {
+  // handle error
+}
+```
+
+### When updating bridge functions:
 
 1. **Add new function** to registry (maintains backward compatibility)
-2. **Update MicroApps** to use new functions
+2. **Update MicroApps** to use promise-based API
 3. **Remove deprecated functions** after all MicroApps updated
 4. **Update documentation** and TypeScript definitions
 

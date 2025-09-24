@@ -11,7 +11,7 @@ import { fetchMicroAppToken, MicroAppTokenParams } from "@/services/microAppToke
  * 3. Native app receives message and looks up handler in this registry
  * 4. Handler executes logic mentioned in the handler function
  * 5. Handler calls sendResponseToWeb() to send results back
- * 6. Web app receives response via custom DOM events
+ * 6. Web app receives response via promise resolution/rejection
  *
  * Adding New Bridge Functions:
  * - Add entry to BRIDGE_REGISTRY array
@@ -35,7 +35,7 @@ export interface BridgeContext {
   appID: string; // Micro-app identifier
   token: string | null; // Authentication token
   setScannerVisible: (visible: boolean) => void; // Control QR scanner visibility
-  sendResponseToWeb: (method: string, data?: any) => void; // Send responses to web
+  sendResponseToWeb: (method: string, data?: any, requestId?: string) => void; // Send responses to web
   pendingTokenRequests: ((token: string) => void)[]; // Queue for token requests
 }
 
@@ -75,7 +75,7 @@ export const BRIDGE_REGISTRY: BridgeFunction[] = [
     webViewMethods: {
       request: "requestEmpId",
       resolve: "resolveEmpId", 
-      reject: "regectEmpId",
+      reject: "rejectEmpId",
     }
   },
 

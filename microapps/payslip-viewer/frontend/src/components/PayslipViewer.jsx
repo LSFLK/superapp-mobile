@@ -44,59 +44,42 @@ export default function PayslipViewer() {
       setLoading(false);
     }
 
-    const getMicroappToken = () => {
-      window.nativebridge.requestMicroAppToken({ app_id: "payslip-viewer" });
+    const initializeApp = async () => {
+      try {
+        // Check if we're running in native app (bridge available)
+        if (window.nativebridge && typeof window.nativebridge === 'object' && Object.keys(window.nativebridge).length > 0) {
+          // Get microapp token
+          if (window.nativebridge.requestMicroAppToken) {
+            try {
+              const tokenData = await window.nativebridge.requestMicroAppToken({ app_id: "payslip-viewer" });
+              setMicroappToken(tokenData.token);
+              await loadPayslip(tokenData.token);
+            } catch (error) {
+              setError(`Failed to get microapp token: ${error}`);
+            }
+          }
 
-      // Listen for the response
-      const handleMicroAppTokenReceived = async (event) => {
-        setMicroappToken(event.detail.token);
-        await loadPayslip(event.detail.token);
-      };
-      window.addEventListener('resolveMicroAppToken', handleMicroAppTokenReceived);
-
-      // Also listen for errors
-      const handleMicroAppTokenError = (event) => {
-        setError(`Failed to get microapp token: ${event.detail}.`);
-      };
-      window.addEventListener('rejectMicroAppToken', handleMicroAppTokenError);
-    }
-
-    const getEmpID = () => {
-      window.nativebridge.requestEmpId();
-      // Listen for employee ID response
-      const handleEmpIDReceived = (event) => {
-        setEmpID(event.detail);
-        // setConsoleLogs((logs) => [...logs, `Received employee ID: ${event.detail}`]);
-      };
-      window.addEventListener('resolveEmpId', handleEmpIDReceived);
-
-      // Also listen for errors
-      const handleMicroAppTokenError = (event) => {
-        setError(`Failed to get microapp token: ${event.detail}`);
-      };
-      window.addEventListener('rejectMicroAppToken', handleMicroAppTokenError);
-
-    }
-
-    // Check if we're running in native app (bridge available)
-    if (window.nativebridge && typeof window.nativebridge === 'object' && Object.keys(window.nativebridge).length > 0) {
-      // setConsoleLogs((logs) => [...logs, 'Native bridge detected.']);
-      if (window.nativebridge.requestMicroAppToken) { getMicroappToken(); }
-      if (window.nativebridge.requestEmpId) { getEmpID(); }
-
-    } else {
-      console.log('Native bridge not available (running in browser).');
-    }
-
-
-
-
-    // Cleanup event listeners
-    return () => {
-      window.removeEventListener('resolveMicroAppToken', () => { });
-      window.removeEventListener('rejectMicroAppToken', () => { });
-      window.removeEventListener('resolveEmpId', () => { });
+          // Get employee ID
+          if (window.nativebridge.requestEmpId) {
+            try {
+              const empId = await window.nativebridge.requestEmpId();
+              setEmpID(empId);
+            } catch (error) {
+              console.error('Failed to get employee ID:', error);
+            }
+          }
+        } else {
+          console.log('Native bridge not available (running in browser).');
+        }
+      } catch (error) {
+        console.error('Error initializing app:', error);
+        setError('Failed to initialize the application');
+      }
     };
+
+    initializeApp();
+
+    // No cleanup needed for promises
   }, []);
 
 

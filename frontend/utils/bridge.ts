@@ -17,40 +17,57 @@ export const generateInjectedJavaScript = () => {
     const { topic, webViewMethods } = bridgeFunction;
 
     /**
-     * Generate request method - allows web app to send requests to native
+     * Generate request method - returns a promise that resolves/rejects based on native response
      * This creates window.nativebridge.someMethod(data) that posts messages to React Native
+     * and returns a promise that will be resolved when native responds
      */
     if (webViewMethods.request) {
       methods.push(`
     ${webViewMethods.request}: (data) => {
-      window.ReactNativeWebView.postMessage(JSON.stringify({
-        topic: '${topic}',
-        data: data
-      }));
+      return new Promise((resolve, reject) => {
+        const requestId = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        
+        // Store the promise resolvers
+        if (!window.nativebridge._pendingPromises) {
+          window.nativebridge._pendingPromises = {};
+        }
+        window.nativebridge._pendingPromises[requestId] = { resolve, reject };
+        
+        // Post message to React Native with request ID
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          topic: '${topic}',
+          data: data,
+          requestId: requestId
+        }));
+      });
     },`);
     }
 
     /**
-     * Generate resolve method - allows native to send success responses to web
-     * Dispatches custom events that web apps can listen to
+     * Generate resolve method - resolves the corresponding promise
      */
     if (webViewMethods.resolve) {
       methods.push(`
-    ${webViewMethods.resolve}: (data) => {
+    ${webViewMethods.resolve}: (data, requestId) => {
       console.log("${topic} resolved:", data);
-      window.dispatchEvent(new CustomEvent('${webViewMethods.resolve}', { detail: data }));
+      if (window.nativebridge._pendingPromises && window.nativebridge._pendingPromises[requestId]) {
+        window.nativebridge._pendingPromises[requestId].resolve(data);
+        delete window.nativebridge._pendingPromises[requestId];
+      }
     },`);
     }
 
     /**
-     * Generate reject method - allows native to send error responses to web
-     * Dispatches custom events for error handling
+     * Generate reject method - rejects the corresponding promise
      */
     if (webViewMethods.reject) {
       methods.push(`
-    ${webViewMethods.reject}: (error) => {
+    ${webViewMethods.reject}: (error, requestId) => {
       console.error("${topic} failed:", error);
-      window.dispatchEvent(new CustomEvent('${webViewMethods.reject}', { detail: error }));
+      if (window.nativebridge._pendingPromises && window.nativebridge._pendingPromises[requestId]) {
+        window.nativebridge._pendingPromises[requestId].reject(error);
+        delete window.nativebridge._pendingPromises[requestId];
+      }
     },`);
     }
 
@@ -80,16 +97,14 @@ export const generateInjectedJavaScript = () => {
         const resolveMethodName = webViewMethods.resolve;
         const resolveIndex = methods.findIndex(m => m.includes(resolveMethodName));
         if (resolveIndex !== -1) {
-          const eventName = `native${topic.split('_').map(word => 
-            word.charAt(0).toUpperCase() + word.slice(1)
-          ).join('')}Received`;
-          
           methods[resolveIndex] = `
-    ${resolveMethodName}: (data) => {
+    ${resolveMethodName}: (data, requestId) => {
       window.${globalVarName} = data;
       console.log("${topic} resolved:", data);
-      window.dispatchEvent(new CustomEvent('${resolveMethodName}', { detail: data }));
-      window.dispatchEvent(new CustomEvent('${eventName}', { detail: data }));
+      if (window.nativebridge._pendingPromises && window.nativebridge._pendingPromises[requestId]) {
+        window.nativebridge._pendingPromises[requestId].resolve(data);
+        delete window.nativebridge._pendingPromises[requestId];
+      }
     },`;
         }
       }
