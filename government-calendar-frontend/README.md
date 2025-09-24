@@ -6,9 +6,13 @@ The calendar:
 - Highlights **public, bank, and mercantile holidays** with different colors  
 - Marks **today’s date** with a neutral box  
 - Allows navigating between **months & years**  
-- Dynamically loads the right events JSON file based on the selected year  
+- Dynamically loads the right events JSON file based on the selected year
 
----
+<p align="left">
+  <a href="https://opensource.org/license/apache-2-0">
+    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-green.svg">
+  </a>
+</p>
 
 ## Tech Stack
 - [React](https://reactjs.org/) (with Hooks)  
@@ -16,27 +20,22 @@ The calendar:
 - [TailwindCSS](https://tailwindcss.com/) (styling)  
 
 ---
-
 ## Setup & Development
 
 ### 1. Clone the repo
 ```bash
-git clone https://github.com/your-username/government-calendar.git
-cd government-calendar
+git clone <git-repo>
+cd government-calendar-frontend
 ```
-
 ### 2. Install Dependencies
 ```bash
 npm install
 ```
-
 ### 3. Run locally
 ```bash
 npm run dev
 ```
-
 ---
-
 ## Build to insert in the Super App
 
 ```bash
@@ -49,9 +48,4 @@ To preview:
 ```bash
 npm run preview
 ```
----
-## License
-
-MIT License © 2025
-
 
