@@ -1,9 +1,19 @@
+// ==============================
+// DB Functions Module
+// ==============================
+// Provides helper functions for interacting with the Payslip database:
+// - initDB: Creates the payslip table if it doesn't exist
+// - insertPayslip: Inserts or updates a payslip record
+// - fetchLatestPayslip: Retrieves the latest payslip for an employee
+// - fetchAllPayslips: Retrieves all payslip records
+// - stopHandler: Gracefully closes the database client
+// ==============================
+
 import ballerina/io;
 import ballerina/sql;
 import ballerinax/mysql.driver as _; // bundle driver
-//import ballerinax/mysql;
-//import db_client;
 
+// Initializes the payslip table if it doesn't already exist
 public function initDB() returns error? {
     _ = check databaseClient->execute(`
         CREATE TABLE IF NOT EXISTS payslips (
@@ -20,16 +30,19 @@ public function initDB() returns error? {
     `);
 }
 
+// Placeholder for DB selection logic (kept for compatibility)
 public isolated function ensureDatabaseSelected() returns error? {
     return ();
 }
 
+
+// Insert or replace a payslip record for an employee
 public isolated function insertPayslip(
         string employeeId, string designation, string name, string department, string payPeriod,
         decimal basicSalary, decimal allowances, decimal deductions, decimal netSalary
     ) returns error? {
 
-    sql:ParameterizedQuery pq = `REPLACE INTO payslips
+    sql:ParameterizedQuery pq = `REPLACE INTO ${PAYSLIP_TABLE}
         (employeeId, designation, name, department, payPeriod, basicSalary, allowances, deductions, netSalary)
         VALUES (${employeeId}, ${designation}, ${name}, ${department}, ${payPeriod},
                 ${basicSalary}, ${allowances}, ${deductions}, ${netSalary})`;
@@ -37,6 +50,7 @@ public isolated function insertPayslip(
     _ = check databaseClient->execute(pq);
 }
 
+// Fetch the most recent payslip for a given employee
 public function fetchLatestPayslip(string employeeId) returns Payslip|error {
     sql:ParameterizedQuery q = `SELECT 
                 employeeId,
@@ -48,7 +62,7 @@ public function fetchLatestPayslip(string employeeId) returns Payslip|error {
                 CAST(allowances AS DOUBLE) AS allowances,
                 CAST(deductions AS DOUBLE) AS deductions,
                 CAST(netSalary AS DOUBLE) AS netSalary
-            FROM payslips 
+            FROM ${PAYSLIP_TABLE} 
             WHERE employeeId = ${employeeId} 
             ORDER BY payPeriod DESC 
             LIMIT 1`;
@@ -56,6 +70,7 @@ public function fetchLatestPayslip(string employeeId) returns Payslip|error {
     return databaseClient->queryRow(q);
 }
 
+// Fetch all payslip records in the table
 public function fetchAllPayslips() returns Payslip[]|error {
     sql:ParameterizedQuery q = `SELECT 
                 employeeId,
@@ -67,7 +82,7 @@ public function fetchAllPayslips() returns Payslip[]|error {
                 CAST(allowances AS DOUBLE) AS allowances,
                 CAST(deductions AS DOUBLE) AS deductions,
                 CAST(netSalary AS DOUBLE) AS netSalary
-            FROM payslips`;
+            FROM ${PAYSLIP_TABLE}`;
 
     stream<Payslip, error?> resultStream = databaseClient->query(q);
     Payslip[] rows = [];
@@ -79,6 +94,7 @@ public function fetchAllPayslips() returns Payslip[]|error {
     return rows;
 }
 
+// Gracefully closes the DB client during shutdown
 public function stopHandler() returns error? {
     io:println("Performing shutdown tasks...");
     check databaseClient.close();

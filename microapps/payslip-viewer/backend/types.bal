@@ -1,3 +1,11 @@
+// ==============================
+// Core Data Models and API Types
+// ==============================
+// Defines the core data structures, API response formats, 
+// request validation types, and authentication-related types
+// used throughout the Payslip service.
+// ==============================
+
 // Core payslip data model
 public type Payslip record {|
     string employeeId;

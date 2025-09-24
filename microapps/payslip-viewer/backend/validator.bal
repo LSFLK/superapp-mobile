@@ -1,10 +1,23 @@
+// ==============================
+// JWT Validator & Interceptor
+// ==============================
+// Handles JWT validation for microapp and admin portal endpoints.
+// Responsibilities:
+// - Extract employee ID from JWT payload
+// - Validate JWT based on issuer, audience, and public key
+// - Intercept requests and attach emp_id to request context
+// - Allow public endpoints like /health without validation
+// ==============================
+
 import ballerina/http;
 import ballerina/jwt;
 import ballerina/log;
 
+// Configurable paths for public keys (different for payslip and admin portal)
 configurable string publicKeyPath_microapp = ?; // e.g., "./public.pem" locally, "/public.pem" in Choreo
 configurable string publicKeyPath_adminPortal = ?; // e.g., "./public.pem" locally, "/public.pem" in Choreo
 
+// Extracts the emp_id claim from JWT payload
 public isolated function extractEmployeeId(jwt:Payload payload) returns string|error {
     anydata|error empClaim = payload["emp_id"];
 
@@ -19,19 +32,24 @@ public isolated function extractEmployeeId(jwt:Payload payload) returns string|e
     return error("emp_id claim is not a string");
 }
 
-# To handle authorization for each resource function invocation.
+
+// Interceptor service to handle authorization for each incoming request
 service class JwtInterceptor {
 
     *http:RequestInterceptor;
+
+    // Default interceptor triggered for all resource function calls
     isolated resource function default [string... path](http:RequestContext ctx, http:Request req)
         returns http:NextService|http:InternalServerError|error? {
 
+        // Skip validation for public health endpoint
         string fullPath = req.rawPath;
-        if fullPath.startsWith("/health") || fullPath.startsWith("/admin-portal/health"){
+        if fullPath.startsWith("/health"){
             log:printInfo("Public endpoint accessed: " + fullPath);
             return ctx.next();
         }
 
+        // Configure validator based on endpoint type
         jwt:ValidatorConfig validatorConfig = {};
 
         if fullPath.startsWith("/admin-portal") {
@@ -55,6 +73,7 @@ service class JwtInterceptor {
         }  
 
 
+        // Extract JWT token from request header
         string|error idToken = req.getHeader(JWT_ASSERTION_HEADER);
 
         if idToken is error {
@@ -67,11 +86,8 @@ service class JwtInterceptor {
             };
         }
 
+        // Validate JWT
         jwt:Payload | jwt:Error payload = jwt:validate(idToken, validatorConfig);
-        
-        // if payload is jwt:Payload {
-        //     log:printInfo("JWT payload: " + payload.toString());
-        // }
 
         if (payload is jwt:Error) {
             string errorMsg = "JWT validation failed! Unauthorized !!!";
@@ -83,6 +99,7 @@ service class JwtInterceptor {
             };
         }
 
+        // For microapp endpoints, extract employee ID and attach to context
         if !fullPath.startsWith("/admin-portal") {
              //Extract emp_id
             string|error empId = extractEmployeeId(payload);

@@ -1,6 +1,14 @@
+// ==============================
+//           Utilities
+// ==============================
+// Provides helper functions for:
+// - Health check responses
+// - Public endpoint identification
+// - Logging incoming requests
+// ==============================
+
 import ballerina/log;
 import ballerina/time;
-
 
 // Health check utilities
 public function createHealthResponse() returns HealthResponse {

@@ -1,3 +1,10 @@
+// ==============================
+// Service Configuration
+// ==============================
+// Contains configurable service parameters, authentication settings,
+// public endpoints, service start time, and database configuration.
+// ==============================
+
 import ballerina/time;
 
 // Service configuration
