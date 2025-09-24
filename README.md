@@ -23,4 +23,4 @@ Supports JWT-based authentication, CSV upload for bulk payslips, health checks, 
 
 ## Project Overview
 
-Full documentation is in [docs/README.md](docs/README.md).
+Full documentation is in [payslip-viewer/backend/README.md](payslip-viewer/backend/README.md).
