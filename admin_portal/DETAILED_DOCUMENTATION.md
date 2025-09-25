@@ -29,7 +29,7 @@ admin_portal/admin-page/src/
 ### index.js
 The main entry point that bootstraps the React application with:
 
-- **Asgardeo AuthProvider**: Configures OAuth2/OIDC authentication
+- **AuthProvider**: Configures OAuth2/OIDC authentication with RBAC
 - **Ant Design Integration**: Provides UI component framework
 - **Performance Monitoring**: Optional web vitals tracking
 
@@ -91,7 +91,7 @@ The root application component that orchestrates the entire admin portal:
 
 **API Integration:**
 - GET `/micro-apps` - List available micro-applications
-- Includes Asgardeo ID and access tokens in headers
+- Includes Identity Provider ID and access tokens in headers
 - Handles multiple response formats (direct array or paginated)
 
 #### UploadMicroApp.jsx
@@ -121,10 +121,10 @@ The root application component that orchestrates the entire admin portal:
 **Purpose**: Displays comprehensive user profile information
 
 **Data Sources:**
-1. **Asgardeo Identity Provider**: Basic OIDC profile claims
+1. **Identity Provider**: Basic OIDC profile claims
    - given_name, family_name, locale, updated_at, picture
 2. **Backend User Service**: Extended organizational information
-   - first_name, last_name, employee_id, department
+   - first_name, last_name, user_id, department
 
 **Features:**
 - Dual-source data fetching with independent error handling
@@ -196,7 +196,7 @@ The root application component that orchestrates the entire admin portal:
 ## 🔐 Authentication & Security
 
 ### Authentication Flow
-1. **Asgardeo OAuth2/OIDC Integration**
+1. **OAuth2/OIDC Integration**
    - User redirected to Asgardeo for authentication
    - OAuth2 authorization code flow
    - JWT tokens returned (ID token + Access token)
@@ -221,7 +221,7 @@ The root application component that orchestrates the entire admin portal:
 ## 📡 API Integration
 
 ### Backend Services
-**Base URL**: Choreo-hosted SuperApp backend
+**Base URL**: Cloud-hosted SuperApp backend
 **Environment**: Production branch with API versioning
 
 ### Endpoints
@@ -256,8 +256,8 @@ REACT_APP_MICROAPPS_UPLOAD_URL=https://api.example.com/micro-apps/upload
 REACT_APP_USERS_BASE_URL=https://api.example.com
 
 # Authentication Configuration
-REACT_APP_ASGARDEO_CLIENT_ID=your-client-id
-REACT_APP_ASGARDEO_BASE_URL=https://api.asgardeo.io/t/your-org
+REACT_APP_IDENTITY_PROVIDER_CLIENT_ID=your-client-id
+REACT_APP_IDENTITY_PROVIDER_BASE_URL=https://api.asgardeo.io/t/your-org
 ```
 
 ## 🔧 Development Guidelines
