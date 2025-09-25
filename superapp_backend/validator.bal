@@ -11,8 +11,8 @@ isolated service class JwtInterceptor {
 
         jwt:ValidatorConfig validatorConfig = {};
         validatorConfig = {
-                issuer: ASGARDEO_ISSUER,
-                audience: [ASGARDEO_AUDIENCE_1, ASGARDEO_AUDIENCE_2],
+                issuer: ISSUER,
+                audience: [AUDIENCE_1, AUDIENCE_2],
                 signatureConfig: {
                     certFile: publicKeyPath
                 }
