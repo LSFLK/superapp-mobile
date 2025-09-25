@@ -4,7 +4,7 @@ A React-based web application for uploading and managing payslip data. This appl
 
 ## Features
 
-- **Secure Authentication**: Integrated with Asgardeo OAuth2/OIDC for secure user authentication
+- **Secure Authentication**: Integrated with Identity Provider OAuth2/OIDC for secure user authentication
 - **File Upload**: Support for Excel (.xlsx, .xls) and CSV file formats
 - **Drag & Drop Interface**: User-friendly drag-and-drop file upload functionality
 - **Data Validation**: File format validation and error handling
@@ -15,7 +15,7 @@ A React-based web application for uploading and managing payslip data. This appl
 ## Technology Stack
 
 - **Frontend**: React 18 with modern hooks and functional components
-- **Authentication**: Asgardeo Auth React SDK
+- **Authentication**: Identity Provider Auth React SDK
 - **File Processing**: XLSX library for Excel file parsing
 - **Styling**: CSS with modern flexbox and grid layouts
 - **API Communication**: Fetch API with authentication token handling
@@ -62,7 +62,7 @@ src/
 ## File Format Requirements
 
 The application expects CSV/Excel files with the following column headers:
-- `employee_id`: Unique identifier for the employee
+- `user_id`: Unique identifier for the user
 - `designation`: Job title or position
 - `name`: Employee full name
 - `department`: Department or division
@@ -97,8 +97,8 @@ npm start
 Update the authentication configuration in `src/index.js`:
 - `signInRedirectURL`: Your application's URL for post-login redirect
 - `signOutRedirectURL`: Your application's URL for post-logout redirect
-- `clientID`: Your Asgardeo application client ID
-- `baseUrl`: Your Asgardeo organization base URL
+- `clientID`: Your Identity Provider application client ID
+- `baseUrl`: Your Identity Provider organization base URL
 
 Update API endpoints in `src/constants/index.js`:
 - `API_ENDPOINTS.PAYSLIPS`: Your backend API endpoint for payslip operations
