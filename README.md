@@ -1,66 +1,107 @@
-<h1 align="left">WSO2 Super App Mobile</h1>
+# Payslip Uploader Application
 
-<img src="./resources/snapshots.png" alt="Architecture Diagram" width="700"/>
-<br></br>
-<p align="left">
-  <a href="https://opensource.org/license/apache-2-0">
-    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-green.svg">
-  </a>
-  <a href="https://twitter.com/intent/follow?screen_name=wso2" rel="nofollow"><img src="https://img.shields.io/twitter/follow/wso2.svg?style=social&amp;label=Follow%20Us" style="max-width: 100%;"></a>
-</p>
-Discover, explore, and stay connected with the latest insights and tools from the tech ecosystem through the WSO2 Mobile App. Stay up to date with WSO2 news, product announcements, and upcoming events via the Feed tab. Explore curated blogs in the Library tab to gain insights into industry trends, success stories, and expert opinions. Access a suite of purpose built micro-apps to enhance your digital experience and manage your profile effortlessly all within a single unified platform.
-<br></br>
-This repository serves as the foundation for hosting multiple micro-apps with seamless authentication, integration, and centralized management.
+A React-based web application for uploading and managing payslip data. This application allows users to upload Excel (.xlsx, .xls) or CSV files containing payslip information and view the data in a formatted table.
 
----
+## Features
 
-## 🧭 Project Structure
+- **Secure Authentication**: Integrated with Identity Provider OAuth2/OIDC for secure user authentication
+- **File Upload**: Support for Excel (.xlsx, .xls) and CSV file formats
+- **Drag & Drop Interface**: User-friendly drag-and-drop file upload functionality
+- **Data Validation**: File format validation and error handling
+- **Real-time Display**: Uploaded payslip data is displayed in a responsive table
+- **Currency Formatting**: Monetary values formatted in Sri Lankan Rupees (LKR)
+- **Responsive Design**: Mobile-friendly and responsive user interface
 
-```bash
-.
-├── backend                  # Ballerina backend service
-│   └── README.md            # Detailed backend documentation
-├── frontend                 # React Native Super App
-│   └── README.md            # Detailed frontend documentation
-├── README.md                # You're here
+## Technology Stack
+
+- **Frontend**: React 18 with modern hooks and functional components
+- **Authentication**: Identity Provider Auth React SDK
+- **File Processing**: XLSX library for Excel file parsing
+- **Styling**: CSS with modern flexbox and grid layouts
+- **API Communication**: Fetch API with authentication token handling
+
+## Project Structure
+
+```
+src/
+├── App.js                 # Main application component
+├── App.css               # Application styles
+├── index.js              # Application entry point
+├── PayslipUpload.js      # File upload component
+├── PayslipTable.js       # Data display table component
+└── constants/
+    └── index.js          # Application constants and configuration
 ```
 
-## ⚙️ Technologies Used
+## Components
 
-### Backend
-- **Language**: [Ballerina](https://ballerina.io/)
-- **Authentication**: Handled via [Asgardeo](https://wso2.com/asgardeo/)
-- **Deployment**: Hosted on [Choreo](https://wso2.com/choreo/)
+### App.js
+- Main application component
+- Handles authentication state management
+- Renders sign-in page or main interface based on auth status
+- Provides user welcome message and sign-out functionality
 
-### Frontend
-- **Framework**: React Native (Expo)
-- **State Management**: Redux with Thunk
-- Micro-app management, token exchange, and secure storage
+### PayslipUpload.js
+- File upload component with drag-and-drop support
+- Handles file validation and format conversion
+- Manages upload progress and status messaging
+- Includes confirmation modals for user actions
 
+### PayslipTable.js
+- Displays uploaded payslip data in table format
+- Fetches data from backend API with authentication
+- Handles loading states and error messaging
+- Provides refresh functionality for data updates
 
-## 🧱 System Architecture
+### constants/index.js
+- Centralized configuration and constants
+- API endpoints, file configuration, and UI messages
+- CSS class names and table configuration
+- Authentication settings
 
-Here’s a high-level view of the flow:
-<br></br>
-<img src="./resources/architecture_diagram.png" alt="Architecture Diagram" width="700"/>
+## File Format Requirements
 
-## 🚀 Getting Started
+The application expects CSV/Excel files with the following column headers:
+- `user_id`: Unique identifier for the user
+- `designation`: Job title or position
+- `name`: Employee full name
+- `department`: Department or division
+- `pay_period`: Pay period (e.g., "2024-01", "January 2024")
+- `basic_salary`: Base salary amount
+- `allowances`: Additional allowances
+- `deductions`: Total deductions
+- `net_salary`: Final salary after deductions
 
-Each part of this repository has its own setup guide:
+## Getting Started
 
-- [Frontend](./frontend/README.md)
-- [Backend](./backend/README.md)
+### Prerequisites
+- Node.js (version 14 or higher)
+- npm or yarn package manager
 
-## 🐞 Reporting Issues
+### Installation
 
-###  1. Opening an issue
+1. Install dependencies:
+```bash
+npm install
+```
 
-All known issues of WSO2 Superapp Mobile are filed at: https://github.com/wso2-open-operations/superapp-mobile/issues. Please check this list before opening a new issue.
+2. Start the development server:
+```bash
+npm start
+```
 
-### 2.  Reporting security issues
+3. Open [http://localhost:3000](http://localhost:3000) to view the application
 
-Please do not report security issues via GitHub issues. Instead, follow the [WSO2 Security Vulnerability Reporting Guidelines](https://security.docs.wso2.com/en/latest/security-reporting/vulnerability-reporting-guidelines/).
+### Configuration
 
-## 🤝 Contributing
+Update the authentication configuration in `src/index.js`:
+- `signInRedirectURL`: Your application's URL for post-login redirect
+- `signOutRedirectURL`: Your application's URL for post-logout redirect
+- `clientID`: Your Identity Provider application client ID
+- `baseUrl`: Your Identity Provider organization base URL
 
-If you are planning on contributing to the development efforts of WSO2 Superapp Mobile, you can do so by checking out the latest development version. The main branch holds the latest unreleased source code.
+Update API endpoints in `src/constants/index.js`:
+- `API_ENDPOINTS.PAYSLIPS`: Your backend API endpoint for payslip operations
+
+## Minimal Hardening
+This starter mirrors the hardened parsing & content-type checks from the admin portal.
