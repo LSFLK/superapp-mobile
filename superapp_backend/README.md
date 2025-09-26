@@ -1,9 +1,3 @@
-<p align="left">
-  <a href="https://opensource.org/license/apache-2-0">
-    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-green.svg">
-  </a>
-</p>
-
 ## Superapp Backend
 
 Backend service for Superapp Mobile, implemented in Ballerina. It provides:
@@ -194,7 +188,6 @@ Follow these steps to add a new API endpoint safely and consistently:
 3) Implement the route
 - Add a resource function in `main.bal` within the existing service.
 - Return specific types where possible (e.g., `User|http:NotFound|http:InternalServerError`).
-- Use meaningful log messages at info/error levels.
 
 4) Authentication & authorization
 - All routes are protected by `JwtInterceptor` using `x-jwt-assertion`. Do not bypass it.
@@ -212,22 +205,6 @@ Follow these steps to add a new API endpoint safely and consistently:
 7) Configuration
 - Put tunables in `configurations.bal` as `configurable` values; document defaults.
 
-
-Example: minimal GET endpoint pattern
-```ballerina
-isolated resource function get widgets/[string id](http:RequestContext ctx)
-        returns Widget|http:NotFound|http:InternalServerError {
-    Widget|error result = fetchWidgetById(id);
-    if result is error {
-        if result.message().startsWith("No widget found") {
-            return <http:NotFound>{ body: { message: "Widget not found for id: " + id } };
-        }
-        log:printError("Failed to fetch widget", result);
-        return <http:InternalServerError>{ body: { message: "Failed to fetch widget" } };
-    }
-    return result;
-}
-```
 
 ## Troubleshooting
 - 401/validation errors: Verify `x-jwt-assertion` header and IdP cert in `publicKeyPath`.
