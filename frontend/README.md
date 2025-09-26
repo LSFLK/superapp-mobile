@@ -1,11 +1,9 @@
 # Frontend Developer Onboarding Guide.   
 
-## Welcome to the SuperApp Mobile Frontend.  
-    
-This Super App is an all-in-one platform designed to bring essential tools and services to your fingertips for a seamless mobile experience. Built with **React Native Expo**, **TypeScript**, and **Redux**, this Super App integrates secure authentication via **Asgardeo**, a micro-app architecture, and a dynamic app store for downloading and managing features.
 This guide provides project setup, architecture, communication flows, and essential development practices. 
-     
+ 
 ## 🚀 Getting Started
+
 
 ### Prerequisites
 
@@ -38,10 +36,10 @@ Before setting up the project, ensure you have the following installed:
 
    Fill in the required environment variables in `.env`:
    ```bash
-   EXPO_PUBLIC_CLIENT_ID=<asgardeo-project-client-id>
-   EXPO_PUBLIC_REDIRECT_URI=<redirect-uri>
-   EXPO_PUBLIC_TOKEN_URL=https://api.asgardeo.io/t/<org>/oauth2/token
-   EXPO_PUBLIC_LOGOUT_URL=https://api.asgardeo.io/t/<org>/oidc/logout
+   EXPO_PUBLIC_CLIENT_ID=<project-client-id-from-idp>
+   EXPO_PUBLIC_REDIRECT_URI=<redirect-uri-from-idp>
+   EXPO_PUBLIC_TOKEN_URL=<token-url-from-idp>
+   EXPO_PUBLIC_LOGOUT_URL=<logout-url-from-idp>
    EXPO_PUBLIC_BACKEND_BASE_URL=<backend-api-url>
    ```
 
@@ -50,229 +48,6 @@ Before setting up the project, ensure you have the following installed:
    npm start
    ```
 
-### Available Scripts
-
-```bash
-# Start Expo development server
-npm start
-
-# Run on Android emulator/device
-npm run android
-
-# Run on iOS simulator/device
-npm run ios
-
-# Run on web browser
-npm run web
-
-# Run tests
-npm test
-
-# Lint code
-npm run lint
-
-# Fix linting issues
-npm run lint:fix
-```
-
----
-
-## 🏗️ Architecture Overview
-
-### Technology Stack
-
-- **Framework**: React Native with Expo
-- **Language**: TypeScript
-- **Navigation**: Expo Router (file-based routing)
-- **State Management**: Redux Toolkit + Redux Persist
-- **Authentication**: Asgardeo IAM (OAuth 2.0 / OIDC)
-- **Storage**: AsyncStorage for local persistence
-- **Styling**: React Native Paper + Custom components
-- **HTTP Client**: Axios
-
-### Project Structure
-
-```
-frontend/
-├── app/                    # Expo Router pages (file-based routing)
-│   ├── _layout.tsx         # Root layout
-│   ├── (tabs)/             # Tab navigation
-│   ├── login.tsx           # Authentication screen
-│   └── micro-app.tsx       # Micro-app container
-├── components/             # Reusable UI components
-├── services/               # API services and business logic
-├── context/                # Redux store and slices
-├── utils/                  # Utility functions and helpers
-├── types/                  # TypeScript type definitions
-├── constants/              # App constants and configuration
-├── hooks/                  # Custom React hooks
-└── assets/                 # Images, fonts, and other assets
-```
-
-
-### File Naming Conventions
-
-- Components: `PascalCase.tsx` (e.g., `ListItem.tsx`, `Widget.tsx`)
-- Screens/Pages: `kebab-case.tsx` (e.g., `app-store.tsx`, `micro-app.tsx`)
-- Hooks: `camelCase.ts` (e.g., `useThemeColor.ts`)
-- Services & Utils: `camelCase.ts` (e.g., `authService.ts`, `requestHandler.ts`)
-- Redux Slices: `camelCaseSlice.ts` (e.g., `authSlice.ts`)
-- Constants: `PascalCase.ts` (e.g., `Colors.ts`, `Constants.ts`)
-   
-
-### Key Concepts
-
-#### SuperApp vs MicroApps
-
-- **SuperApp**: The main container application that manages authentication, navigation, and micro-app lifecycle
-- **MicroApps**: Individual web applications loaded in WebViews, each serving specific functionality
-- **Bridge**: Communication layer between SuperApp and MicroApps (see `docs/BRIDGE_GUIDE.md`)
-
-#### How Micro-Apps Work
-
-1. Micro-apps are listed in the Super App Store.
-2. Users can download micro-apps from the store.
-3. Downloaded micro-apps are stored using AsyncStorage.
-4. When launched, authentication tokens are exchanged for access.
-5. The micro-app uses micro-app specific access tokens to communicate with the Choreo API Gateway.
-
-<!-- #### How Micro-App Updates Work
-
-- The Super App Store checks for updates.
-- If an update is available, the micro-app is re-downloaded and replaced. -->
-
----
-## 🔄 Super App Mobile Flow
-
-### **High-Level Overview**
-
-1. User installs & opens the app for the first time
-
-   - If user **is not authenticated**, Prompt to **Sign In** is displayed.
-
-2. If user signs in:
-
-   - Retrieve **access_token & refresh_token** via **Asgardeo IAM**.
-   - Fetch **detailed user info**.
-
-
-2. Default landing tab is `Home`
-
-   - user installed apps are shown.
-
-3. User can navigate:
-
-   - To **Store** tab → App management functions (install, download). 
-   - To **Profile** tab → Profile details and sign-out option.
-
-
-4. On re-open, the app:
-
-   - Starts at **Home** tab.
-   <!-- - Checks for a **Super App force update**. If required, shows update screen.
-   - Checks if any **micro-apps have updates** and updates them automatically. -->
-
-
-## 🔄 Communication Flows
-
-### 1. Authentication Flow
-
-```mermaid
-sequenceDiagram
-    actor User
-    participant Super App
-    participant IAM as Identity and Access Management (IAM) - Asgardeo
-    participant Choreo as API Gateway - Choreo
-
-    User ->> Super App: Open Mobile Application
-    Super App ->> IAM: Authorize using client_id of Super App
-    IAM -->> Super App: Asgardeo access_token + refresh_token
-    Super App ->> Choreo: Resource Access (using IAM access_token)
-    Choreo -->> Super App: Resource data
-    Super App -->> User: Application loads
-
-```
-
-### 2. MicroApp Launch Flow
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant SuperApp
-    participant Backend
-    participant MicroApp
-
-    User ->> Super App: Open Micro App
-    Super App ->> Micro App: Initiate Micro App loading
-    Micro App ->> Super App: Request microapp specific access_token
-    Super App ->> backend: (app_id of Micro App + user_id)
-    backend -->> Super App: microapp specific access_token
-    Super App -->> Micro App: Provide microapp specific access_token
-    Micro App ->> Choreo: Resource Access (using microapp specific access_token)
-    Choreo -->> Micro App: Resource data
-    Micro App -->> User: Loads Micro App
-```
-
----
-
-
-### HTTP Client Configuration
-
-The app uses Axios with interceptors for:
-
-- **Request Interceptor**: Adds authorization headers
-- **Response Interceptor**: Handles token refresh on 401 errors
-- **Error Handling**: Centralized error processing
-
----
-
-## 🔧 Development Workflow
-
-### Code Organization
-
-#### Components
-- Use functional components with TypeScript
-- Follow component naming conventions: `PascalCase`
-- Separate business logic into custom hooks
-- Use React Native Paper for consistent UI
-
-#### Services
-- Keep API calls in dedicated service files
-- Use async/await for asynchronous operations
-- Implement proper error handling
-- Add TypeScript interfaces for API responses
-
-### Testing
-
-```bash
-# Run unit tests
-npm test
-
-# Run tests in watch mode
-npm test -- --watch
-
-# Run tests with coverage
-npm test -- --coverage
-```
-
-### Code Quality
-
-#### Linting
-```bash
-# Check for linting issues
-npm run lint
-
-# Auto-fix linting issues
-npm run lint:fix
-```
-
-#### TypeScript
-- Use strict TypeScript configuration
-- Define interfaces for all data structures
-- Avoid `any` type usage
-- Leverage type inference where possible
-
----
 
 ## 🚀 Deployment
 
@@ -308,24 +83,161 @@ You can start development by editing the files inside the **app** directory. Thi
    npx expo build:ios
    ```
 
-### Environment Management
+## Available Scripts
 
-- **Development**: Local development with hot reload
-- **Staging**: Test environment for QA
-- **Production**: Live environment for end users
+```bash
+# Start Expo development server
+npm start
 
-### Release Process
+# Run on Android emulator/device
+npm run android
 
-1. Update version in `app.config.ts`
-2. Create git tag
-3. Build and submit to app stores
-4. Update release notes
+# Run on iOS simulator/device
+npm run ios
+
+# Run on web browser
+npm run web
+
+# Run unit tests
+npm test
+
+# Run tests in watch mode
+npm test -- --watch
+
+# Run tests with coverage
+npm test -- --coverage
+
+# Lint code
+npm run lint
+
+# Fix linting issues
+npm run lint:fix
+```
+
 
 ---
 
-## 🐛 Debugging & Troubleshooting
+## 🏗️ Architecture Overview
 
-### Common Issues
+### Technology Stack
+
+- **Framework**: React Native with Expo
+- **Language**: TypeScript
+- **Navigation**: Expo Router (file-based routing)
+- **State Management**: Redux Toolkit + Redux Persist
+- **Authentication**: IAM (OAuth 2.0 / OIDC)
+- **Storage**: AsyncStorage for local persistence
+- **Styling**: React Native Paper + Custom components
+- **HTTP Client**: Axios
+
+### Project Structure
+
+```
+frontend/
+├── app/                    # Expo Router pages (file-based routing)
+│   ├── _layout.tsx         # Root layout
+│   ├── (tabs)/             # Tab navigation
+│   ├── login.tsx           # Authentication screen
+│   └── micro-app.tsx       # Micro-app container
+├── components/             # Reusable UI components
+├── services/               # API services and business logic
+├── context/                # Redux store and slices
+├── utils/                  # Utility functions and helpers
+├── types/                  # TypeScript type definitions
+├── constants/              # App constants and configuration
+├── hooks/                  # Custom React hooks
+└── assets/                 # Images, fonts, and other assets
+```
+
+
+
+
+
+<!-- #### How Micro-App Updates Work
+
+- The Super App Store checks for updates.
+- If an update is available, the micro-app is re-downloaded and replaced. -->
+
+---
+## 🔄 Super App Mobile Flow
+
+### **High-Level Overview**
+
+1. User installs & opens the app for the first time
+
+   - If user **is not authenticated**, Prompt to **Sign In** is displayed.
+
+2. If user signs in:
+
+   - Retrieve **access_token & refresh_token** via **Asgardeo IAM**.
+   - Fetch **detailed user info**.
+
+
+2. Default landing tab is `Home`
+
+   - user installed apps are shown.
+
+3. User can navigate:
+
+   - To **Store** tab → App management functions (install, download). 
+   - To **Profile** tab → Profile details and sign-out option.
+
+
+4. On re-open, the app:
+
+   - Starts at **Home** tab.
+   <!-- TODO : update mechanism
+    - Checks for a **Super App force update**. If required, shows update screen.
+   - Checks if any **micro-apps have updates** and updates them automatically. -->
+
+
+## 🔄 Communication Flows
+
+
+### 2. MicroApp Launch Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Super App
+    participant Super App Backend
+    participant Micro App
+
+    User ->> Super App: Open Micro App
+    Super App ->> Micro App: Initiate Micro App loading
+    Micro App ->> Super App: Request microapp specific access_token
+    Super App ->> Super App Backend: (app_id of Micro App + user_id)
+    Super App Backend -->> Super App: microapp specific access_token
+    Super App -->> Micro App: Provide microapp specific access_token
+    Micro App ->> Micro App Backend: Resource Access (using microapp specific access_token)
+    Micro App Backend -->> Micro App: Resource data
+    Micro App -->> User: Loads Micro App
+```
+
+---
+
+
+
+## 🔧 Development Workflow
+
+### Code Organization
+
+#### Components
+- Use functional components with TypeScript
+- Follow component naming conventions: `PascalCase`
+- Separate business logic into custom hooks
+- Use React Native Paper for consistent UI
+
+#### Services
+- Keep API calls in dedicated service files
+- Use async/await for asynchronous operations
+- Implement proper error handling
+- Add TypeScript interfaces for API responses
+
+
+
+### 🐛 Debugging & Troubleshooting
+
 
 #### Build Issues
 ```bash
@@ -341,7 +253,7 @@ rm -rf node_modules && npm install
 
 #### Authentication Issues
 - Verify environment variables are set correctly
-- Check Asgardeo configuration
+- Check IdP configuration
 - Ensure redirect URIs match
 
 #### Network Issues

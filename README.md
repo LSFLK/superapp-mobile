@@ -27,13 +27,11 @@ This repository is the foundation for hosting and managing many small web-based 
 
 ### Backend
 - **Language**: [Ballerina](https://ballerina.io/)
-- **Authentication**: Handled via [Asgardeo](https://wso2.com/asgardeo/)
-- **Deployment**: Hosted on [Choreo](https://wso2.com/choreo/)
+- **Authentication**: External identity provider (OIDC/OAuth2 compatible)
 
 ### Frontend
 - **Framework**: React Native (Expo)
 - **State Management**: Redux with Thunk
-- Micro-app management, token exchange, and secure storage
 
 
 ## 🧱 System Architecture
@@ -46,12 +44,36 @@ Here’s a high-level view of the flow:
 
 <img src="./resources/auth_flow.png" alt="Authentication Flow Diagram" width="700"/>
 
+### Key Concepts
+
+#### SuperApp vs MicroApps
+
+- **SuperApp**: The main container application that manages authentication, navigation, and micro-app lifecycle
+- **MicroApps**: Individual web applications loaded in WebViews, each serving specific functionality
+- **Bridge**: Communication layer between SuperApp and MicroApps (see `frontend/docs/BRIDGE_GUIDE.md`)
+
+#### How Micro-Apps Work
+
+1. Micro-apps are listed in the Super App Store.
+2. Users can download micro-apps from the store.
+3. Downloaded micro-apps are stored using AsyncStorage.
+4. When launched, authentication tokens are exchanged for access.
+5. The micro-app uses micro-app specific access tokens to communicate with the domain specific backends.
+    
+
 ## 🚀 Getting Started
 
-Each part of this repository has its own setup guide:
+Each part of this repository has its own setup guide. Pick the guide that matches what you want to do:
+
+### For micro-app developers
+
+- [Guide](./frontend/docs/MICROAPP_DEVELOPER_GUIDE.md)
+
+### For super-app developers
 
 - [Frontend](./frontend/README.md)
 - [Backend](./backend/README.md)
+  
 
 ## 🐞 Reporting Issues
 
