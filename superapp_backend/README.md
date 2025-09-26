@@ -91,37 +91,7 @@ Headers:
 
 ## Database Schema Expectations
 
-```mermaid
-erDiagram
-    USERS {
-        int user_id
-        string first_name
-        string last_name
-        string email
-        string employee_id
-        string department
-        json downloaded_app_ids
-    }
-
-    MICRO_APPS {
-        int micro_app_id
-        string app_id
-        string name
-        string version
-        blob zip_blob
-        blob icon_url
-        timestamp created_at
-        string description
-    }
-
-    USERS ||--o{ MICRO_APPS : downloads
-    MICRO_APPS ||--o{ USERS : available_to
-```
-
-The service expects (at minimum) tables with columns used in queries:
-- `users(user_id, first_name, last_name, email, employee_id, department, downloaded_app_ids JSON NULL)`
-- `micro_apps(micro_app_id, app_id, name, version, zip_blob BLOB, icon_url BLOB NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, description TEXT NULL)`
-  - `app_id` should be unique for upsert behavior in upload
+![Database Schema](./resources/tables_2.jpg)
 
 ## API Reference
 Base path: `/`
@@ -205,13 +175,6 @@ Quick start:
 - Further reading: [Choreo secrets and file mounts guide](https://wso2.com/choreo/docs/devops-and-ci-cd/manage-configurations-and-secrets/)
 
 
-
-## Troubleshooting
-- 401/validation errors: Verify `x-jwt-assertion` header and IdP cert in `publicKeyPath`.
-- Signing failures: Check `privateKeyPath` exists and is readable, and key is RS256.
-- DB timeouts: Validate `databaseConfig` host/port and network access; increase pool/timeout if needed.
-- Large uploads: Confirm reverse proxy and `maxHeaderSize`/gateway limits.
-
 ## Development Tips
 - Logs use `ballerina/log`; adjust log level via Ballerina run options if needed.
 - Graceful shutdown closes DB client in `stopHandler()`.
@@ -266,7 +229,14 @@ isolated resource function get widgets/[string id](http:RequestContext ctx)
 }
 ```
 
-Checklist before opening a PR
+## Troubleshooting
+- 401/validation errors: Verify `x-jwt-assertion` header and IdP cert in `publicKeyPath`.
+- Signing failures: Check `privateKeyPath` exists and is readable, and key is RS256.
+- DB timeouts: Validate `databaseConfig` host/port and network access; increase pool/timeout if needed.
+- Large uploads: Confirm reverse proxy and `maxHeaderSize`/gateway limits.
+
+
+### Checklist before opening a PR
 - Types declared/updated in `types.bal`
 - DB access added to `db_functions.bal` (parameterized, streams closed)
 - Route implemented in `main.bal` (auth enforced, errors handled)
