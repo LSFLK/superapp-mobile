@@ -50,7 +50,7 @@ host = "<your-db-host-name>"
 user = "<your-db_admin-name>"
 password = "<your-db-password>"
 database = "<your-db-name>"
-port = <port>
+port = "<port>"
 ```
 
 Service configurables (defaults in `configurations.bal`):
@@ -163,7 +163,7 @@ Quick start:
 - App Service / Container Apps: Reference Key Vault secrets and materialize to files via startup script.
 - Further reading: [Azure Key Vault with CSI guide](https://learn.microsoft.com/en-us/azure/key-vault/secrets/)
 
-Choreo (WSO2 Choreo)
+Choreo
 Quick start:
 - In the Choreo Console, add Secrets for PEM and CRT (Project -> Component -> DevOps -> Configs & Secrets).
 - Configure File Mounts so secrets appear as files (e.g., `/private.pem`, `/idp.crt`).
