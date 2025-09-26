@@ -14,29 +14,32 @@ import { fetchMicroAppToken, MicroAppTokenParams } from "@/services/microAppToke
  * 6. Web app receives response via promise resolution/rejection
  *
  * Adding New Bridge Functions:
- * - Add entry to BRIDGE_REGISTRY array
- * - Define topic, handler function, and webViewMethods
+ * - Add entry to BRIDGE_REGISTRY array with topic and handler function
+ * - Method names are auto-generated from topic (requestTopic, resolveTopic, etc.)
  * - JavaScript injection is auto-generated from this registry
  */
 
 export interface BridgeFunction {
   topic: string; // Unique identifier for the bridge function
   handler: (params: any, context: BridgeContext) => Promise<void> | void; // Native handler function
-  webViewMethods: {
-    request?: string; // Method name web apps call to initiate request
-    resolve?: string; // Method name for success responses
-    reject?: string; // Method name for error responses
-    helper?: string; // Method name for data getters (creates global storage)
-  };
+  // Method names are auto-generated from topic:
+  // - request: `request${capitalize(topic)}`
+  // - resolve: `resolve${capitalize(topic)}`
+  // - reject: `reject${capitalize(topic)}`
+  // - helper: `get${capitalize(topic)}`
 }
 
 export interface BridgeContext {
+  topic: string; // Current bridge topic (auto-injected)
   userId: string; // User ID from authentication
   appID: string; // Micro-app identifier
   token: string | null; // Authentication token
   setScannerVisible: (visible: boolean) => void; // Control QR scanner visibility
   sendResponseToWeb: (method: string, data?: any, requestId?: string) => void; // Send responses to web
   pendingTokenRequests: ((token: string) => void)[]; // Queue for token requests
+  // Convenience methods that use the current topic
+  resolve: (data?: any, requestId?: string) => void; // Auto-generates resolve method name
+  reject: (error: string, requestId?: string) => void; // Auto-generates reject method name
 }
 
 // ADD NEW BRIDGE FUNCTIONS HERE
@@ -46,7 +49,7 @@ export const BRIDGE_REGISTRY: BridgeFunction[] = [
     topic: "token",
     handler: async (params, context) => {
       if (context.token) {
-        context.sendResponseToWeb("resolveToken", context.token);
+        context.resolve(context.token);
         
         // Resolve any pending token requests
         while (context.pendingTokenRequests.length > 0) {
@@ -55,14 +58,9 @@ export const BRIDGE_REGISTRY: BridgeFunction[] = [
         }
       } else {
         context.pendingTokenRequests.push((token) => {
-          context.sendResponseToWeb("resolveToken", token);
+          context.resolve(token);
         });
       }
-    },
-    webViewMethods: {
-      request: "requestToken",
-      resolve: "resolveToken",
-      helper: "getToken"
     }
   },
 
@@ -70,12 +68,7 @@ export const BRIDGE_REGISTRY: BridgeFunction[] = [
   {
     topic: "user_id", 
     handler: async (params, context) => {
-      context.sendResponseToWeb("resolveUserId", context.userId);
-    },
-    webViewMethods: {
-      request: "requestUserId",
-      resolve: "resolveUserId", 
-      reject: "rejectUserId",
+      context.resolve(context.userId);
     }
   },
 
@@ -84,9 +77,6 @@ export const BRIDGE_REGISTRY: BridgeFunction[] = [
     topic: "qr_request",
     handler: async (params, context) => {
       context.setScannerVisible(true);
-    },
-    webViewMethods: {
-      request: "requestQr"
     }
   },
 
@@ -96,9 +86,6 @@ export const BRIDGE_REGISTRY: BridgeFunction[] = [
     handler: async (params, context) => {
       const { title, message, buttonText } = params;
       Alert.alert(title, message, [{ text: buttonText }], { cancelable: false });
-    },
-    webViewMethods: {
-      request: "requestAlert"
     }
   },
 
@@ -119,19 +106,15 @@ export const BRIDGE_REGISTRY: BridgeFunction[] = [
           {
             text: cancelButtonText,
             style: "cancel",
-            onPress: () => context.sendResponseToWeb("resolveConfirmAlert", "cancel"),
+            onPress: () => context.resolve("cancel"),
           },
           {
             text: confirmButtonText,
-            onPress: () => context.sendResponseToWeb("resolveConfirmAlert", "confirm"),
+            onPress: () => context.resolve("confirm"),
           },
         ],
         { cancelable: false }
       );
-    },
-    webViewMethods: {
-      request: "requestConfirmAlert",
-      resolve: "resolveConfirmAlert"
     }
   },
 
@@ -147,16 +130,11 @@ export const BRIDGE_REGISTRY: BridgeFunction[] = [
       try {
         const { key, value } = params;
         await AsyncStorage.setItem(key, value);
-        context.sendResponseToWeb("resolveSaveLocalData");
+        context.resolve();
       } catch (error) {
         const errMessage = error instanceof Error ? error.message : "Unknown error";
-        context.sendResponseToWeb("rejectSaveLocalData", errMessage);
+        context.reject(errMessage);
       }
-    },
-    webViewMethods: {
-      request: "requestSaveLocalData",
-      resolve: "resolveSaveLocalData",
-      reject: "rejectSaveLocalData"
     }
   },
 
@@ -172,16 +150,11 @@ export const BRIDGE_REGISTRY: BridgeFunction[] = [
       try {
         const { key } = params;
         const value = await AsyncStorage.getItem(key);
-        context.sendResponseToWeb("resolveGetLocalData", { value });
+        context.resolve({ value });
       } catch (error) {
         const errMessage = error instanceof Error ? error.message : "Unknown error";
-        context.sendResponseToWeb("rejectGetLocalData", errMessage);
+        context.reject(errMessage);
       }
-    },
-    webViewMethods: {
-      request: "requestGetLocalData",
-      resolve: "resolveGetLocalData",
-      reject: "rejectGetLocalData"
     }
   },
 
@@ -192,7 +165,7 @@ export const BRIDGE_REGISTRY: BridgeFunction[] = [
    * Token data (token, expiry, app_id) sent back or error reported
    */
   {
-    topic: "microapp_token",
+    topic: "micro_app_token",
     handler: async (params, context) => {
       try {
         const { appID, userId } = context;
@@ -214,7 +187,7 @@ export const BRIDGE_REGISTRY: BridgeFunction[] = [
 
         const tokenData = await fetchMicroAppToken(tokenParams);
         
-        context.sendResponseToWeb("resolveMicroAppToken", {
+        context.resolve({
           token: tokenData.token,
           expiresAt: tokenData.expiresAt,
           app_id: appID
@@ -223,17 +196,13 @@ export const BRIDGE_REGISTRY: BridgeFunction[] = [
       } catch (error) {
         console.error("Error fetching microapp token:", error);
         const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-        context.sendResponseToWeb("rejectMicroAppToken", errorMessage);
+        context.reject(errorMessage);
       }
-    },
-    webViewMethods: {
-      request: "requestMicroAppToken",
-      resolve: "resolveMicroAppToken",
-      reject: "rejectMicroAppToken"
     }
   },
 
   // 🚀 EXAMPLE: Adding a new bridge function is as simple as adding it here
+  // Method names are auto-generated from topic - no need to specify them!
   // {
   //   topic: "get_device_info",
   //   handler: async (params, context) => {
@@ -241,28 +210,25 @@ export const BRIDGE_REGISTRY: BridgeFunction[] = [
   //       platform: Platform.OS,
   //       version: Platform.Version,
   //     };
-  //     context.sendResponseToWeb("resolveDeviceInfo", deviceInfo);
-  //   },
-  //   webViewMethods: {
-  //     request: "requestDeviceInfo",
-  //     resolve: "resolveDeviceInfo"
+  //     context.resolve(deviceInfo); // Auto-generates resolveGetDeviceInfo
   //   }
   // },
 
-  // 🚀 EXAMPLE: Bridge function with custom logic
+  // 🚀 EXAMPLE: Bridge function with error handling
   // {
   //   topic: "calculate_something",
   //   handler: async (params, context) => {
-  //     const { a, b } = params;
-  //     const result = a + b;
-  //     context.sendResponseToWeb("resolveCalculation", { result });
-  //   },
-  //   webViewMethods: {
-  //     request: "requestCalculation",
-  //     resolve: "resolveCalculation"
+  //     try {
+  //       const { a, b } = params;
+  //       const result = a + b;
+  //       context.resolve({ result }); // Auto-generates resolveCalculateSomething
+  //     } catch (error) {
+  //       context.reject("Calculation failed"); // Auto-generates rejectCalculateSomething
+  //     }
   //   }
   // }
 ];
+
 
 // Utility functions to work with the registry
 /**
@@ -281,3 +247,18 @@ export const getBridgeHandler = (topic: string) =>
  */
 export const getBridgeFunction = (topic: string) =>
   BRIDGE_REGISTRY.find(fn => fn.topic === topic);
+
+/**
+ * Helper function to capitalize topic names for method generation
+ */
+const capitalize = (str: string): string => {
+  return str.charAt(0).toUpperCase() + str.slice(1).replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+};
+
+/**
+ * Auto-generated method name helpers
+ */
+export const getRequestMethod = (topic: string): string => `request${capitalize(topic)}`;
+export const getResolveMethod = (topic: string): string => `resolve${capitalize(topic)}`;
+export const getRejectMethod = (topic: string): string => `reject${capitalize(topic)}`;
+export const getHelperMethod = (topic: string): string => `get${capitalize(topic)}`;

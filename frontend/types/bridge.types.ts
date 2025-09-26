@@ -80,7 +80,7 @@ export interface BridgeEvents {
   rejectGetLocalData: CustomEvent<string>;
   
   // Dynamic events are created at runtime following these patterns:
-  // 1. resolve/reject events: exactly match the webViewMethods.resolve/reject names
+  // 1. resolve/reject events: auto-generated from topic (resolveTopic, rejectTopic)
   // 2. "received" events: native + PascalCase(topic) + "Received"
   //    Example: topic "user_settings" → "nativeUserSettingsReceived"
   

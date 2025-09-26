@@ -49,27 +49,30 @@ Each bridge function is defined in `frontend/utils/bridgeRegistry.ts` with the f
 interface BridgeFunction {
   topic: string;                    // Unique identifier for the function
   handler: (params: any, context: BridgeContext) => Promise<void> | void;
-  webViewMethods: {
-    request?: string;              // Method name exposed to MicroApps
-    resolve?: string;              // Success event name
-    reject?: string;               // Error event name
-    helper?: string;               // Synchronous getter method name
-  };
+  // Method names are auto-generated from topic:
+  // - request: `request${capitalize(topic)}`
+  // - resolve: `resolve${capitalize(topic)}`
+  // - reject: `reject${capitalize(topic)}`
+  // - helper: `get${capitalize(topic)}`
 }
 ```
 
 ### Context Object
 
-The handler receives a `BridgeContext` (This is used for passing objects) with:
+The handler receives a `BridgeContext` object, which provides convenient access to relevant data and utility methods for bridge operations. This context includes:
 
 ```typescript
 interface BridgeContext {
+  topic: string;                              // Current bridge topic (auto-injected)
   empID: string;                              // Current user's employee ID
   appID: string;                              // Current MicroApp ID
   token: string | null;                       // Authentication token
   setScannerVisible: (visible: boolean) => void; // Control QR scanner visibility
   sendResponseToWeb: (method: string, data?: any) => void; // Send response to MicroApp
   pendingTokenRequests: ((token: string) => void)[]; // Token request queue
+  // Convenience methods that auto-generate method names from topic
+  resolve: (data?: any, requestId?: string) => void; // Auto-generates resolve method name
+  reject: (error: string, requestId?: string) => void; // Auto-generates reject method name
 }
 ```
 
@@ -81,26 +84,27 @@ interface BridgeContext {
 ```typescript
 // In frontend/utils/bridgeRegistry.ts
 {
-  topic: "get_device_info",
+  topic: "<your_topic_here>", // Use descriptive snake_case topic names 
   handler: async (params, context) => {
-    try {
-      const deviceInfo = {
-        platform: Platform.OS,
-        version: Platform.Version,
-        model: Device.modelName
-      };
-      context.sendResponseToWeb("resolveDeviceInfo", deviceInfo);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      context.sendResponseToWeb("rejectDeviceInfo", errorMessage);
+    // Validate input parameters
+    if (!params || typeof params !== "object") {
+      context.reject("Invalid parameters");
+      return;
     }
-  },
-  webViewMethods: {
-    request: "requestDeviceInfo",
-    resolve: "resolveDeviceInfo",
-    reject: "rejectDeviceInfo"
+
+    try {
+      // Implement your bridge logic here.
+      // Example: Call a native module, fetch data, etc.
+      const result = await someAsyncOperation(params);
+
+      // Respond to the MicroApp with the result
+      context.resolve(result);
+    } catch (error) {
+      // Log error for debugging and reject the promise
+      console.error(`[Bridge][${context.topic}] Error:`, error);
+      context.reject(error instanceof Error ? error.message : String(error));
+    }
   }
-}
 ```
 
 2. **Update TypeScript definitions** (auto-generated, but verify in `types/bridge.types.ts`)
@@ -114,7 +118,6 @@ interface BridgeContext {
 - **Validate parameters**: Check required fields before processing
 - **Use async/await**: For operations that may block the UI thread
 - **Log operations**: Include console logging for debugging
-- **Follow naming conventions**: `requestX` → `resolveX` / `rejectX`
 
 ## For MicroApp Developers: Using Bridge APIs
 
@@ -148,21 +151,6 @@ try {
   console.log('User ID:', userId);
 } catch (error) {
   console.error('Failed to get user ID:', error);
-}
-```
-
-### Synchronous Helpers
-
-Some bridge functions provide synchronous getter methods for cached data:
-
-```javascript
-// Get cached token (if available)
-const token = window.nativebridge.getToken();
-if (token) {
-  // Use cached token
-} else {
-  // Request fresh token
-  const freshToken = await window.nativebridge.requestToken();
 }
 ```
 

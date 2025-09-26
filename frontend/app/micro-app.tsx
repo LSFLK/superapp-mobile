@@ -27,7 +27,7 @@ import { Stack, useLocalSearchParams } from "expo-router";
 import NotFound from "@/components/NotFound";
 //import Scanner from "@/components/Scanner";
 import { useDispatch } from "react-redux";
-import { getBridgeHandler, BridgeContext } from "@/utils/bridgeRegistry";
+import { getBridgeHandler, BridgeContext, getResolveMethod, getRejectMethod } from "@/utils/bridgeRegistry";
 import { injectedJavaScript } from "@/utils/bridge";
 //import { logout, tokenExchange } from "@/services/authService";
 import { documentDirectory } from "expo-file-system";
@@ -148,19 +148,35 @@ const MicroApp = () => {
       }
       // Create bridge context for passing data
       const bridgeContext: BridgeContext = {
+        topic, // Auto-inject the current topic
         userId,
         appID: appId as string,
         token: token || null,
         setScannerVisible,
-  //    * Sends responses from native code back to the web micro-app
-  //    * through the injected bridge JavaScript interface.
+        // Sends responses from native code back to the web micro-app
+        // through the injected bridge JavaScript interface.
         sendResponseToWeb: (method: string, data?: any, reqId?: string) => {
           const idToUse = reqId || requestId;
           webviewRef.current?.injectJavaScript(
             `window.nativebridge.${method}(${JSON.stringify(data)}, "${idToUse}");`
           );
         },
-        pendingTokenRequests
+        pendingTokenRequests,
+        // Convenience methods that auto-generate method names from topic
+        resolve: (data?: any, reqId?: string) => {
+          const methodName = getResolveMethod(topic);
+          const idToUse = reqId || requestId;
+          webviewRef.current?.injectJavaScript(
+            `window.nativebridge.${methodName}(${JSON.stringify(data)}, "${idToUse}");`
+          );
+        },
+        reject: (error: string, reqId?: string) => {
+          const methodName = getRejectMethod(topic);
+          const idToUse = reqId || requestId;
+          webviewRef.current?.injectJavaScript(
+            `window.nativebridge.${methodName}("${error}", "${idToUse}");`
+          );
+        }
       };
 
       // Execute handler
