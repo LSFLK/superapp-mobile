@@ -79,37 +79,41 @@ interface BridgeContext {
 
 ### Adding a New Bridge Function
 
-1. **Define the function in the registry**:
+Each bridge function lives in its own file under `frontend/utils/bridgeHandlers/`, and `frontend/utils/bridgeHandlers/index.ts` aggregates all handlers into the `BRIDGE_REGISTRY` array which the runtime uses.
 
-```typescript
-// In frontend/utils/bridgeRegistry.ts
-{
-  topic: "<your_topic_here>", // Use descriptive snake_case topic names 
-  handler: async (params, context) => {
-    // Validate input parameters
-    if (!params || typeof params !== "object") {
-      context.reject("Invalid parameters");
-      return;
-    }
+1. Create a handler file:
 
+- Path: `frontend/utils/bridgeHandlers/<your_topic>.ts`
+- Export a `BRIDGE_FUNCTION` object with `topic` and `handler`. Example template:
+
+```ts
+// frontend/utils/bridgeHandlers/example_handler.ts
+import { BridgeFunction, BridgeContext } from './bridgeTypes';
+
+export const BRIDGE_FUNCTION: BridgeFunction = {
+  topic: 'example_topic',
+  handler: async (params: any, context: BridgeContext) => {
     try {
-      // Implement your bridge logic here.
-      // Example: Call a native module, fetch data, etc.
-      const result = await someAsyncOperation(params);
+      if (!params) {
+        context.reject('Missing parameters');
+        return;
+      }
 
-      // Respond to the MicroApp with the result
+      // Your logic here
+      const result = { ok: true, received: params };
       context.resolve(result);
-    } catch (error) {
-      // Log error for debugging and reject the promise
-      console.error(`[Bridge][${context.topic}] Error:`, error);
-      context.reject(error instanceof Error ? error.message : String(error));
+    } catch (err) {
+      context.reject(err instanceof Error ? err.message : String(err));
     }
   }
+};
 ```
 
-2. **Update TypeScript definitions** (auto-generated, but verify in `types/bridge.types.ts`)
+2. Register the handler:
 
-3. **Test the implementation** with a MicroApp
+- Import the new file in `frontend/utils/bridgeHandlers/index.ts` and include the exported `BRIDGE_FUNCTION` in the exported `BRIDGE_REGISTRY` array. The registry file is imported by the runtime (`frontend/utils/bridgeRegistry.ts`) so no further changes are necessary.
+
+Smoke test by invoking your bridge function from a micro-app or by loading the WebView and calling `window.nativebridge.request<YourMethod>()`.
 
 ### Best Practices for SuperApp Developers
 
