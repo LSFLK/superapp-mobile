@@ -29,6 +29,7 @@ This repository is the foundation for hosting and managing many small web-based 
 │   │   ├── admin-frontend/   # React Admin interface for uploading payslips
 │   │   └── README.md         # Micro-app documentation
 │   └── government-calender/
+│       ├── frontend/         # React frontend
 │       └── README.md         # Micro-app documentation
 └── README.md                 # Project root documentation (you're here)
 ```
