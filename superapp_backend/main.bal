@@ -1,7 +1,5 @@
 import ballerina/http;
 import ballerina/log;
-import ballerina/jwt;
-import ballerina/uuid; 
 import ballerina/io;
 import ballerina/lang.runtime;
 
@@ -11,45 +9,6 @@ function init() {
 
     // Registers a function that will be called during the graceful shutdown.
     runtime:onGracefulStop(stopHandler);
-}
-
-function stopHandler() returns error? {
-    io:println("Performing shutdown tasks...");
-    // Add your cleanup logic here (e.g., close files, database connections)
-    check databaseClient.close();
-    io:println("Shutdown tasks completed.");
-    return ();
-}
-
-// Standalone function to create the microapp-specific JWT
-// Usage: string|error token = createMicroappJWT("emp-123", "app-456");
-public isolated function createMicroappJWT(string empId, string microAppId) returns string|error {
-    // Build IssuerConfig for JWT
-    jwt:IssuerConfig issuerConfig = {
-        issuer: superappIssuer, // Issuer (your superapp backend)
-        audience: microAppId, // Audience as a string array for microapp backend
-        expTime: tokenTTLSeconds, // Expiry in seconds (relative to iat)
-        customClaims: {
-            "emp_id": empId, // User emp_id as subject
-            "micro_app_id": microAppId, // Custom claim for microapp scoping
-            "jti": uuid:createType1AsString() // Unique token ID
-        },
-        signatureConfig: {
-            config: {
-                keyFile: privateKeyPath // Path to RS256 private key
-            }
-        }
-    };
-
-    // Issue (sign) the JWT
-    string|jwt:Error token = jwt:issue(issuerConfig);
-    if token is jwt:Error {
-        log:printError("Failed to issue JWT", 'error = token);
-        return token;
-    }
-
-    log:printInfo("Generated microapp JWT for emp_id: " + empId + ", micro_app_id: " + microAppId);
-    return token;
 }
 
 isolated service class ErrorInterceptor {
@@ -120,25 +79,8 @@ isolated service http:InterceptableService / on new http:Listener(serverPort, co
     # + req - HTTP request containing the payload
     # + return - JSON response or an error
 isolated resource function post users/[string email]/apps(http:RequestContext ctx, http:Request req) returns json|http:BadRequest|http:InternalServerError|http:ClientError {
-        // Parse the payload as a string array
-        // string[] appIds;
-            json payload = check req.getJsonPayload();
-        // do {
-        //     // appIds = <string[]> payload;
-        // } on fail var e {
-        //     log:printError("Invalid request payload", 'error = e);
-        //     return <http:BadRequest>{
-        //         body: { "error": "Bad Request: Payload must be an array of app IDs" }
-        //     };
-        // }
 
-        // Validate input parameters
-        // if email.trim() == "" || payload.length() == 0 {
-        //     log:printError("Missing or empty email or appIds");
-        //     return <http:BadRequest>{
-        //         body: { "error": "Bad Request: email and appIds are required" }
-        //     };
-        // }
+        json payload = check req.getJsonPayload();
 
         // Call the existing function
         error? result = updateUserDownloadedApps(email, payload);
@@ -425,19 +367,3 @@ isolated resource function post users/[string email]/apps(http:RequestContext ct
         return response;
     }
 };
-
-// main() function for DEBUGGING purposes only
-
-// public function main() returns error? {
-//     // Example parameters for insertMicroAppWithZip
-//     string name = "Payslip Viewer";
-//     string version = "1.0.0";
-//     string zipFilePath = "C:/Users/Sandamini/Documents/WORK/payslip-viewer.zip"; // Path to the ZIP file
-//     string appId = "payslip-viewer";
-//     string iconUrlPath = "";
-//     //string description = "View and download your monthly payslips";
-
-//     // Call the insertMicroAppWithZip function
-//     check insertMicroAppWithZip(name, version ,zipFilePath, appId, iconUrlPath);
-//     io:println("Micro-app insertion completed successfully.");
-// }

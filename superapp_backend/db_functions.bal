@@ -223,3 +223,11 @@ public isolated function fetchMicroAppIconById(string app_id) returns MicroAppIc
         return error("No icon found for micro-app with ID: " + app_id);
     }
 }
+
+function stopHandler() returns error? {
+    io:println("Performing shutdown tasks...");
+    // Add your cleanup logic here (e.g., close files, database connections)
+    check databaseClient.close();
+    io:println("Shutdown tasks completed.");
+    return ();
+}
