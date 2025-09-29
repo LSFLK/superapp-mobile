@@ -85,9 +85,8 @@ function App() {
   return (
     <Layout style={{ minHeight: "100vh" }}>
       {isAuthed ? (
-        <RoleBasedAccessControl requiredGroup="superapp_admin">
-          {/* Authenticated Layout: Sidebar Navigation + Main Content */}
-          
+        // Authenticated Layout: Sidebar Navigation + Main Content
+        <>
           {/* Left sidebar navigation menu */}
           <MenuBar 
             onNavigate={onNavigate} 
@@ -122,7 +121,7 @@ function App() {
               </main>
             </Content>
           </Layout>
-        </RoleBasedAccessControl>
+        </>
       ) : (
         /* Unauthenticated Layout: Centered Sign-in Form */
         <Layout>
