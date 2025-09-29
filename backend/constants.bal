@@ -1,16 +1,7 @@
-// Copyright (c) 2025 WSO2 LLC. (https://www.wso2.com).
-//
-// WSO2 LLC. licenses this file to you under the Apache License,
-// Version 2.0 (the "License"); you may not use this file except
-// in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
-public const ERR_MSG_USER_HEADER_NOT_FOUND = "User information header not found!";
+# Authorization Constants.
+public const JWT_ASSERTION_HEADER = "x-jwt-assertion";
+public const ISSUER = "https://api.asgardeo.io/t/lsfproject/oauth2/token";
+// super-app audience
+public const AUDIENCE_1 = "5jjnGuEZz1BcyfhJ_CCHrbdJEzEa";
+// Admin-portal audience (if there is any)
+public const AUDIENCE_2 = "aVro3ATf5ZSglZHItEDj0Kd7M4wa";
