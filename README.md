@@ -16,11 +16,21 @@ This repository is the foundation for hosting and managing many small web-based 
 
 ```bash
 .
-├── backend                  # Ballerina backend service
-│   └── README.md            # Detailed backend documentation
-├── frontend                 # React Native Super App
-│   └── README.md            # Detailed frontend documentation
-├── README.md                # You're here
+├── backend/                  # Ballerina backend service for SuperApp
+│   └── README.md             # Backend setup and API docs
+├── frontend/                 # React Native (Expo) frontend for SuperApp
+│   └── README.md             # Frontend setup and usage docs
+├── admin_portal/             # React web portal for uploading and managing micro-apps
+│   └── README.md             # Admin portal documentation
+├── sample_microapps/         # Example micro-apps for demonstration
+│   ├── payslip-viewer/
+│   │   ├── frontend/         # React frontend
+│   │   ├── backend/          # Ballerina backend
+│   │   ├── admin-frontend/   # React Admin interface for uploading payslips
+│   │   └── README.md         # Micro-app documentation
+│   └── government-calender/
+│       └── README.md         # Micro-app documentation
+└── README.md                 # Project root documentation (you're here)
 ```
 
 ## ⚙️ Technologies Used
@@ -68,11 +78,13 @@ Each part of this repository has its own setup guide. Pick the guide that matche
 ### For micro-app developers
 
 - [Guide](./frontend/docs/MICROAPP_DEVELOPER_GUIDE.md)
+- Explore example micro-apps in the [sample_microapps](./sample_microapps/) directory for reference implementations.
 
 ### For super-app developers
 
 - [Frontend](./frontend/README.md)
 - [Backend](./backend/README.md)
+- [Admin_Portal](./admin_portal/README.md)
   
 
 ## 🐞 Reporting Issues
