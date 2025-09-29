@@ -3,25 +3,21 @@
 A microservice for managing employee payslips.  
 Supports JWT-based authentication, CSV upload for bulk payslips, health checks, and admin-specific endpoints.
 
-<p align="left">
-  <a href="https://opensource.org/license/apache-2-0">
-    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-green.svg">
-  </a>
-</p>
 
----
+## Project Structure
 
-## Table of Contents
-
-- [Features](#features)
-- [Prerequisites](#prerequisites)
-- [Configuration](#configuration)
-- [Running Locally](#running-locally)
-- [Project Structure](#project-structure)
-- [API Endpoints](#api-endpoints)
-
-
----
+```bash
+.
+├── config.bal            # Service and DB configuration
+├── types.bal             # Core data models and API types
+├── db_client.bal         # Singleton DB client
+├── db_functions.bal      # Database helper functions
+├── service.bal           # Main Ballerina service
+├── validator.bal     # JWT validation and interceptor
+├── utils.bal             # Health, logging, and auth utilities
+├── config.toml.example   # Example TOML configuration
+└── README.md
+```
 
 ## Features
 
@@ -33,7 +29,7 @@ Supports JWT-based authentication, CSV upload for bulk payslips, health checks, 
 - Configurable via TOML file or environment variables.
 - Graceful shutdown and logging.
 
----
+
 
 ## Prerequisites
 
@@ -42,7 +38,6 @@ Supports JWT-based authentication, CSV upload for bulk payslips, health checks, 
 - JWT public keys for microapp and admin portal
 - Optional: Docker for containerized deployment
 
----
 
 ## Configuration
 
@@ -68,8 +63,6 @@ cp config.toml.example config.toml
 
 3. Update the values with your local database credentials and public keys.
 
----
-
 ## Running Locally
 
 1. Clone the repository
@@ -87,33 +80,20 @@ bal run
 - Health check:`GET http://localhost:9090/health`
 - Fetch latest payslip: `GET http://localhost:9090/payslip`
 - Fetch all payslips: `GET http://localhost:9090/all`
----
-## API Endpoints
 
-#### Public
-- **GET `/health`** – Service health check
+## Available API Endpoints
 
-#### Payslip app (JWT required)
-- **GET `/payslip`** – Fetch the latest payslip for the authenticated employee  
-- **GET `/all`** – Fetch all payslips (requires auth)
+- The following is a summary of the backend API routes, including their purpose and return types.  
+- All endpoints use JWT-based authentication unless marked as **Public**.
 
-#### Admin Portal (JWT required)
-- **GET `/admin-portal/all`** – Fetch all payslips  
-- **POST `/admin-portal/upload`** – Upload CSV for bulk payslips  
+| Endpoint | Method | Description | Response Type |
+|---|---|---|---|
+| `/health` | GET | Service health check (**Public**) | `{ status: string, uptime: number }` |
+| `/payslip` | GET | Fetch the latest payslip for the authenticated employee | `Payslip` or `404 NotFound` |
+| `/all` | GET | Fetch all payslips for the authenticated employee | `Payslip[]` |
+| `/admin-portal/all` | GET | Fetch all payslips (admin view) | `Payslip[]` |
+| `/admin-portal/upload` | POST | Upload a CSV file for bulk payslips | `{ status: string, message: string }` |
 
----
-## Project Structure
 
-```bash
-.
-├── config.bal            # Service and DB configuration
-├── types.bal             # Core data models and API types
-├── db_client.bal         # Singleton DB client
-├── db_functions.bal      # Database helper functions
-├── service.bal           # Main Ballerina service
-├── validator.bal     # JWT validation and interceptor
-├── utils.bal             # Health, logging, and auth utilities
-├── config.toml.example   # Example TOML configuration
-└── README.md
-```
+
 
