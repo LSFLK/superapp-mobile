@@ -62,8 +62,36 @@ const RoleBasedAccessControl = ({
    */
   const extractUserGroups = async () => {
     console.log('=== EXTRACTING USER GROUPS - DEBUG ===');
+
     try {
-      // Method 1: Try to get groups from ID token
+      // Method 1: Print and try to get groups from access token
+      const accessToken = await auth?.getAccessToken?.();
+      if (accessToken) {
+        // Print the JWT access token in the console
+        console.log('JWT Access Token:', accessToken);
+        try {
+          // Decode JWT access token
+          const tokenParts = accessToken.split('.');
+          if (tokenParts.length === 3) {
+            const payload = JSON.parse(atob(tokenParts[1]));
+            console.log('Decoded JWT Access Token:', payload);
+            const groups = payload.groups || 
+                          payload['http://wso2.org/claims/role'] ||
+                          payload.roles ||
+                          [];
+            console.log('Groups from Access Token:', groups);
+            if (groups && groups.length > 0) {
+              return Array.isArray(groups) ? groups : [groups].filter(Boolean);
+            }
+          }
+        } catch (decodeError) {
+          console.warn('Could not decode access token:', decodeError);
+        }
+      } else {
+        console.log('Access Token: Missing');
+      }
+
+      // Method 2: Try to get groups from ID token
       const idToken = await auth?.getIDToken?.();
       console.log('ID Token:', idToken ? 'Present' : 'Missing');
       if (idToken) {
@@ -75,38 +103,13 @@ const RoleBasedAccessControl = ({
                         decodedIdToken.roles ||
                         [];
           console.log('Groups from ID Token:', groups);
-          
           if (groups && groups.length > 0) {
             return Array.isArray(groups) ? groups : [groups].filter(Boolean);
           }
         }
       }
 
-      // Method 2: Try to get groups from access token
-      const accessToken = await auth?.getAccessToken?.();
-      console.log('Access Token:', accessToken ? 'Present' : 'Missing');
-      if (accessToken) {
-        try {
-          // Decode JWT access token
-          const tokenParts = accessToken.split('.');
-          if (tokenParts.length === 3) {
-            const payload = JSON.parse(atob(tokenParts[1]));
-            console.log('Access Token Payload:', payload);
-            const groups = payload.groups || 
-                          payload['http://wso2.org/claims/role'] ||
-                          payload.roles ||
-                          [];
-            console.log('Groups from Access Token:', groups);
-            
-            if (groups && groups.length > 0) {
-              return Array.isArray(groups) ? groups : [groups].filter(Boolean);
-            }
-          }
-        } catch (decodeError) {
-          console.warn('Could not decode access token:', decodeError);
-        }
-      }
-
+      
       // Method 3: Try to get groups from basic user info
       try {
         const basicUserInfo = await auth?.getBasicUserInfo?.();
@@ -195,7 +198,10 @@ const RoleBasedAccessControl = ({
         console.log('Required Groups:', requiredGroups);
         console.log('Authorization Result:', authorized);
         console.log('Auth State:', auth?.state);
+        console.log('ID Token:', auth?.getIDToken?.());
         console.log('ID Token Decoded:', auth?.getDecodedIDToken?.());
+        console.log('Access Token:', auth?.state?.accessToken);
+        console.log('Access Token Payload:', auth?.state?.accessTokenPayload);
         console.log('==================================');
 
       } catch (error) {
