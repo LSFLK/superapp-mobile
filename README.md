@@ -74,6 +74,8 @@ Here’s a high-level view of the flow:
 
 ## 🚀 Getting Started
 
+> **New to the project?** Start with our [Developer Onboarding Guide](./ONBOARDING.md) for complete setup instructions.
+
 Each part of this repository has its own setup guide. Pick the guide that matches what you want to do:
 
 ### For micro-app developers
