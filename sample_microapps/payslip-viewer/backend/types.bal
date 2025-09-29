@@ -1,3 +1,11 @@
+// ==============================
+// Core Data Models and API Types
+// ==============================
+// Defines the core data structures, API response formats, 
+// request validation types, and authentication-related types
+// used throughout the Payslip service.
+// ==============================
+
 // Core payslip data model
 public type Payslip record {|
     string employeeId;
@@ -8,9 +16,17 @@ public type Payslip record {|
     float allowances;
     float deductions;
     float netSalary;
-    string? department?; // Optional field for future expansion
-    string? location?; // Optional field for future expansion
+    string? department; // Optional field for future expansion
+    string? location; // Optional field for future expansion
 |};
+
+public type DatabaseConfig record {
+    string DB_HOST;
+    int DB_PORT;
+    string DB_NAME;
+    string DB_USER;
+    string DB_PASSWORD;
+};
 
 // API Response wrapper types
 public type PayslipResponse record {|
@@ -38,7 +54,6 @@ public type HealthResponse record {|
     string message;
     string timestamp;
     string version;
-    string environment;
 |};
 
 // Request validation types
