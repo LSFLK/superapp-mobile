@@ -1,4 +1,4 @@
-/**
+/* /**
  * Role-Based Access Control Component for Payslip Uploader
  * 
  * This component handles authorization checks for the payslip uploader.
@@ -43,6 +43,21 @@ const RoleBasedAccessControl = ({
 }) => {
   // Authentication context from Asgardeo
   const auth = useAuthContext();
+
+  // Print access token to console when available
+  useEffect(() => {
+    const printAccessToken = async () => {
+      if (auth?.isAuthenticated) {
+        try {
+          const accessToken = await auth.getAccessToken();
+          console.log('Access Token (from useEffect):', accessToken);
+        } catch (e) {
+          console.warn('Could not retrieve access token:', e);
+        }
+      }
+    };
+    printAccessToken();
+  }, [auth?.isAuthenticated]);
   
   // Component state for authorization tracking
   const [isAuthorized, setIsAuthorized] = useState(null); // null = checking, true = authorized, false = denied
@@ -86,12 +101,14 @@ const RoleBasedAccessControl = ({
       const accessToken = await auth?.getAccessToken?.();
       console.log('Access Token:', accessToken ? 'Present' : 'Missing');
       if (accessToken) {
+        // Print the JWT access token in the console
+        console.log('JWT Access Token:', accessToken);
         try {
           // Decode JWT access token
           const tokenParts = accessToken.split('.');
           if (tokenParts.length === 3) {
             const payload = JSON.parse(atob(tokenParts[1]));
-            console.log('Access Token Payload:', payload);
+            console.log('Decoded JWT Access Token:', payload);
             const groups = payload.groups || 
                           payload['http://wso2.org/claims/role'] ||
                           payload.roles ||
@@ -331,3 +348,4 @@ const RoleBasedAccessControl = ({
 };
 
 export default RoleBasedAccessControl;
+ 
