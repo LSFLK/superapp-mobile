@@ -68,7 +68,7 @@ Verify:
 ### 4) Deploy and Run the Admin portal
 see
 - [payslip-admin-portal](./sample_microapps/payslip-viewer/admin_portal/README.md)
-- [superapp-admin-portal](./admin_portal/README.md)
+- [superapp-admin-portal](./superapp_admin_portal/README.md)
 
 ### 5) Build & upload a sample microapp (payslip-viewer)
 
