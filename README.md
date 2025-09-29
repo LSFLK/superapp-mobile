@@ -85,7 +85,7 @@ Each part of this repository has its own setup guide. Pick the guide that matche
 
 - [Frontend](./frontend/README.md)
 - [Backend](./backend/README.md)
-- [Admin_Portal](./admin_portal/README.md)
+- [Superapp_Admin_Portal](./superapp_admin_portal/README.md)
   
 
 ## 🐞 Reporting Issues
