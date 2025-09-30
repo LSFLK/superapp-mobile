@@ -57,8 +57,7 @@ Refer to the following component-specific READMEs for setup and configuration de
 
 - [superapp-frontend](../frontend/README.md): Instructions for running the main mobile frontend.
 - [superapp-backend](../backend/README.md): Backend service setup, environment variables, and endpoints.
-- [payslip-backend](../sample_microapps/payslip-viewer/backend/README.md): Backend for the payslip microapp.
-- [payslip-frontend](../sample_microapps/payslip-viewer/frontend/README.md): Frontend for the payslip microapp.
+
 
 Follow each README to configure `.env` files, install dependencies, and start the respective services.
 
@@ -72,7 +71,6 @@ Verify:
 
 To set up and launch the admin portals, follow the instructions in their respective READMEs:
 
-- [Payslip Admin Portal](../sample_microapps/payslip-viewer/admin-frontend/README.md): Manage microapp uploads and configurations.
 - [SuperApp Admin Portal](../superapp_admin_portal/README.md): Oversee global app settings, user management, and orchestration.
 
 Ensure environment variables are configured, dependencies are installed, and the portals are running on the expected local ports. Once running, use the admin UI to manage microapps and users.
@@ -80,6 +78,10 @@ Ensure environment variables are configured, dependencies are installed, and the
 ### 5) Build & upload a sample microapp (payslip-viewer)
 
 Microapps are the user-facing modular apps; upload one to exercise the full pipeline.
+
+- [payslip-backend](../sample_microapps/payslip-viewer/backend/README.md): Backend for the payslip microapp.
+- [payslip-frontend](../sample_microapps/payslip-viewer/frontend/README.md): Frontend for the payslip microapp.
+- [Payslip Admin Portal](../sample_microapps/payslip-viewer/admin-frontend/README.md): Manage microapp uploads and configurations.
 
 In the Admin portal UI: create a new Microapp and build and upload payslip-viewer frontend.
 

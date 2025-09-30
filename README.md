@@ -8,7 +8,7 @@
   </a>
 </p>
 <!-- Credit line acknowledging WSO2 Superapp -->
-<p style="margin-top: 0.5rem;"><em>Originally adapted from and inspired by the WSO2 Superapp project.</em></p>
+<p style="margin-top: 0.5rem;"><em>Originally adapted from and inspired by the <a href = "https://github.com/wso2-open-operations/superapp-mobile"> WSO2 Superapp project</a>.</em></p>
 This repository is the foundation for hosting and managing many small web-based micro-apps with seamless authentication, secure token exchange, and centralized management. Micro-apps run inside the host app and communicate with it using a lightweight, reliable bridge, making onboarding and integration straightforward for both in-house and third‑party apps.
 
 
@@ -82,7 +82,7 @@ Each part of this repository has its own setup guide. Pick the guide that matche
 - **[Developer Onboarding Guide](./docs/ONBOARDING.md)**: Step-by-step instructions for setting up the entire SuperApp stack locally, including infrastructure (database, IdP), configuration. Ideal for new contributors or those working on the complete system.
 
 ### Component-Specific Development
-- **SuperApp Core Developers** (main app, backend, admin portal):
+- **SuperApp Core Deployer** (main app, backend, admin portal):
   - [Frontend Setup](./frontend/README.md): React Native mobile app development and local testing
   - [Backend Setup](./backend/README.md): Ballerina API service development
   - [Admin Portal Setup](./superapp_admin_portal/README.md): Web portal for managing micro-apps
