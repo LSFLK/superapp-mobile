@@ -99,23 +99,6 @@ isolated service http:InterceptableService / on new http:Listener(serverPort, co
         return response;
     }
 
-    // Endpoint to retrieve all users from the database
-    # Fetch all users from the database.
-    #
-    # + ctx - Request context
-    # + return - Array of User records or an error
-    isolated resource function get users(http:RequestContext ctx) returns User[]|http:InternalServerError {
-        User[]|error result = fetchAllUsers();
-        if result is error {
-            log:printError("Error fetching users from database", result);
-            return <http:InternalServerError>{
-                body: {message: "Failed to fetch users from database"}
-            };
-        }
-        log:printInfo("Successfully fetched " + result.length().toString() + " users");
-        return result;
-    }
-
     # Fetch a user by email from the database.
     #
     # + ctx - Request context
