@@ -1,4 +1,4 @@
-## Onboarding — superapp-mobile (main orchestration guide)
+## Onboarding — superapp-mobile 
 
 This document is the single, authoritative onboarding and orchestration guide for developers who want to build, deploy, and test the entire SuperApp stack end-to-end on a local machine (or in a staging environment).
 
@@ -53,11 +53,14 @@ Notes: If your org uses another IdP (Auth0, Asgardeo), create equivalent clients
 
 Services read local configs for DB, IdP, and client IDs.
 
-see for 
-- [superapp-frontend](./frontend/README.md)
-- [superapp-backend](./backend/README.md)
-- [payslip-backend](./sample_microapps/payslip-viewer/backend/README.md)
-- [payslip-frontend](./sample_microapps/payslip-viewer/frontend/README.md)
+Refer to the following component-specific READMEs for setup and configuration details:
+
+- [superapp-frontend](../frontend/README.md): Instructions for running the main mobile frontend.
+- [superapp-backend](../backend/README.md): Backend service setup, environment variables, and endpoints.
+- [payslip-backend](../sample_microapps/payslip-viewer/backend/README.md): Backend for the payslip microapp.
+- [payslip-frontend](../sample_microapps/payslip-viewer/frontend/README.md): Frontend for the payslip microapp.
+
+Follow each README to configure `.env` files, install dependencies, and start the respective services.
 
 Verify:
 
@@ -66,9 +69,13 @@ Verify:
 
 
 ### 4) Deploy and Run the Admin portal
-see
-- [payslip-admin-portal](./sample_microapps/payslip-viewer/admin_portal/README.md)
-- [superapp-admin-portal](./superapp_admin_portal/README.md)
+
+To set up and launch the admin portals, follow the instructions in their respective READMEs:
+
+- [Payslip Admin Portal](../sample_microapps/payslip-viewer/admin_portal/README.md): Manage microapp uploads and configurations.
+- [SuperApp Admin Portal](../superapp_admin_portal/README.md): Oversee global app settings, user management, and orchestration.
+
+Ensure environment variables are configured, dependencies are installed, and the portals are running on the expected local ports. Once running, use the admin UI to manage microapps and users.
 
 ### 5) Build & upload a sample microapp (payslip-viewer)
 

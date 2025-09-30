@@ -74,31 +74,37 @@ Here’s a high-level view of the flow:
 
 ## 🚀 Getting Started
 
-> **New to the project?** Start with our [Developer Onboarding Guide](./ONBOARDING.md) for complete setup instructions.
 
 Each part of this repository has its own setup guide. Pick the guide that matches what you want to do:
 
-### For micro-app developers
+### End-to-End Setup
+- **[Developer Onboarding Guide](./docs/ONBOARDING.md)**: Step-by-step instructions for setting up the entire SuperApp stack locally, including infrastructure (database, IdP), configuration. Ideal for new contributors or those working on the complete system.
 
-- [Guide](./frontend/docs/MICROAPP_DEVELOPER_GUIDE.md)
-- Explore example micro-apps in the [sample_microapps](./sample_microapps/) directory for reference implementations.
+### Component-Specific Development
+- **SuperApp Core Developers** (main app, backend, admin portal):
+  - [Frontend Setup](./frontend/README.md): React Native mobile app development and local testing
+  - [Backend Setup](./backend/README.md): Ballerina API service development
+  - [Admin Portal Setup](./superapp_admin_portal/README.md): Web portal for managing micro-apps
 
-### For super-app developers
-
-- [Frontend](./frontend/README.md)
-- [Backend](./backend/README.md)
-- [Superapp_Admin_Portal](./superapp_admin_portal/README.md)
+- **Micro-App Developers** (third-party or in-house apps):
+  - [Micro-App Developer Guide](./frontend/docs/MICROAPP_DEVELOPER_GUIDE.md): Building, integrating, and deploying micro-apps within the SuperApp
+  - [Sample Micro-Apps](./sample_microapps/): Reference implementations and examples
   
-
 ## 🐞 Reporting Issues
 
-###  1. Opening an issue
+### Opening an issue
 
 All known issues of LSF Superapp Mobile are filed at: https://github.com/LSFLK/superapp-mobile/issues. Please check this list before opening a new issue.
+
+### Next steps & future improvements
+
+Read the planned enhancements and longer-term tasks in [FUTURE_IMPROVEMENTS.md](./docs/FUTURE_IMPROVEMENTS.md).
 
 <!-- ### 2.  Reporting security issues
 
 Please do not report security issues via GitHub issues. Instead, follow the [WSO2 Security Vulnerability Reporting Guidelines](https://security.docs.wso2.com/en/latest/security-reporting/vulnerability-reporting-guidelines/). -->
+
+
 
 ## 🤝 Contributing
 
