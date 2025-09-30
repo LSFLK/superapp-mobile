@@ -72,7 +72,7 @@ Verify:
 
 To set up and launch the admin portals, follow the instructions in their respective READMEs:
 
-- [Payslip Admin Portal](../sample_microapps/payslip-viewer/admin_portal/README.md): Manage microapp uploads and configurations.
+- [Payslip Admin Portal](../sample_microapps/payslip-viewer/admin-frontend/README.md): Manage microapp uploads and configurations.
 - [SuperApp Admin Portal](../superapp_admin_portal/README.md): Oversee global app settings, user management, and orchestration.
 
 Ensure environment variables are configured, dependencies are installed, and the portals are running on the expected local ports. Once running, use the admin UI to manage microapps and users.
