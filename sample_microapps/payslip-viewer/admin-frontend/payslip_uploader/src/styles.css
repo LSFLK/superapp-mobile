@@ -1,0 +1,418 @@
+:root {
+  --bg-app: #f0f8ff;
+  --bg-gradient: linear-gradient(135deg,#f0f8ff 0%, #e6f4ff 55%, #d9edff 100%);
+  --surface: #ffffff;
+  --surface-alt: #f5faff;
+  --border: #d2ebff;
+  --border-strong: #8ecbff;
+  --primary: #1677ff;
+  --primary-hover: #0d68e6;
+  --primary-active: #0959c2;
+  --text-strong: #003a67;
+  --text: #0d3a55;
+  --text-muted: #5d7b92;
+  --danger: #c62828;
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.06);
+  --shadow-md: 0 6px 18px -4px rgba(0,58,103,0.15);
+  --shadow-focus: 0 0 0 3px rgba(22,119,255,0.35);
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif;
+}
+
+html,body { margin:0; padding:0; background: var(--bg-gradient); min-height:100%; }
+
+.app-shell { min-height:100vh; display:flex; align-items:flex-start; justify-content:center; padding:20px 0; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px 30px 32px;
+  width:100%;
+  max-width: none;
+  margin: 0 20px;
+  box-shadow: var(--shadow-md);
+  position:relative;
+  overflow:hidden;
+}
+.card:before {
+  content:"";
+  position:absolute;
+  inset:0;
+  background: radial-gradient(circle at 85% 15%, rgba(22,119,255,0.10), transparent 55%);
+  pointer-events:none;
+}
+
+h1.title { margin:0 0 12px; font-size:26px; letter-spacing:.5px; color:var(--text-strong); }
+.subtitle { margin:0 0 20px; font-size:14px; color:var(--text-muted); line-height:1.5; }
+
+.dropzone {
+  border: 2px dashed var(--border-strong);
+  background: var(--surface-alt);
+  border-radius: var(--radius-md);
+  padding: 28px 24px 32px;
+  text-align:center;
+  transition: background .25s, border-color .25s, transform .25s;
+  position:relative;
+}
+.dropzone.is-dragging { background:#e6f4ff; border-color: var(--primary); transform: translateY(-2px); }
+.dropzone__title { margin:0; font-weight:600; color:var(--text-strong); font-size:15px; }
+.dropzone__hint { margin:8px 0 0; font-size:12px; letter-spacing:.5px; color:var(--text-muted); }
+.dropzone__filename { margin-top:12px; font-size:12px; color:#666; word-break:break-all; }
+
+.actions { margin-top:20px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+
+.btn {
+  --btn-bg: var(--primary);
+  --btn-bg-hover: var(--primary-hover);
+  --btn-bg-active: var(--primary-active);
+  background: var(--btn-bg);
+  color:#fff;
+  border:none;
+  padding:10px 22px;
+  font-size:14px;
+  font-weight:500;
+  border-radius: 24px;
+  cursor:pointer;
+  letter-spacing:.3px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  box-shadow: var(--shadow-sm);
+  transition: background .18s, transform .18s, box-shadow .18s;
+}
+.btn:hover { background: var(--btn-bg-hover); }
+.btn:active { background: var(--btn-bg-active); transform: translateY(1px); }
+.btn:focus-visible { outline:none; box-shadow: var(--shadow-focus); }
+.btn[disabled] { opacity:.6; cursor:not-allowed; }
+.btn.secondary { --btn-bg:#e6f4ff; --btn-bg-hover:#d3ecff; --btn-bg-active:#c2e6ff; color:var(--text-strong); }
+
+.inline-badge { background:#e6f4ff; color:#0d4e82; padding:4px 10px; font-size:11px; border-radius:14px; font-weight:500; letter-spacing:.4px; }
+
+.progress-bar-wrapper { margin-top:18px; height:8px; background:#e6f4ff; border-radius:6px; overflow:hidden; }
+.progress-bar { height:100%; width:0; background:linear-gradient(90deg,#60a5fa,#1677ff); animation: progress 1.6s linear infinite; background-size:200% 100%; }
+@keyframes progress { 0% { background-position:0 0; } 100% { background-position:-200% 0; } }
+
+.modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.35); display:flex; align-items:center; justify-content:center; z-index:100; padding:20px; }
+.modal { background:#f5faff; border:1px solid var(--border); border-radius:20px; padding:26px 26px 24px; width:100%; max-width:420px; color:var(--text-strong); box-shadow:0 18px 48px -12px rgba(0,58,103,0.35); position:relative; }
+.modal h3 { margin:0 0 12px; font-size:20px; letter-spacing:.4px; }
+.modal p { margin:0 0 18px; font-size:14px; line-height:1.5; }
+.modal-footer { display:flex; gap:12px; justify-content:flex-end; }
+.status { margin-top:18px; font-size:13px; color:var(--text-muted); display:flex; align-items:center; gap:8px; }
+.status.error { color: var(--danger); }
+.status.success { color: var(--text-strong); }
+.fade-in { animation: fade .4s ease; }
+@keyframes fade { from { opacity:0; transform: translateY(4px);} to { opacity:1; transform: translateY(0);} }
+.small { font-size:12px; }
+.hr { height:1px; background:linear-gradient(to right,transparent,#d9eefe,transparent); margin:26px 0 22px; border:none; }
+
+.footer-note { margin-top:30px; font-size:11px; color:#6c889b; text-align:center; letter-spacing:.5px; }
+code.inline { background:#eef7ff; padding:2px 6px; border-radius:6px; font-size:11px; }
+
+/* Authentication Styles */
+.auth-container {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.auth-actions {
+  margin: 24px 0;
+}
+
+.auth-note {
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--surface-alt);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
+.auth-note p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.header-section {
+  margin-top: 30px;
+  margin-bottom: 20px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.header-content h1 {
+  margin: 0;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.welcome-text {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  font-size: 14px;
+  color: var(--text-strong);
+  font-weight: 500;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 8px 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border);
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+  }
+  
+  .user-info {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+/* Payslip Table Styles */
+.payslip-table-container {
+  margin-top: 32px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: var(--surface-alt);
+  border-bottom: 1px solid var(--border);
+}
+
+.table-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-strong);
+  letter-spacing: 0.3px;
+}
+
+.btn.small {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.table-loading {
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.table-loading p {
+  margin: 16px 0 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.empty-state {
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.empty-state p {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-strong);
+}
+
+.empty-hint {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.payslip-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.payslip-table th {
+  background: var(--surface-alt);
+  color: var(--text-strong);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 2px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.payslip-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: middle;
+}
+
+.payslip-table tbody tr:hover {
+  background: var(--surface-alt);
+}
+
+.payslip-table .employee-id {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.payslip-table .employee-name {
+  font-weight: 500;
+  color: var(--text-strong);
+}
+
+.payslip-table .currency {
+  text-align: right;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-weight: 500;
+}
+
+.payslip-table .currency.positive {
+  color: #16a34a;
+}
+
+.payslip-table .currency.negative {
+  color: #dc2626;
+}
+
+.payslip-table .currency.net-salary {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.table-footer {
+  padding: 12px 24px;
+  background: var(--surface-alt);
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+.table-count {
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 0.3px;
+}
+
+/* Responsive table */
+@media (max-width: 768px) {
+  .app-shell {
+    padding: 10px 0;
+  }
+  
+  .card {
+    margin: 0 10px;
+    padding: 20px 16px 24px;
+  }
+  
+  .table-header {
+    padding: 16px 20px;
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  
+  .table-header h3 {
+    font-size: 16px;
+    text-align: center;
+  }
+  
+  .payslip-table {
+    font-size: 11px;
+  }
+  
+  .payslip-table th,
+  .payslip-table td {
+    padding: 8px 6px;
+    min-width: 80px;
+  }
+  
+  .payslip-table th {
+    font-size: 10px;
+  }
+  
+  .payslip-table .employee-id,
+  .payslip-table .employee-name {
+    min-width: 100px;
+  }
+  
+  .payslip-table .currency {
+    min-width: 90px;
+  }
+  
+  .table-wrapper {
+    max-height: 400px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-shell {
+    padding: 5px 0;
+  }
+  
+  .card {
+    margin: 0 5px;
+    padding: 16px 12px 20px;
+  }
+  
+  .payslip-table-container {
+    margin-top: 24px;
+  }
+  
+  .payslip-table {
+    font-size: 10px;
+  }
+  
+  .payslip-table th,
+  .payslip-table td {
+    padding: 6px 4px;
+    min-width: 70px;
+  }
+  
+  .table-wrapper {
+    max-height: 350px;
+  }
+}
+
+/* ============================================================================
+ * ROLE-BASED ACCESS CONTROL ANIMATIONS
+ * ============================================================================ */
+
+/* Spinning animation for loading states */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
