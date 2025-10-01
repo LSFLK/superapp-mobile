@@ -1,7 +1,7 @@
 ## Superapp Backend
 
 Backend service for Superapp Mobile, implemented in Ballerina. It provides:
-- JWT-protected HTTP APIs for users and micro-apps
+- JWT-protected REST APIs for users and micro-apps
 - Micro-app upload (multipart), metadata listing, ZIP download, and icon serving
 - Per-micro-app JWT minting for downstream services
 - MySQL database integration with SSL and connection pooling
@@ -10,10 +10,11 @@ Backend service for Superapp Mobile, implemented in Ballerina. It provides:
 ### Tech Stack
 - Ballerina 2201.12.9 (Swan Lake)
 - MySQL (via `ballerinax/mysql`)
-- JWT (sign/validate), HTTP service and interceptors
+- JWT (sign/validate), HTTP/HTTPS service and interceptors
+
 
 ### Repository Layout
-- `main.bal`: HTTP service, routes, interceptors, and JWT minting
+- `main.bal`: HTTP/HTTPS service, routes, interceptors, and JWT minting
 - `db_client.bal`: MySQL client and configuration
 - `db_functions.bal`: Database queries (users, micro-apps, icons, zips)
 - `types.bal`: Data records for users and micro-apps
@@ -26,7 +27,7 @@ Backend service for Superapp Mobile, implemented in Ballerina. It provides:
 
 ## Prerequisites
 - Ballerina distribution `2201.12.9` or compatible
-- MySQL database and credentials
+- MySQL database and credentials (See the ["Database Schema Expectations"](#database-schema-expectations) for the schema definition)
 - RS256 private key (`.pem`) for signing micro-app JWTs
 - Identity Provider (IdP) public certificate (`.crt`) to validate incoming JWTs (Asgardeo in example)
 
@@ -57,6 +58,11 @@ Service configurables (defaults in `configurations.bal`):
 
 Database client uses SSL preferred and a 10s connect timeout by default.
 
+Connection security:
+- Local development: use HTTP by default, or enable HTTPS with a self-signed certificate (dev only).
+- Production: recommended to terminate TLS at an API gateway/reverse proxy; alternatively enable direct HTTPS on the backend with a certificate from a trusted CA. Do not use self-signed certs in production.
+See the ["Connection security (Gateway or Direct HTTPS)"](#connection-security-gateway-or-direct-https) section below for setup details.
+
 ## Running Locally
 Install prerequisites, then run:
 ```bash
@@ -79,6 +85,47 @@ Artifacts:
   - Signature certificate: `publicKeyPath`
 - Outgoing micro-app tokens are minted by `createMicroappJWT(empId, microAppId)` using RS256 and `privateKeyPath`.
 - CORS is open by default (allowOrigins `*`). Review before production.
+
+### Connection security (Gateway or Direct HTTPS)
+You can choose how to secure the network transport to this backend:
+<figure>
+  <img src="./resources/direct_tls_image02.png" alt="Connection security options diagram" width="680" /><br>
+  <em>[Connection security options: API gateway TLS termination vs direct HTTPS (trusted CA or self-signed for local only).]</em>
+</figure>
+
+- API Gateway or Reverse Proxy (recommended for production):
+  - Terminate TLS at your gateway/proxy (e.g., NGINX, Kong, Choreo API Gateway, Cloud LB) and forward to the backend.
+  - You may keep the backend listener as plain HTTP (default) within a private network.
+  - If you also want encrypted hop between gateway and backend, configure your gateway to connect to the backend via HTTPS and use a certificate trusted by the gateway.
+
+- Direct HTTPS from clients to backend (no gateway):
+  - Enable the TLS listener in `main.bal` and provide a certificate/key.
+  - For production, use a certificate from a trusted CA. For local/dev only, you may use a self-signed cert.
+
+Configuration and steps:
+1) Configure certificate/key file paths in `config.toml` (already supported):
+   ```toml
+   selfSignedCertFile = "./server-cert.crt"   # or path to your CA-issued cert
+   selfSignedKeyFile  = "./server-key.key"    # matching private key
+   ```
+
+2) Switch the listener in `main.bal`:
+   - The default HTTP listener is active.
+   - A TLS-enabled listener is provided and commented with guidance. Uncomment the TLS listener block and comment out the plain HTTP one.
+
+3) Generate a local self-signed certificate (development only):
+   ```bash
+   openssl req -new -newkey rsa:2048 -sha256 -days 365 -nodes -x509 -keyout server-key.key -out server-cert.crt
+   ```
+   - Update `config.toml` `selfSignedCertFile` and `selfSignedKeyFile` to the generated files.
+   - Uncomment the configurable variables related to the direct TLS in the `configurations.bal` file.
+  <img src="./resources/direct_tls_image01.png" alt="Configurations.bal" width="480" />
+   - Start the service and access via `https://localhost:<serverPort>`.
+
+Notes:
+- *Do not use self-signed certificates in production.* Use a publicly trusted CA or your organization's PKI.
+- If running behind a gateway, prefer terminating TLS at the gateway and restrict backend network access.
+- If your gateway requires HTTPS upstream, point it to the backend's HTTPS address and ensure it trusts the backend certificate (import your CA root if using internal PKI).
 
 Headers:
 - `x-jwt-assertion: <jwt-id-token>` required by all protected routes.

@@ -27,7 +27,28 @@ isolated service class ErrorInterceptor {
     }
 }
 
-// CORS configuration for frontend access
+////////// HTTP Listner without TLS
+listener http:Listener _httpListner = new (serverPort, 
+    config = {
+        requestLimits: {maxHeaderSize}
+    }
+);
+
+////////// HTTP listner with TLS (If required) [IMPORTANT: This is implemented to issue and validate a self-signed cert and this method is only recommended for local setup. For production, you can either use an API gateway or a trusted CA to provide a certificate and handle secured routing.]
+// listener http:Listener _httpListner = new (serverPort, 
+//     config = {
+//         requestLimits: {maxHeaderSize},
+//         secureSocket: {
+//             key: {
+//                 certFile: selfSignedCertFile,
+//                 keyFile: selfSignedKeyFile
+//             }
+//         }
+//     }
+// );
+
+
+// CORS configuration for frontend access 
 @http:ServiceConfig {
     cors: {
         allowOrigins: ["*"],
@@ -36,7 +57,7 @@ isolated service class ErrorInterceptor {
         allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     }
 }
-isolated service http:InterceptableService / on new http:Listener(serverPort, config = {requestLimits: {maxHeaderSize}}) {
+isolated service http:InterceptableService / on _httpListner {
 
     # + return - ErrorInterceptor
     public function createInterceptors() returns http:Interceptor[] =>

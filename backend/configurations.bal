@@ -7,3 +7,7 @@ configurable string superappIssuer = "superapp-issuer";
 configurable decimal tokenTTLSeconds = 300; 
 configurable string privateKeyPath = ?; 
 configurable string publicKeyPath = ?; 
+
+// Uncomment the following if you want to use direct HTTPS from clients to backend
+// configurable string selfSignedCertFile = ?;
+// configurable string selfSignedKeyFile = ?;

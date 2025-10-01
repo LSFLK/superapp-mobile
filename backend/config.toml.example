@@ -2,6 +2,10 @@
 privateKeyPath = "./<your-superapp-private-key>.pem"
 publicKeyPath = "./<your-idp-certificate>.crt"
 
+# Optional (for direct HTTPS from clients to backend)
+selfSignedCertFile = "./server-cert.crt"  
+selfSignedKeyFile  = "./server-key.key"
+
 [databaseConfig]
 host = "<your-db-host-name>"
 user = "<your-db_admin-name>"
