@@ -120,7 +120,6 @@ Configuration and steps:
    ```
    - Update `config.toml` `selfSignedCertFile` and `selfSignedKeyFile` to the generated files.
    - Uncomment the configurable variables related to the direct TLS in the `configurations.bal` file.
-  <img src="./resources/direct_tls_image01.png" alt="Configurations.bal" width="480" />
    - Start the service and access via `https://localhost:<serverPort>`.
 
 Notes:
