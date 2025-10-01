@@ -85,7 +85,7 @@ Headers:
 
 ## Database Schema Expectations
 
-![Database Schema](./resources/tables_2.jpg)
+![Database Schema](./resources/tables_2.png)
 
 ## API Reference
 Base path: `/`
@@ -97,14 +97,14 @@ Security: All endpoints require header `x-jwt-assertion: <jwt>` unless noted. JS
 
 | Endpoint | Method | Description | Response Type |
 |---|---|---|---|
-| `/micro-app-token?emp_id={empId}&micro_app_id={appId}` | GET | Issue a per-micro-app JWT for the given employee and app | `{ token: string, expiresAt: number }` |
+| `/micro-app-token?user_id={userId}&micro_app_id={appId}` | GET | Issue a per-micro-app JWT for the given employee and app | `{ token: string, expiresAt: number }` |
 | `/users` | GET | Retrieve all users | `User[]` |
 | `/users/{email}` | GET | Retrieve a user by email | `User` or `404 NotFound` |
 | `/users/{email}/apps` | POST | Update user's downloaded app IDs (JSON body) | `{ status: string, message: string }` |
 | `/micro-apps` | GET | Retrieve all micro-apps | `MicroApp[]` |
 | `/micro-apps/{appId}` | GET | Retrieve micro-app details by App ID | `MicroApp` or `404 NotFound` |
 | `/micro-apps/{appId}/download` | GET | Download micro-app ZIP by App ID | Binary ZIP (`application/zip`) |
-| `/icons/{iconName}` | GET | Retrieve icon by name (inline) | Binary Image (PNG/JPEG) |
+| `/micro-apps/{appId}/icon` | GET | Retrieve icon by App ID | Binary Image (PNG/JPEG) |
 
 
 ## Environment Variables (Alternative)

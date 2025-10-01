@@ -4,14 +4,14 @@ import ballerina/uuid;
 
 // Standalone function to create the microapp-specific JWT
 // Usage: string|error token = createMicroappJWT("emp-123", "app-456");
-public isolated function createMicroappJWT(string empId, string microAppId) returns string|error {
+public isolated function createMicroappJWT(string user_id, string microAppId) returns string|error {
     // Build IssuerConfig for JWT
     jwt:IssuerConfig issuerConfig = {
         issuer: superappIssuer, // Issuer (your superapp backend)
         audience: microAppId, // Audience as a string array for microapp backend
         expTime: tokenTTLSeconds, // Expiry in seconds (relative to iat)
         customClaims: {
-            "emp_id": empId, // User emp_id as subject
+            "user_id": user_id, // User user_id as subject
             "micro_app_id": microAppId, // Custom claim for microapp scoping
             "jti": uuid:createType1AsString() // Unique token ID
         },
@@ -29,6 +29,6 @@ public isolated function createMicroappJWT(string empId, string microAppId) retu
         return token;
     }
 
-    log:printInfo("Generated microapp JWT for emp_id: " + empId + ", micro_app_id: " + microAppId);
+    log:printInfo("Generated microapp JWT for user_id: " + user_id + ", micro_app_id: " + microAppId);
     return token;
 }

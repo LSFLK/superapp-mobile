@@ -15,7 +15,7 @@ export const BRIDGE_FUNCTION: BridgeFunction = {
       }
 
       const tokenParams: MicroAppTokenParams = {
-        emp_id: userId,
+        user_id: userId,
         app_id: appID
       };
 

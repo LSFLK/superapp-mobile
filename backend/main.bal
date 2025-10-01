@@ -48,22 +48,22 @@ isolated service http:InterceptableService / on new http:Listener(serverPort, co
 
     #
     # + ctx - Request context
-    # + emp_id - Employee ID (passed as query parameter)
+    # + user_id - User ID (passed as query parameter)
     # + micro_app_id - Microapp ID (passed as query parameter)
     # + return - JSON with JWT or an error
-    isolated resource function get micro\-app\-token(http:RequestContext ctx, string emp_id, string micro_app_id) returns json|http:BadRequest|http:InternalServerError {
+    isolated resource function get micro\-app\-token(http:RequestContext ctx, string user_id, string micro_app_id) returns json|http:BadRequest|http:InternalServerError {
         // Validate input parameters
-        if emp_id.trim() == "" || micro_app_id.trim() == "" {
-            log:printError("Missing or empty emp_id or micro_app_id");
+        if user_id.trim() == "" || micro_app_id.trim() == "" {
+            log:printError("Missing or empty user_id or micro_app_id");
             return <http:BadRequest>{
-                body: {"error": "Bad Request: emp_id and micro_app_id are required"}
+                body: {"error": "Bad Request: user_id and micro_app_id are required"}
             };
         }
 
         // Generate the microapp-specific JWT
-        string|error token = createMicroappJWT(emp_id, micro_app_id);
+        string|error token = createMicroappJWT(user_id, micro_app_id);
         if token is error {
-            log:printError("Failed to generate JWT for emp_id this time too: " + emp_id + ", micro_app_id: " + micro_app_id, 'error = token);
+            log:printError("Failed to generate JWT for user_id this time too: " + user_id + ", micro_app_id: " + micro_app_id, 'error = token);
             return <http:InternalServerError>{
                 body: {"error": "Internal server error"}
             };
@@ -71,7 +71,7 @@ isolated service http:InterceptableService / on new http:Listener(serverPort, co
 
         // Return the token in JSON response
         json response = {"token": token, "expiresAt": tokenTTLSeconds};
-        log:printInfo("Successfully generated JWT for emp_id: " + emp_id + ", micro_app_id: " + micro_app_id);
+        log:printInfo("Successfully generated JWT for user_id: " + user_id + ", micro_app_id: " + micro_app_id);
         return response;
     }
 
@@ -327,22 +327,7 @@ isolated service http:InterceptableService / on new http:Listener(serverPort, co
         http:Response response = new;
         response.setBinaryPayload(result.icon_url);
 
-        // Determine content type based on iconName extension
-        string contentType = "image/png"; // Default to PNG
-        if iconName.endsWith(".jpg") || iconName.endsWith(".jpeg") {
-            contentType = "image/jpeg";
-        }
-        error? contentTypeResult = response.setContentType(contentType);
-        if contentTypeResult is error {
-            log:printError("Error setting content type", contentTypeResult);
-        }
-
-        error? headerResult = response.setHeader("Content-Disposition", "inline; filename=\"" + iconName + "\"");
-        if headerResult is error {
-            log:printError("Error setting header", headerResult);
-        }
-
-        log:printInfo("Successfully serving icon for micro-app: " + iconName);
+        log:printInfo("Successfully serving icon for micro-app: " + appId);
         return response;
     }
 };
