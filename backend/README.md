@@ -88,10 +88,8 @@ Artifacts:
 
 ### Connection security (Gateway or Direct HTTPS)
 You can choose how to secure the network transport to this backend. The following figure shows the available connection security options:
-- API gateway TLS termination
-- Direct HTTPS (trusted CA or self-signed for local only).
 <figure>
-  <img src="./resources/direct_tls_image02.png" alt="Connection security options diagram" width="680" /><br>
+  <img src="./resources/direct_tls_image02.png" alt="Connection security options diagram" width="480" /><br>
 </figure>
 
 - API Gateway or Reverse Proxy (recommended for production):
