@@ -4,7 +4,7 @@ This guide helps you build a micro-app that runs inside Super App Mobile's WebVi
 
 ## Example
 
-For a practical example, refer to the `payslip viewer` micro-app implementation.
+For a practical example, refer to the [payslip-viewer](../../sample_microapps/payslip-viewer/) micro-app implementation.
 
 ## Bridge overview
 
@@ -79,7 +79,7 @@ if (inHost) {
 
 Each micro-app should include a small manifest or metadata so the Super App can display it in the catalog. Typical fields:
 
-- `app_id` (string) — unique identifier assigned by the host
+- `app_id` (string) — unique identifier assigned by the Super App Admin
 - `name` (string) — display name
 - `description` (string) — short description
 - `icon` (URL or local path) — square icon used in the catalog
@@ -95,9 +95,8 @@ Each micro-app should include a small manifest or metadata so the Super App can 
 ## Security guidance (important)
 
 - Never assume the host will expose full user tokens indefinitely. Always follow least-privilege: request only what you need.
-- Avoid storing long-lived secrets in plain text inside the micro-app. Use the host's token exchange (`requestMicroAppToken`) which returns a token scoped for the micro-app.
+- Avoid storing long-lived secrets in plain text inside the micro-app. Use the superapp's token exchange (`requestMicroAppToken`) which returns a token scoped for the micro-app.
 - Validate any sensitive operations on the backend; do not rely on client-side checks alone.
-- Do not attempt to read other micro-app's data via localStorage; use provided bridge methods instead.
 
 ## Testing and debugging
 
@@ -107,7 +106,7 @@ Each micro-app should include a small manifest or metadata so the Super App can 
 
 - Calling `window.nativebridge.requestXxx` without guarding for existence when previewing in a normal browser will throw. Always detect `window.nativebridge`.
 - Expect Promise rejections. Wrap in try/catch.
-- If your micro-app needs an app-scoped token, call `requestMicroAppToken()` instead of asking for the host's global auth token.
+
 
 ## API reference (host-provided methods — summary)
 

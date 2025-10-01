@@ -68,7 +68,7 @@ Here’s a high-level view of the flow:
 1. Micro-apps are listed in the Super App Store.
 2. Users can download micro-apps from the store.
 3. Downloaded micro-apps are stored using AsyncStorage.
-4. When launched, authentication tokens are exchanged for access.
+4. (if required) When launched, authentication tokens are exchanged for access.
 5. The micro-app uses micro-app specific access tokens to communicate with the domain specific backends.
     
 
@@ -78,7 +78,7 @@ Here’s a high-level view of the flow:
 Each part of this repository has its own setup guide. Pick the guide that matches what you want to do:
 
 ### End-to-End Setup
-- **[Developer Onboarding Guide](./docs/ONBOARDING.md)**: Step-by-step instructions for setting up the entire SuperApp stack locally, including infrastructure (database, IdP), configuration. Ideal for new contributors or those working on the complete system.
+- **[Super App Deployment Guide](./docs/DEPLOYMENT_GUIDE.md)**: Step-by-step instructions for setting up the entire SuperApp stack locally, including infrastructure (database, IdP), configuration. Ideal for new contributors or those working on the complete system.
 
 ### Component-Specific Development
 - **SuperApp Core Deployer** (main app, backend, admin portal):
