@@ -306,17 +306,17 @@ isolated service http:InterceptableService / on new http:Listener(serverPort, co
     # Fetch the icon for a micro-app by its app ID from the database.
     #
     # + ctx - Request context
-    # + iconName - App ID of the micro-app (used as iconName for compatibility)
+    # + appId - App ID of the micro-app (used as iconName for compatibility)
     # + return - HTTP response with icon image or an error
-    isolated resource function get icons/[string iconName](http:RequestContext ctx) returns http:Response|http:NotFound|http:InternalServerError {
-        log:printInfo("Attempting to fetch icon for micro-app with app ID: " + iconName);
+    isolated resource function get micro\-apps/[string appId]/icon(http:RequestContext ctx) returns http:Response|http:NotFound|http:InternalServerError {
+        log:printInfo("Attempting to fetch icon for micro-app with app ID: " + appId);
 
-        MicroAppIcon|error result = fetchMicroAppIconById(iconName);
+        MicroAppIcon|error result = fetchMicroAppIconById(appId);
         if result is error {
-            log:printError("Error fetching icon for micro-app with app ID: " + iconName, result);
+            log:printError("Error fetching icon for micro-app with app ID: " + appId, result);
             if result.message().startsWith("No icon found") {
                 return <http:NotFound>{
-                    body: {message: "Icon not found for micro-app with app ID: " + iconName}
+                    body: {message: "Icon not found for micro-app with app ID: " + appId}
                 };
             }
             return <http:InternalServerError>{
