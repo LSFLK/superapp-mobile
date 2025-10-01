@@ -85,7 +85,7 @@ export const FILE_CONFIG = {
    * must exist with exact names (case-sensitive).
    * 
    * Each column serves a specific purpose:
-   * - employee_id: Unique identifier for employee records
+   * - user id: Unique identifier for user records
    * - designation: Job title/position information
    * - name: Employee full name for display
    * - department: Organizational unit/department

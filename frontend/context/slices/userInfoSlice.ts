@@ -85,7 +85,7 @@ export const getDetailedUserInfo = createAsyncThunk(
           lastName: data.last_name || '',
           employeeThumbnail: data.employeeThumbnail || null,
           department: data.department,
-          employeeID: data.employee_id,
+          employeeID: data.user_id,
           location: data.location,
           downloadedApps: data.downloaded_app_ids || [],
         };

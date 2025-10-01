@@ -50,7 +50,7 @@ public isolated function updateUserDownloadedApps(string email, json appIds) ret
 // Function to fetch all micro-apps from the database
 public isolated function fetchAllMicroApps() returns MicroApp[]|error {
     sql:ParameterizedQuery query = `
-        SELECT micro_app_id, app_id, name, version, LENGTH(zip_blob) AS zip_blob_length, created_at, description
+        SELECT app_id, name, version, LENGTH(zip_blob) AS zip_blob_length, created_at, description
         FROM micro_apps;
     `;
     
@@ -60,7 +60,6 @@ public isolated function fetchAllMicroApps() returns MicroApp[]|error {
     check from var app in resultStream
         do {
             MicroApp updatedApp = {
-                micro_app_id: app.micro_app_id,
                 app_id: app.app_id,
                 name: app.name,
                 version: app.version,
@@ -88,7 +87,7 @@ public isolated function fetchAllMicroApps() returns MicroApp[]|error {
 // Function to fetch a micro-app by its ID
 public isolated function fetchMicroAppById(string app_id) returns MicroApp|error {
     sql:ParameterizedQuery query = `
-        SELECT micro_app_id, app_id, name, version, LENGTH(zip_blob) AS zip_blob_length, created_at, description
+        SELECT app_id, name, version, LENGTH(zip_blob) AS zip_blob_length, created_at, description
         FROM micro_apps
         WHERE app_id = ${app_id};
     `;
@@ -98,7 +97,6 @@ public isolated function fetchMicroAppById(string app_id) returns MicroApp|error
     MicroApp? foundApp = check from var app in resultStream
         do {
             MicroApp updatedApp = {
-                micro_app_id: app.micro_app_id,
                 app_id: app.app_id,
                 name: app.name,
                 version: app.version,
@@ -178,7 +176,7 @@ public isolated function fetchAllUsers() returns User[]|error {
 public isolated function fetchUserByEmail(string email) returns User|error {
 
     //sql:ParameterizedQuery query = `SELECT * FROM users WHERE email = ${email};`;
-    sql:ParameterizedQuery query = `SELECT user_id, first_name, last_name, email, employee_id, department,
+    sql:ParameterizedQuery query = `SELECT user_id, first_name, last_name, email,
        COALESCE(downloaded_app_ids, JSON_ARRAY()) AS downloaded_app_ids
     FROM users WHERE email = ${email};`;
 

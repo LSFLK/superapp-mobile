@@ -250,7 +250,7 @@ export default function App() {
           <div className="footer-note">
             Ensure the column headers follow the required format:{' '}
             <code className="inline">
-              employee_id, designation, name, department, pay_period, basic_salary, allowances, deductions, net_salary
+              user id, designation, name, department, pay_period, basic_salary, allowances, deductions, net_salary
             </code>
           </div>
         </div>
