@@ -87,8 +87,7 @@ Artifacts:
 - CORS is open by default (allowOrigins `*`). Review before production.
 
 ### Connection security (Gateway or Direct HTTPS)
-You can choose how to secure the network transport to this backend:
-The following figure shows the available connection security options
+You can choose how to secure the network transport to this backend. The following figure shows the available connection security options:
 - API gateway TLS termination
 - Direct HTTPS (trusted CA or self-signed for local only).
 <figure>
