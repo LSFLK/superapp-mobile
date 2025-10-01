@@ -49,12 +49,11 @@ This repository is the foundation for hosting and managing many small web-based 
 
 Here’s a high-level view of the flow:
 <br></br>
-<img src="./resources/auth_flow.png?" alt="Authentication Flow Diagram" width="700"/>
+<img src="./resources/architecture_diagram.png?" alt="Architecture Diagram" width="700"/>
 
 ## 🧱 Authentication Flow
+<img src="./resources/auth_flow.png?" alt="Authentication Flow Diagram" width="700"/>
 
-
-<img src="./resources/architecture_diagram.png?" alt="Architecture Diagram" width="700"/>
 
 ### Key Concepts
 
