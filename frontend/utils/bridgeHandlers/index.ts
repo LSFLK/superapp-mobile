@@ -9,6 +9,7 @@ import { BRIDGE_FUNCTION as confirm_alert } from "./confirm_alert";
 import { BRIDGE_FUNCTION as save_local_data } from "./save_local_data";
 import { BRIDGE_FUNCTION as get_local_data } from "./get_local_data";
 import { BRIDGE_FUNCTION as micro_app_token } from "./micro_app_token";
+import { BRIDGE_FUNCTION as security_audit } from "./security_audit";
 
 export const BRIDGE_REGISTRY = [
   token,
@@ -19,4 +20,5 @@ export const BRIDGE_REGISTRY = [
   save_local_data,
   get_local_data,
   micro_app_token,
+  security_audit,
 ];
