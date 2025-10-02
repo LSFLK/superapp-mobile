@@ -35,7 +35,7 @@ The mobile app, super app admin portal, and micro-app admin portals require OAut
 
 Note :    
 1. for mobile app the redirect url should be entered as ,   
-     - for production , \<your-schema>://*
+     - for production , \<your-scheme>://*
      - for developement , exp://*  
 
 2. when creating users in IdP , a relevent record should be created in the database connected to superapp as well
