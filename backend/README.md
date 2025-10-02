@@ -71,7 +71,7 @@ bal run
 
 On first run, Ballerina downloads dependencies and starts the HTTP listener on `serverPort`.
 
-## Building
+## Building (When needed)
 ```bash
 bal build
 ```
@@ -87,10 +87,7 @@ Artifacts:
 - CORS is open by default (allowOrigins `*`). Review before production.
 
 ### Connection security (Gateway or Direct HTTPS)
-You can choose how to secure the network transport to this backend. The following figure shows the available connection security options implemented in `main.bal`:
-<figure>
-  <img src="./resources/direct_tls_image02.png" alt="Connection security options diagram" width="480" /><br>
-</figure>
+You can choose how to secure the network transport to this backend.
 
 - API Gateway or Reverse Proxy (recommended for production):
   - Terminate TLS at your gateway/proxy (e.g., NGINX, Kong, Choreo API Gateway, Cloud LB) and forward to the backend.
@@ -110,6 +107,10 @@ Configuration and steps:
 
 2) Switch the listener in `main.bal`:
    - The default HTTP listener is active.
+   - The following figure shows the available connection security options implemented in `main.bal`:
+      <figure>
+        <img src="./resources/direct_tls_image02.png" alt="Connection security options diagram" width="480" /><br>
+      </figure>
    - A TLS-enabled listener is provided and commented with guidance. Uncomment the TLS listener block and comment out the plain HTTP one.
 
 3) Generate a local self-signed certificate (development only):
@@ -256,13 +257,5 @@ Follow these steps to add a new API endpoint safely and consistently:
 - Signing failures: Check `privateKeyPath` exists and is readable, and key is RS256.
 - DB timeouts: Validate `databaseConfig` host/port and network access; increase pool/timeout if needed.
 - Large uploads: Confirm reverse proxy and `maxHeaderSize`/gateway limits.
-
-
-### Checklist before opening a PR
-- Types declared/updated in `types.bal`
-- DB access added to `db_functions.bal` (parameterized, streams closed)
-- Route implemented in `main.bal` (auth enforced, errors handled)
-- README API section updated if response/request changed
-- Secrets managed via mounts; no credentials in code or git
 
 
