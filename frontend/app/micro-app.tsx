@@ -253,7 +253,8 @@ const MicroApp = () => {
             originWhitelist={["*"]}
             source={{ uri: sourceUri }}
             allowFileAccess={!isUrlBased} // Only allow file access for local apps
-            allowUniversalAccessFromFileURLs={false}
+            allowUniversalAccessFromFileURLs={true}
+            allowFileAccessFromFileURLs={false}
             allowingReadAccessToURL={isUrlBased ? undefined : "file:///"}
             style={{ flex: 1 }}
             onMessage={onMessage}
