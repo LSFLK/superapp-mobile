@@ -17,19 +17,19 @@ import ballerina/log;
 configurable string publicKeyPath_microapp = ?; // e.g., "./public.pem" locally, "/public.pem" in Choreo
 configurable string publicKeyPath_adminPortal = ?; // e.g., "./public.pem" locally, "/public.pem" in Choreo
 
-// Extracts the emp_id claim from JWT payload
-public isolated function extractEmployeeId(jwt:Payload payload) returns string|error {
-    anydata|error empClaim = payload["emp_id"];
+// Extracts the user_id claim from JWT payload
+public isolated function extractUserId(jwt:Payload payload) returns string|error {
+    anydata|error userClaim = payload["user_id"];
 
-    if empClaim is error {
-        return error("emp_id claim not found in JWT payload");
+    if userClaim is error {
+        return error("user_id claim not found in JWT payload");
     }
 
-    if empClaim is string {
-        return empClaim;
+    if userClaim is string {
+        return userClaim;
     }
 
-    return error("emp_id claim is not a string");
+    return error("user_id claim is not a string");
 }
 
 
@@ -101,17 +101,17 @@ service class JwtInterceptor {
 
         // For microapp endpoints, extract employee ID and attach to context
         if !fullPath.startsWith("/admin-portal") {
-             //Extract emp_id
-            string|error empId = extractEmployeeId(payload);
-            if empId is error {
-                log:printError("Failed to extract emp_id", empId);
+             //Extract user_id
+            string|error userId = extractUserId(payload);
+            if userId is error {
+                log:printError("Failed to extract user_id", userId);
                 return <http:InternalServerError>{
-                    body: { message: "Invalid token: emp_id missing" }
+                    body: { message: "Invalid token: user_id missing" }
                 };
             }
 
-            log:printInfo("Authenticated employee ID: " + empId);
-            ctx.set("emp_id", empId);
+            log:printInfo("Authenticated user ID: " + userId);
+            ctx.set("user_id", userId);
         }
        
         
