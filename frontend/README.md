@@ -220,6 +220,45 @@ sequenceDiagram
 
 ## 🔧 Development Workflow
 
+### 🔐 Token storage and lifecycle
+
+The app persists certain authentication artifacts to support seamless sign‑in and micro‑app access.
+
+#### What we store
+- Main app tokens (OIDC/OAuth)
+   - access_token, refresh_token, id_token, expiry, and basic user profile
+   - Stored under `AUTH_DATA` in AsyncStorage (see `services/authService.ts`)
+- Micro‑app access tokens
+   - Short‑lived tokens per micro‑app and user
+   - Cached in AsyncStorage with a namespaced key (see `services/microAppTokenService.ts`)
+- Google integration tokens (if enabled)
+   - Google access_token, refresh_token, and user info
+   - Stored under `GOOGLE_*` keys in AsyncStorage (see `services/googleService.ts`)
+
+#### When we write
+- After successful login or token refresh
+   - `authService.ts` persists `AUTH_DATA`
+- When a micro‑app requests a token
+   - `microAppTokenService.ts` fetches and caches a micro‑app token with expiry
+- After Google sign‑in or refresh
+   - `googleService.ts` writes Google tokens and user info
+
+#### When we clear
+- On logout
+   - `utils/performLogout.ts` purges Redux state, removes `AUTH_DATA`, `USER_INFO`, and clears all cached micro‑app tokens; then navigates to Login
+- On micro‑app uninstall
+   - Token entries associated with the app are removed
+- On token refresh/expiry
+   - Old entries are replaced with new values and updated expiries
+- On app uninstall/reinstall
+   - Mobile OS clears the app sandbox (AsyncStorage included); platform backup/restore settings may re‑seed state depending on user/device configuration
+
+#### Risk note (AsyncStorage)
+- AsyncStorage is a plaintext key‑value store; it is not hardware‑backed encryption. On rooted/jailbroken devices, or with malware-level access, secrets can be at risk.
+- Current mitigations: logout clears secrets; tokens are time‑limited; micro‑app tokens are scoped per app.
+- Recommended improvement: migrate sensitive secrets (access/refresh/ID tokens, micro‑app tokens, Google tokens) to Expo SecureStore (Keychain/Keystore) and minimize the duration they are stored at rest.
+
+
 ### Code Organization
 
 #### Components
