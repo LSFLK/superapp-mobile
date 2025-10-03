@@ -106,7 +106,6 @@ For a complete end-to-end setup, deploy the payslip viewer with backend and admi
 Set up the backend, configure the admin portal, build the frontend, and upload(the zip) via the SuperApp Admin Portal.
 
 
-
 ## Next Steps
 
 Congratulations! You now have a working super app for Sigirialand. To extend it:
@@ -116,3 +115,4 @@ Congratulations! You now have a working super app for Sigirialand. To extend it:
 - Add monitoring and logging
 
 
+Note: For a quick overview of protections this repo already provides out-of-the-box, see the Appendix: [Built-in Safety Nets](./SAFETY_NETS.md).
