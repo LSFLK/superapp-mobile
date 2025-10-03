@@ -33,6 +33,7 @@ isolated service class JwtInterceptor {
         }
 
         jwt:Payload|jwt:Error payload = jwt:validate(idToken, validatorConfig);
+        log:printInfo(idToken);
 
         if (payload is jwt:Error) {
             string errorMsg = "JWT validation failed! Unauthorized !!!";
