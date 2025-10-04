@@ -23,6 +23,7 @@ import { UpdateUserAppList } from "@/services/userConfigService";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { router } from "expo-router";
 import { Alert } from "react-native";
+import { clearAllCachedTokens } from "@/services/microAppTokenService";
 
 // Logout user
 export const performLogout = createAsyncThunk(
@@ -49,6 +50,7 @@ export const performLogout = createAsyncThunk(
   await AsyncStorage.removeItem(AUTH_DATA);
   // await AsyncStorage.removeItem(APPS);
   await AsyncStorage.removeItem(USER_INFO);
+  await clearAllCachedTokens(); // Clear all cached micro-app tokens
 
       Alert.alert(
         "Logout Successful",

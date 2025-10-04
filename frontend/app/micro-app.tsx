@@ -29,6 +29,7 @@ import NotFound from "@/components/NotFound";
 import { useDispatch } from "react-redux";
 import { getBridgeHandler, BridgeContext, getResolveMethod, getRejectMethod } from "@/utils/bridgeRegistry";
 import { injectedJavaScript } from "@/utils/bridge";
+import { getSecurityPolicy, validateMessageOrigin, sanitizeBridgeMessage, isNavigationAllowed } from "@/utils/webViewSecurity";
 //import { logout, tokenExchange } from "@/services/authService";
 import { documentDirectory } from "expo-file-system";
 import { MicroAppParams } from "@/types/navigation";
@@ -74,6 +75,10 @@ const MicroApp = () => {
   const styles = createStyles(colorScheme ?? "light");
   // Developer mode flag (temporarily disabled)
   const isDeveloper: boolean = false; // Temporarily disable developer mode
+  
+  // Security policy for this micro-app
+  const securityPolicy = getSecurityPolicy(webViewUri || webUri, appId as string, isDeveloper);
+  const [currentUrl, setCurrentUrl] = useState<string>(webViewUri || webUri);
   // const isTotp: boolean = appId.includes("totp");
 
   // const [request, response, promptAsync] = Google.useAuthRequest({
@@ -130,14 +135,33 @@ const MicroApp = () => {
    * Main message handler for communication from web micro-apps
    * 
    * Flow:
-   * 1. Parses incoming JSON message with topic and data
-   * 2. Looks up the appropriate handler in the bridge registry
-   * 3. Creates a bridge context with app-specific data
-   * 4. Executes the handler to process the request
+   * 1. Validates message origin against security policy
+   * 2. Sanitizes and parses incoming JSON message 
+   * 3. Looks up the appropriate handler in the bridge registry
+   * 4. Creates a bridge context with app-specific data
+   * 5. Executes the handler to process the request
    */
   const onMessage = async (event: WebViewMessageEvent) => {
     try {
-      const { topic, data, requestId } = JSON.parse(event.nativeEvent.data);
+      // SECURITY: Validate message origin first
+      const messageOrigin = event.nativeEvent.url || currentUrl;
+      const originValidation = validateMessageOrigin(messageOrigin, securityPolicy, appId as string);
+      
+      if (!originValidation.isValid) {
+        console.error(`[SECURITY BREACH] Bridge message rejected: ${originValidation.reason}`);
+        console.error(`[SECURITY BREACH] Origin: ${messageOrigin}, App: ${appId}`);
+        // Don't process the message at all
+        return;
+      }
+
+      // SECURITY: Sanitize message data
+      const messageValidation = sanitizeBridgeMessage(event.nativeEvent.data);
+      if (!messageValidation.isValid) {
+        console.error(`[SECURITY] Invalid bridge message: ${messageValidation.error}`);
+        return;
+      }
+
+      const { topic, data, requestId } = messageValidation.parsed!;
       if (!topic) throw new Error("Invalid message format: Missing topic");
 
       // Get handler from registry
@@ -250,15 +274,38 @@ const MicroApp = () => {
         ) : (
           <WebView
             ref={webviewRef}
-            originWhitelist={["*"]}
+            originWhitelist={['*']} // ✅ ALLOW: Network requests for API calls, bridge access controlled separately
             source={{ uri: sourceUri }}
-            allowFileAccess={!isUrlBased} // Only allow file access for local apps
-            allowUniversalAccessFromFileURLs={false}
+            allowFileAccess={securityPolicy.allowFileAccess} // ✅ SECURE: Policy-based file access
+            allowUniversalAccessFromFileURLs={false} // ✅ SECURE: Always deny universal access
+            allowFileAccessFromFileURLs={false} // ✅ SECURE: Deny cross-file access
             allowingReadAccessToURL={isUrlBased ? undefined : "file:///"}
             style={{ flex: 1 }}
             onMessage={onMessage}
             onError={handleError}
-            onShouldStartLoadWithRequest={() => true}
+            onNavigationStateChange={(navState) => {
+              // ✅ SECURE: Track current URL for origin validation
+              setCurrentUrl(navState.url);
+            }}
+            onShouldStartLoadWithRequest={(request) => {
+              // ✅ SECURE: Allow network requests but log navigation attempts
+              const isAllowed = isNavigationAllowed(request.url, securityPolicy);
+              
+              // Log all navigation attempts for security monitoring
+              console.log(`[NAVIGATION] App ${appId} navigating to: ${request.url}`);
+              
+              // Only block true navigation (not API calls)
+              if (!isAllowed && (request.navigationType === 'click' || request.navigationType === 'other')) {
+                console.warn(`[SECURITY] Navigation blocked to: ${request.url}`);
+                Alert.alert(
+                  "Navigation Blocked", 
+                  "This app is trying to navigate to an unauthorized URL for security reasons.",
+                  [{ text: "OK" }]
+                );
+                return false;
+              }
+              return true; // Allow API calls and legitimate requests
+            }}
             domStorageEnabled
             webviewDebuggingEnabled={isDeveloper || isUrlBased}
             injectedJavaScriptBeforeContentLoaded={injectedJavaScript}

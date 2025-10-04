@@ -25,13 +25,25 @@ import { Skeleton } from "./Skeleton";
 type ProfileListItemProps = {
   icon: string;
   title: string;
-  value?: string | null;
+  /**
+   * Value can be string, number or null/undefined. Numbers (e.g. employee IDs) will be stringified.
+   */
+  value?: string | number | null | undefined;
+  /** If explicitly loading, always show skeleton */
+  loading?: boolean;
 };
 
 const ProfileListItem = React.memo(
-  ({ icon, title, value }: ProfileListItemProps) => {
+  ({ icon, title, value, loading }: ProfileListItemProps) => {
     const colorScheme = useColorScheme();
     const styles = createStyles(colorScheme ?? "light");
+
+    // Normalize value safely. We purposely keep numeric 0 ("0") as a valid display value.
+    const normalized = (value === null || value === undefined)
+      ? ""
+      : (typeof value === "string" ? value : String(value)).trim();
+
+    const showSkeleton = loading || !normalized;
 
     return (
       <View style={{ paddingVertical: 8 }}>
@@ -43,10 +55,10 @@ const ProfileListItem = React.memo(
           />
           <View style={{ flexDirection: "column", gap: 3 }}>
             <Text style={styles.titleText}>{title}</Text>
-            {value && value.trim() ? (
-              <Text style={styles.valueText}>{value}</Text>
-            ) : (
+            {showSkeleton ? (
               <Skeleton width={220} height={10} style={{ marginTop: 4 }} />
+            ) : (
+              <Text style={styles.valueText}>{normalized}</Text>
             )}
           </View>
         </View>
