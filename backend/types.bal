@@ -42,3 +42,11 @@ type MicroAppDownload record {
 type MicroAppIcon record {
     byte[] icon_url;
 };
+
+// ZIP validation result
+public type ZipValidationResult record {|
+    boolean isValid;
+    string[] errors;
+    int fileCount?;
+    int totalUncompressedSize?;
+|};

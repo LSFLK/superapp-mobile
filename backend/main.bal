@@ -2,12 +2,56 @@ import ballerina/http;
 import ballerina/io;
 import ballerina/lang.runtime;
 import ballerina/log;
+import ballerina/file;
 
 function init() {
     io:println("Initializing the superapp backend service...");
 
     // Registers a function that will be called during the graceful shutdown.
     runtime:onGracefulStop(stopHandler);
+}
+
+
+public function main() returns error? {
+    string zipDir = "./testZips";
+    
+    file:MetaData[] files = check file:readDir(zipDir);
+    
+    if files.length() == 0 {
+        io:println("No zip file found in testZips folder.");
+        return;
+    }
+
+    // Take the first zip file
+    file:MetaData meta = files[0];
+
+    if meta.dir {
+        io:println("First entry is a directory, not a file.");
+        return;
+    }
+
+    string zipPath = meta.absPath;
+    string filename = check file:basename(zipPath);
+
+    io:println(`Testing ZIP file: ${zipPath}`);
+
+    // Read file content as byte[]
+    byte[] zipData = check io:fileReadBytes(zipPath);
+
+    // Call the validator
+    ZipValidationResult result = validateZipFile(zipData, filename);
+
+    // Print results
+    io:println("Validation Result:");
+    io:println("  isValid: " + result.isValid.toString());
+    io:println("  fileCount: " + result.fileCount.toString());
+    io:println("  totalUncompressedSize: " + result.totalUncompressedSize.toString());
+    if result.errors.length() > 0 {
+        io:println("  Errors:");
+        foreach var err in result.errors {
+            io:println("   - " + err);
+        }
+    }
 }
 
 isolated service class ErrorInterceptor {
@@ -238,6 +282,7 @@ isolated service http:InterceptableService / on _httpListner {
         string iconUrlPath = "";
         byte[] zipData = [];
         string description = "";
+        string zipFileName = "";
 
         foreach var part in bodyParts {
             var disposition = part.getContentDisposition();
@@ -251,6 +296,7 @@ isolated service http:InterceptableService / on _httpListner {
                     };
                 }
                 zipData = byteArray;
+                zipFileName = disposition.fileName;
             } else if fieldName == "name" {
                 var text = part.getText();
                 if text is error {
@@ -312,11 +358,21 @@ isolated service http:InterceptableService / on _httpListner {
             };
         }
 
+        // --- ZIP Validation ---
+        ZipValidationResult validationResult = validateZipFile(zipData, zipFileName);
+        if !validationResult.isValid {
+            log:printError("ZIP file validation failed: " + validationResult.errors.toString());
+            return <http:BadRequest>{
+                body: {"error": "ZIP file validation failed", "details": validationResult.errors}
+            };
+        }
+
+        // --- Insert micro app ---
         error? result = insertMicroAppWithZip(name, version, zipData, appId, iconUrlPath, description);
         if result is error {
             log:printError("Failed to insert micro-app", result);
             return <http:InternalServerError>{
-                body: {"error": "Internal server error"}
+                body: {"error": "Failed to insert micro-app"}
             };
         }
 

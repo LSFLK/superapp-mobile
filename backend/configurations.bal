@@ -11,3 +11,8 @@ configurable string publicKeyPath = ?;
 // Uncomment the following if you want to use direct HTTPS from clients to backend
 // configurable string selfSignedCertFile = ?;
 // configurable string selfSignedKeyFile = ?;
+
+// Configuration for validation limits
+configurable int maxFilesInZip = 100;
+configurable int maxUncompressedSizeMB = 100;
+configurable int maxCompressionRatio = 100; // Max 100:1 compression ratio (Can increase if you want to relax the threshold)
