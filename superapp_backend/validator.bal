@@ -49,12 +49,9 @@ isolated service class JwtInterceptor {
         // Parsing the json[] from the payload to string[]
         if payload.hasKey("groups") {
             json[] groupsJson = <json[]>payload["groups"];
-
-            if groupsJson is json[] {
-                foreach json g in groupsJson {
-                    if g is string {
-                        groups.push(g);
-                    }
+            foreach json g in groupsJson {
+                if g is string {
+                    groups.push(g);
                 }
             }
         }
