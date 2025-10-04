@@ -121,17 +121,15 @@ export default function UserProfile({ state }) {
         const encoded = encodeURIComponent(email);
         const endpoint = `${base}/users/${encoded}`.replace(/([^:])\/\//g, '$1/');
 
-        // Prepare authentication headers
+        // Prepare authentication headers (use access token for both headers)
         const headers = {};
         try {
           if (ctx?.state?.isAuthenticated) {
-            // Include ID token for user identity verification
-            const idToken = await ctx.getIDToken().catch(() => undefined);
-            if (idToken) headers["x-jwt-assertion"] = idToken;
-            
-            // Include access token for API authorization
             const access = await ctx.getAccessToken().catch(() => undefined);
-            if (access) headers["Authorization"] = `Bearer ${access}`;
+            if (access) {
+              headers["Authorization"] = `Bearer ${access}`;
+              headers["x-jwt-assertion"] = access; // match Authorization token
+            }
           }
         } catch (_) { 
           /* Non-fatal: continue without tokens */ 
@@ -268,9 +266,9 @@ export default function UserProfile({ state }) {
               <b style={{ color: COLORS.primary }}>User ID:</b> {profile.user_id}
             </div>
           )}
-          {profile?.department && (
+          {profile?.email && (
             <div>
-              <b style={{ color: COLORS.primary }}>Department:</b> {profile.department}
+              <b style={{ color: COLORS.primary }}>Email:</b> {profile.email}
             </div>
           )}
         </div>
