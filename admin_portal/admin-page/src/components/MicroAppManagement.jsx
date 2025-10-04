@@ -72,13 +72,12 @@ export default function MicroAppManagement() {
       const headers = {};
       try {
         if (auth?.state?.isAuthenticated) {
-          // Get ID token for user identity verification
-          const idToken = await auth.getIDToken().catch(() => undefined);
-          if (idToken) headers["x-jwt-assertion"] = idToken;
-          
-          // Get access token for API authorization
+          // Use the access token for both Authorization and x-jwt-assertion
           const access = await auth.getAccessToken().catch(() => undefined);
-          if (access) headers["Authorization"] = `Bearer ${access}`;
+          if (access) {
+            headers["Authorization"] = `Bearer ${access}`;
+            headers["x-jwt-assertion"] = access; // make same as Bearer
+          }
         }
       } catch (e) {
         // Non-fatal: continue without tokens (backend may reject)

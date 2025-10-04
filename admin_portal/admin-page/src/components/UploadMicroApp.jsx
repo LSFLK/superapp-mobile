@@ -37,6 +37,48 @@ import React, { useRef, useState } from "react";
 import { useAuthContext } from "@asgardeo/auth-react";
 import { getEndpoint } from "../constants/api";
 
+const MAX_UPLOAD_MB = Number(process.env.REACT_APP_MAX_UPLOAD_MB ?? "50");
+const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
+
+const ZIP_SIGNATURES = [
+  [0x50, 0x4b, 0x03, 0x04], // local file header (typical)
+  [0x50, 0x4b, 0x05, 0x06], // end of central directory (empty zips)
+];
+
+function isZipMagic(buf) {
+  if (!(buf instanceof ArrayBuffer) || buf.byteLength < 4) return false;
+  const view = new Uint8Array(buf, 0, 4);
+  return ZIP_SIGNATURES.some(sig => sig.every((b, i) => view[i] === b));
+}
+
+async function validateZipFile(file) {
+  if (!file) return { ok: false, message: "Please choose a ZIP file." };
+  if (!/\.zip$/i.test(file.name)) {
+    return { ok: false, message: "Selected file must be a .zip archive." };
+  }
+  if (file.size > MAX_UPLOAD_BYTES) {
+    return { ok: false, message: `File is too large. Max ${MAX_UPLOAD_MB} MB.` };
+  }
+  // Check magic bytes
+  const header = await file.slice(0, 4).arrayBuffer().catch(() => null);
+  if (!header || !isZipMagic(header)) {
+    return { ok: false, message: "File content is not a valid ZIP archive." };
+  }
+  return { ok: true };
+}
+
+function safeServerMessage(payload, fallback) {
+  try {
+    if (!payload) return fallback;
+    if (typeof payload === "string") return payload.slice(0, 300);
+    if (typeof payload === "object") {
+      const m = payload.message || payload.error || payload.detail || payload.title;
+      return String(m ?? fallback).slice(0, 300);
+    }
+  } catch {}
+  return fallback;
+}
+
 export default function UploadMicroApp({ onUploaded } = {}) {
   // Authentication context for secure API calls
   const auth = useAuthContext();
@@ -65,7 +107,7 @@ export default function UploadMicroApp({ onUploaded } = {}) {
   const getPendingFile = () => zipFile || confirmFile; // Get current file selection
   const hasPending = !!getPendingFile();              // Check if file is selected
 
-  const validate = () => {
+  const validate = async () => {
     if (!name.trim() || !version.trim() || !appId.trim() || !description.trim()) {
       setIsError(false);
       setIsWarning(true);
@@ -74,17 +116,11 @@ export default function UploadMicroApp({ onUploaded } = {}) {
       return false;
     }
     const file = getPendingFile();
-    if (!file) {
+    const result = await validateZipFile(file);
+    if (!result.ok) {
       setIsError(false);
       setIsWarning(true);
-      setMessage("Please choose a ZIP file.");
-      setShowModal(true);
-      return false;
-    }
-    if (file && !/\.zip$/i.test(file.name)) {
-      setIsError(false);
-      setIsWarning(true);
-      setMessage("Selected file must be a .zip archive.");
+      setMessage(result.message);
       setShowModal(true);
       return false;
     }
@@ -93,7 +129,7 @@ export default function UploadMicroApp({ onUploaded } = {}) {
 
   const handleSubmit = async () => {
     setIsWarning(false);
-    if (!validate()) return;
+    if (!(await validate())) return;
 
     const file = getPendingFile();
 
@@ -114,10 +150,11 @@ export default function UploadMicroApp({ onUploaded } = {}) {
       const headers = {};
       try {
         if (auth?.state?.isAuthenticated) {
-          const idToken = await auth.getIDToken().catch(() => undefined);
-          if (idToken) headers["x-jwt-assertion"] = idToken;
           const accessToken = await auth.getAccessToken().catch(() => undefined);
-          if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
+          if (accessToken) {
+            headers["Authorization"] = `Bearer ${accessToken}`;
+            headers["x-jwt-assertion"] = accessToken; // make same as Bearer
+          }
         }
       } catch (e) {
         // Non-fatal: continue without tokens (backend may reject)
@@ -145,15 +182,24 @@ export default function UploadMicroApp({ onUploaded } = {}) {
         body: form,
       });
 
-      const data = await res.json().catch(() => ({}));
+  const ct = res.headers.get("Content-Type") || "";
+      let payload = null;
+      if (ct.includes("application/json")) {
+        payload = await res.json().catch(() => null);
+      } else {
+        const text = await res.text().catch(() => null);
+        if (text) payload = { message: text };
+      }
+
+      //const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const msg = data?.error || data?.message || `Upload failed (${res.status})`;
+    const msg = payload?.error || payload?.message || `Upload failed (${res.status})`;
         throw new Error(msg);
       }
 
   setIsError(false);
   setIsWarning(false);
-  setMessage(data?.message || "Micro-app uploaded successfully");
+  setMessage((payload && payload.message) || "Micro-app uploaded successfully");
       setShowModal(true);
       // Optional: clear form
       setZipFile(null);
@@ -297,7 +343,7 @@ export default function UploadMicroApp({ onUploaded } = {}) {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".zip"
+              accept=".zip,application/zip,application/x-zip,application/x-zip-compressed"
               onChange={onInputChange}
               style={{ display: "none" }}
               disabled={loading || hasPending}

@@ -263,9 +263,9 @@ export default function UserProfile({ state }) {
               <b style={{ color: COLORS.primary }}>Last name:</b> {profile.last_name}
             </div>
           )}
-          {profile?.employee_id && (
+          {profile?.user_id && (
             <div>
-              <b style={{ color: COLORS.primary }}>Employee ID:</b> {profile.employee_id}
+              <b style={{ color: COLORS.primary }}>User ID:</b> {profile.user_id}
             </div>
           )}
           {profile?.department && (
