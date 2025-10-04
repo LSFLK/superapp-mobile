@@ -1,11 +1,9 @@
-import ballerinax/mysql.driver as _;
-import ballerina/log;
 import ballerina/sql;
-import ballerina/io;
-
 
 // Function to insert a micro-app with a ZIP file
 public isolated function insertMicroAppWithZip(string name, string version, byte[] zipData, string appId, string iconUrlPath, string description) returns error? {
+
+    createLog("INFO", "Inserting or updating micro app", { "appId": appId, "name": name, "version": version });
 
     // Parameterized query to insert into micro_apps
     //sql:ParameterizedQuery query = `INSERT INTO micro_apps (name, version, zip_blob, app_id) VALUES (${name}, ${version}, ${zipData}, ${appId});`;
@@ -24,13 +22,14 @@ public isolated function insertMicroAppWithZip(string name, string version, byte
     // Execute the query
     sql:ExecutionResult result = check databaseClient->execute(query);
 
-    io:println("Rows affected: " + result.affectedRowCount.toString());
-    
+    createLog("INFO", "Micro app insert/update completed", { "appId": appId, "rowsAffected": result.affectedRowCount.toString() });
 }
 
 
 // Function to insert the istalled app IDs for a user
 public isolated function updateUserDownloadedApps(string email, json appIds) returns error? {
+
+    createLog("INFO", "Updating downloaded apps for user", { "email": email, "appIds": appIds.toString() });
     
     // Convert the string[] into a JSON array string
     string appsJson = appIds.toJsonString();
@@ -42,13 +41,16 @@ public isolated function updateUserDownloadedApps(string email, json appIds) ret
 
     sql:ExecutionResult result = check databaseClient->execute(query);
 
-    io:println("Rows affected: " + result.affectedRowCount.toString());
+    createLog("INFO", "User downloaded apps updated", { "email": email, "rowsAffected": result.affectedRowCount.toString() });
 }
 
 
 
 // Function to fetch all micro-apps from the database
 public isolated function fetchAllMicroApps() returns MicroApp[]|error {
+
+    createLog("INFO", "Fetching all micro apps", {});
+
     sql:ParameterizedQuery query = `
         SELECT app_id, name, version, LENGTH(zip_blob) AS zip_blob_length, created_at, description
         FROM micro_apps;
@@ -69,23 +71,20 @@ public isolated function fetchAllMicroApps() returns MicroApp[]|error {
                 download_url: "https://41200aa1-4106-4e6c-babf-311dce37c04a-prod.e1-us-east-azure.choreoapis.dev/gov-superapp/superappbackendprodbranch/v1.0/micro-apps/" + app.app_id + "/download",
                 description: app.description
             };
-            log:printInfo(
-                "MicroApp: " + updatedApp.name +
-                " | App ID: " + updatedApp.app_id +
-                " | Version: " + updatedApp.version +
-                " | ZIP size: " + updatedApp.zip_blob_length.toString() +
-                " | Created at: " + updatedApp.created_at.toString() +
-                " | Download URL: " + updatedApp.download_url
-            );
             microApps.push(updatedApp);
         };
     check resultStream.close();
+
+    createLog("INFO", "Completed fetching all micro apps", { "totalApps": microApps.length() });
     
     return microApps;
 }
 
 // Function to fetch a micro-app by its ID
 public isolated function fetchMicroAppById(string app_id) returns MicroApp|error {
+
+    createLog("INFO", "Fetching micro app by ID", { "appId": app_id });
+
     sql:ParameterizedQuery query = `
         SELECT app_id, name, version, LENGTH(zip_blob) AS zip_blob_length, created_at, description
         FROM micro_apps
@@ -111,21 +110,19 @@ public isolated function fetchMicroAppById(string app_id) returns MicroApp|error
     check resultStream.close();
     
     if foundApp is MicroApp {
-        log:printInfo(
-            "Found MicroApp: " + foundApp.name +
-            " | App ID: " + foundApp.app_id +
-            " | Version: " + foundApp.version +
-            " | ZIP size: " + foundApp.zip_blob_length.toString() +
-            " | Download URL: " + foundApp.download_url
-        );
+        createLog("INFO", "Micro app found", { "appId": foundApp.app_id, "name": foundApp.name, "zipSize": foundApp.zip_blob_length.toString() });
         return foundApp;
     } else {
+        createLog("WARN", "Micro app not found", { "appId": app_id });
         return error("No micro-app found with ID: " + app_id);
     }
 }
 
 // Function to fetch the ZIP blob of a micro-app by its ID
 public isolated function fetchMicroAppZipById(string app_id) returns MicroAppDownload|error {
+
+    createLog("INFO", "Fetching ZIP blob for micro-app", { "appId": app_id });
+
     sql:ParameterizedQuery query = `
         SELECT zip_blob
         FROM micro_apps
@@ -142,9 +139,10 @@ public isolated function fetchMicroAppZipById(string app_id) returns MicroAppDow
     check resultStream.close();
 
     if foundApp is MicroAppDownload {
-        log:printInfo("Found ZIP for micro-app with app ID: " + app_id);
+        createLog("INFO", "Found ZIP for micro-app", { "appId": app_id, "zipSize": foundApp.zip_blob.length() });
         return foundApp;
     } else {
+        createLog("WARN", "No ZIP found for micro-app", { "appId": app_id });
         return error("No micro-app ZIP found with ID: " + app_id);
     }
 }
@@ -152,6 +150,8 @@ public isolated function fetchMicroAppZipById(string app_id) returns MicroAppDow
 
 // Function to fetch all users from the database
 public isolated function fetchAllUsers() returns User[]|error {
+
+    createLog("INFO", "Fetching all users", {});
 
     // Define the query
     sql:ParameterizedQuery query = `SELECT * FROM users;`;
@@ -163,17 +163,21 @@ public isolated function fetchAllUsers() returns User[]|error {
     User[] users = [];
     check from User user in resultStream
         do {
-            log:printInfo("User: " + user.first_name + " " + user.last_name + ", Email: " + user.email);
+            createLog("INFO", "Fetched user", { "email": user.email, "name": user.first_name + " " + user.last_name });
             users.push(user);
         };
 
     check resultStream.close();
+
+    createLog("INFO", "Completed fetching all users", { "totalUsers": users.length() });
     
     return users;
 }
 
 // function to fetch a user by email
 public isolated function fetchUserByEmail(string email) returns User|error {
+
+    createLog("INFO", "Fetching user by email", { "email": email });
 
     //sql:ParameterizedQuery query = `SELECT * FROM users WHERE email = ${email};`;
     sql:ParameterizedQuery query = `SELECT user_id, first_name, last_name, email,
@@ -191,14 +195,18 @@ public isolated function fetchUserByEmail(string email) returns User|error {
     check resultStream.close();
 
     if foundUser is User {
-        log:printInfo("Found user: " + foundUser.toString());
+        createLog("INFO", "User found", { "email": foundUser.email, "name": foundUser.first_name + " " + foundUser.last_name });
         return foundUser;
     } else {
+        createLog("WARN", "No user found with email", { "email": email });
         return error("No user found with email: " + email);
     }
 }
 
 public isolated function fetchMicroAppIconById(string app_id) returns MicroAppIcon|error {
+
+    createLog("INFO", "Fetching micro app icon", { "appId": app_id });
+
     sql:ParameterizedQuery query = `
         SELECT icon_url
         FROM micro_apps
@@ -215,17 +223,18 @@ public isolated function fetchMicroAppIconById(string app_id) returns MicroAppIc
     check resultStream.close();
     
     if foundIcon is MicroAppIcon {
-        log:printInfo("Found icon for micro-app with app ID: " + app_id);
+        createLog("INFO", "Icon fetched for micro-app", { "appId": app_id, "iconUrl": foundIcon.icon_url });
         return foundIcon;
     } else {
+        createLog("WARN", "No icon found for micro-app", { "appId": app_id });
         return error("No icon found for micro-app with ID: " + app_id);
     }
 }
 
 function stopHandler() returns error? {
-    io:println("Performing shutdown tasks...");
+    createLog("INFO", "Performing shutdown tasks, closing database connection", {});
     // Add your cleanup logic here (e.g., close files, database connections)
     check databaseClient.close();
-    io:println("Shutdown tasks completed.");
+    createLog("INFO", "Shutdown completed successfully", {});
     return ();
 }

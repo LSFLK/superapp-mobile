@@ -2,56 +2,12 @@ import ballerina/http;
 import ballerina/io;
 import ballerina/lang.runtime;
 import ballerina/log;
-import ballerina/file;
 
 function init() {
     io:println("Initializing the superapp backend service...");
 
     // Registers a function that will be called during the graceful shutdown.
     runtime:onGracefulStop(stopHandler);
-}
-
-
-public function main() returns error? {
-    string zipDir = "./testZips";
-    
-    file:MetaData[] files = check file:readDir(zipDir);
-    
-    if files.length() == 0 {
-        io:println("No zip file found in testZips folder.");
-        return;
-    }
-
-    // Take the first zip file
-    file:MetaData meta = files[0];
-
-    if meta.dir {
-        io:println("First entry is a directory, not a file.");
-        return;
-    }
-
-    string zipPath = meta.absPath;
-    string filename = check file:basename(zipPath);
-
-    io:println(`Testing ZIP file: ${zipPath}`);
-
-    // Read file content as byte[]
-    byte[] zipData = check io:fileReadBytes(zipPath);
-
-    // Call the validator
-    ZipValidationResult result = validateZipFile(zipData, filename);
-
-    // Print results
-    io:println("Validation Result:");
-    io:println("  isValid: " + result.isValid.toString());
-    io:println("  fileCount: " + result.fileCount.toString());
-    io:println("  totalUncompressedSize: " + result.totalUncompressedSize.toString());
-    if result.errors.length() > 0 {
-        io:println("  Errors:");
-        foreach var err in result.errors {
-            io:println("   - " + err);
-        }
-    }
 }
 
 isolated service class ErrorInterceptor {
