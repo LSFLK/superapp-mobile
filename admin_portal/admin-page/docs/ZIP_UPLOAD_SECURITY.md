@@ -7,7 +7,7 @@ Scope: simple, reliable checks you can do in the browser without extracting or p
 1) File extension validation
 
 - Accept only “.zip” (case-insensitive).
-- Use the file input accept filter and verify the name in code.
+- Verify the name in code.
 
 2) MIME type validation (best-effort)
 
@@ -24,8 +24,8 @@ Scope: simple, reliable checks you can do in the browser without extracting or p
 
 4) File size limit
 
-- Enforce a hard cap (for example `REACT_APP_MAX_UPLOAD_MB`, default 50 MB).
-- Block selection/submit when the file exceeds the limit; show a clear message.
+- Enforce a hard cap.
+- Block selection/submit when the file exceeds the limit.
 
 5) HTTPS and host allowlist
 
