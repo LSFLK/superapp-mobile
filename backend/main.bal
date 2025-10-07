@@ -4,6 +4,12 @@ import ballerina/lang.runtime;
 import ballerina/log;
 
 function init() {
+
+    LogRecord logRecord = {
+        level: "INFO",
+        message: "Initializing the superapp backend service..."
+    };
+    createLog(logRecord);
     io:println("Initializing the superapp backend service...");
 
     // Registers a function that will be called during the graceful shutdown.
@@ -16,6 +22,11 @@ isolated service class ErrorInterceptor {
     remote function interceptResponseError(error err, http:RequestContext ctx) returns http:BadRequest|error {
         if err is http:PayloadBindingError {
             string customError = "Payload binding failed!";
+            LogRecord logRecord = {
+                level: "ERROR",
+                message: "Payload binding failed!"
+            };
+            createLog(logRecord);
             log:printError(customError, err);
             return {
                 body: {
@@ -75,6 +86,11 @@ isolated service http:InterceptableService / on _httpListner {
     isolated resource function get micro\-app\-token(http:RequestContext ctx, string user_id, string micro_app_id) returns json|http:BadRequest|http:InternalServerError {
         // Validate input parameters
         if user_id.trim() == "" || micro_app_id.trim() == "" {
+            LogRecord logRecord = {
+                level: "ERROR",
+                message: "Missing or empty user_id or micro_app_id"
+            };
+            createLog(logRecord);
             log:printError("Missing or empty user_id or micro_app_id");
             return <http:BadRequest>{
                 body: {"error": "Bad Request: user_id and micro_app_id are required"}
@@ -84,6 +100,11 @@ isolated service http:InterceptableService / on _httpListner {
         // Generate the microapp-specific JWT
         string|error token = createMicroappJWT(user_id, micro_app_id);
         if token is error {
+            LogRecord logRecord = {
+                level: "ERROR",
+                message: "Failed to generate JWT for user_id this time too: " + user_id + ", micro_app_id: " + micro_app_id
+            };
+            createLog(logRecord);
             log:printError("Failed to generate JWT for user_id this time too: " + user_id + ", micro_app_id: " + micro_app_id, 'error = token);
             return <http:InternalServerError>{
                 body: {"error": "Internal server error"}
@@ -92,6 +113,11 @@ isolated service http:InterceptableService / on _httpListner {
 
         // Return the token in JSON response
         json response = {"token": token, "expiresAt": tokenTTLSeconds};
+        LogRecord logRecord = {
+            level: "INFO",
+            message: "Successfully generated JWT for user_id: " + user_id + ", micro_app_id: " + micro_app_id
+        };
+        createLog(logRecord);
         log:printInfo("Successfully generated JWT for user_id: " + user_id + ", micro_app_id: " + micro_app_id);
         return response;
     }
@@ -108,6 +134,11 @@ isolated service http:InterceptableService / on _httpListner {
         // Call the existing function
         error? result = updateUserDownloadedApps(email, payload);
         if result is error {
+            LogRecord logRecord = {
+                level: "ERROR",
+                message: "Failed to update downloaded apps for email: " + email
+            };
+            createLog(logRecord);            
             log:printError("Failed to update downloaded apps for email: " + email, 'error = result);
             return <http:InternalServerError>{
                 body: {"error": "Internal server error"}
@@ -116,6 +147,11 @@ isolated service http:InterceptableService / on _httpListner {
 
         // Send success response
         json response = {"status": "success", "message": "Downloaded apps updated successfully"};
+        LogRecord logRecord = {
+            level: "INFO",
+            message: "Successfully updated downloaded apps for email: " + email
+        };
+        createLog(logRecord);  
         log:printInfo("Successfully updated downloaded apps for email: " + email);
         return response;
     }
@@ -128,6 +164,12 @@ isolated service http:InterceptableService / on _httpListner {
     isolated resource function get users/[string email](http:RequestContext ctx) returns User|http:NotFound|http:InternalServerError {
         User|error result = fetchUserByEmail(email);
         if result is error {
+            LogRecord logRecord = {
+                level: "ERROR",
+                message: "Error fetching user with email: " + email,
+                context: {"result" : result.toString()}
+            };
+            createLog(logRecord);             
             log:printError("Error fetching user with email: " + email, result);
             if result.message().startsWith("No user found") {
                 return <http:NotFound>{
@@ -138,6 +180,11 @@ isolated service http:InterceptableService / on _httpListner {
                 body: {message: "Failed to fetch user from database"}
             };
         }
+        LogRecord logRecord = {
+            level: "INFO",
+            message: "Successfully fetched user with email: " + email
+        };
+        createLog(logRecord);
         log:printInfo("Successfully fetched user with email: " + email);
         return result;
     }
@@ -150,12 +197,24 @@ isolated service http:InterceptableService / on _httpListner {
     isolated resource function get micro\-apps(http:RequestContext ctx) returns MicroApp[]|http:InternalServerError {
         MicroApp[]|error result = fetchAllMicroApps();
         if result is error {
+            LogRecord logRecord = {
+                level: "ERROR",
+                message: "Error fetching micro-apps from database",
+                context: {"result" : result.toString()}
+            };
+            createLog(logRecord);
             log:printError("Error fetching micro-apps from database", result);
             return <http:InternalServerError>{
                 body: {message: "Failed to fetch micro-apps from database"}
             };
         }
+        LogRecord logRecord = {
+            level: "INFO",
+            message: "Successfully fetched " + result.length().toString() + " micro-apps"
+        };
+        createLog(logRecord);
         log:printInfo("Successfully fetched " + result.length().toString() + " micro-apps");
+        
         return result;
     }
 
@@ -168,6 +227,12 @@ isolated service http:InterceptableService / on _httpListner {
     isolated resource function get micro\-apps/[string appId](http:RequestContext ctx) returns MicroApp|http:NotFound|http:InternalServerError {
         MicroApp|error result = fetchMicroAppById(appId);
         if result is error {
+            LogRecord logRecord = {
+                level: "ERROR",
+                message: "Error fetching micro-app with app ID: " + appId,
+                context: {"result":result.toString()}
+            };
+            createLog(logRecord);
             log:printError("Error fetching micro-app with app ID: " + appId, result);
             if result.message().startsWith("No micro-app found") {
                 return <http:NotFound>{
@@ -178,6 +243,11 @@ isolated service http:InterceptableService / on _httpListner {
                 body: {message: "Failed to fetch micro-app from database"}
             };
         }
+        LogRecord logRecord = {
+            level: "INFO",
+            message: "Successfully fetched micro-app with app ID: " + appId
+        };
+        createLog(logRecord);
         log:printInfo("Successfully fetched micro-app with app ID: " + appId);
         return result;
     }
@@ -192,12 +262,20 @@ isolated service http:InterceptableService / on _httpListner {
 
         MicroAppDownload|error result = fetchMicroAppZipById(appId);
         if result is error {
+            LogRecord logRecord = {
+                level: "ERROR",
+                message: "Error fetching micro-app with app ID: " + appId,
+                context: {"result":result.toString()}
+            };
+            createLog(logRecord);            
             log:printError("Error fetching ZIP for micro-app with app ID: " + appId, result);
+            
             if result.message().startsWith("No micro-app ZIP found") {
                 return <http:NotFound>{
                     body: {message: "Micro-app ZIP file not found for app ID: " + appId}
                 };
             }
+            
             return <http:InternalServerError>{
                 body: {message: "Failed to fetch micro-app ZIP from database"}
             };
@@ -226,7 +304,14 @@ isolated service http:InterceptableService / on _httpListner {
     isolated resource function post micro\-apps/upload(http:Request req) returns json|http:BadRequest|http:InternalServerError {
         var bodyParts = req.getBodyParts();
         if bodyParts is error {
+            LogRecord logRecord = {
+                level: "ERROR",
+                message: "Failed to parse multipart body",
+                context: {"bodyParts":bodyParts.toString()}
+            };
+            createLog(logRecord);            
             log:printError("Failed to parse multipart body", bodyParts);
+            
             return <http:BadRequest>{
                 body: {"error": "Bad Request: Invalid multipart/form-data"}
             };
@@ -246,7 +331,13 @@ isolated service http:InterceptableService / on _httpListner {
             if fieldName == "zipFile" {
                 var byteArray = part.getByteArray();
                 if byteArray is error {
+                    LogRecord logRecord = {
+                        level: "ERROR",
+                        message: "Error fetching micro-app with app ID: " + appId
+                    };
+                    createLog(logRecord);                
                     log:printError("Failed to get byte array for ZIP file", byteArray);
+                    
                     return <http:BadRequest>{
                         body: {"error": "Bad Request: Invalid ZIP file"}
                     };
@@ -256,7 +347,13 @@ isolated service http:InterceptableService / on _httpListner {
             } else if fieldName == "name" {
                 var text = part.getText();
                 if text is error {
+                    LogRecord logRecord = {
+                        level: "ERROR",
+                        message: "Error fetching micro-app with app ID: " + appId
+                    };
+                    createLog(logRecord);                      
                     log:printError("Failed to get text for name", text);
+                    
                     return <http:BadRequest>{
                         body: {"error": "Bad Request: Invalid name"}
                     };
@@ -265,7 +362,14 @@ isolated service http:InterceptableService / on _httpListner {
             } else if fieldName == "version" {
                 var text = part.getText();
                 if text is error {
+                    LogRecord logRecord = {
+                        level: "ERROR",
+                        message: "Failed to get text for version",
+                        context: {"text":text.toString()}
+                    };
+                    createLog(logRecord);
                     log:printError("Failed to get text for version", text);
+                    
                     return <http:BadRequest>{
                         body: {"error": "Bad Request: Invalid version"}
                     };
@@ -274,7 +378,14 @@ isolated service http:InterceptableService / on _httpListner {
             } else if fieldName == "appId" {
                 var text = part.getText();
                 if text is error {
+                    LogRecord logRecord = {
+                        level: "ERROR",
+                        message: "Failed to get text for appId",
+                        context: {"text":text.toString()}
+                    };
+                    createLog(logRecord);
                     log:printError("Failed to get text for appId", text);
+                    
                     return <http:BadRequest>{
                         body: {"error": "Bad Request: Invalid appId"}
                     };
@@ -283,7 +394,14 @@ isolated service http:InterceptableService / on _httpListner {
             } else if fieldName == "iconUrlPath" {
                 var text = part.getText();
                 if text is error {
+                    LogRecord logRecord = {
+                        level: "ERROR",
+                        message: "Failed to get text for iconUrlPath",
+                        context: {"text":text.toString()}
+                    };
+                    createLog(logRecord);
                     log:printError("Failed to get text for iconUrlPath", text);
+                    
                     return <http:BadRequest>{
                         body: {"error": "Bad Request: Invalid iconUrlPath"}
                     };
@@ -292,7 +410,14 @@ isolated service http:InterceptableService / on _httpListner {
             } else if fieldName == "description" {
                 var text = part.getText();
                 if text is error {
+                    LogRecord logRecord = {
+                        level: "ERROR",
+                        message: "Failed to get text for description",
+                        context: {"text":text.toString()}
+                    };
+                    createLog(logRecord);
                     log:printError("Failed to get text for description", text);
+                    
                     return <http:BadRequest>{
                         body: {"error": "Bad Request: Invalid description"}
                     };
@@ -302,7 +427,13 @@ isolated service http:InterceptableService / on _httpListner {
         }
 
         if zipData.length() == 0 {
+            LogRecord logRecord = {
+                level: "ERROR",
+                message: "ZIP file not found in request"
+            };
+            createLog(logRecord);
             log:printError("ZIP file not found in request");
+            
             return <http:BadRequest>{
                 body: {"error": "Bad Request: ZIP file is required"}
             };
@@ -317,7 +448,13 @@ isolated service http:InterceptableService / on _httpListner {
         // --- ZIP Validation ---
         ZipValidationResult validationResult = validateZipFile(zipData, zipFileName);
         if !validationResult.isValid {
+            LogRecord logRecord = {
+                level: "ERROR",
+                message: "ZIP file validation failed: " + validationResult.errors.toString()
+            };
+            createLog(logRecord);
             log:printError("ZIP file validation failed: " + validationResult.errors.toString());
+            
             return <http:BadRequest>{
                 body: {"error": "ZIP file validation failed", "details": validationResult.errors}
             };
@@ -326,13 +463,26 @@ isolated service http:InterceptableService / on _httpListner {
         // --- Insert micro app ---
         error? result = insertMicroAppWithZip(name, version, zipData, appId, iconUrlPath, description);
         if result is error {
+            LogRecord logRecord = {
+                level: "ERROR",
+                message: "Failed to insert micro-app",
+                context: {"result":result.toString()}
+            };
+            createLog(logRecord);
             log:printError("Failed to insert micro-app", result);
+            
             return <http:InternalServerError>{
                 body: {"error": "Failed to insert micro-app"}
             };
         }
-
+        
+        LogRecord logRecord = {
+            level: "INFO",
+            message: "Micro-app uploaded successfully: " + name
+        };
+        createLog(logRecord);
         log:printInfo("Micro-app uploaded successfully: " + name);
+        
         return {"message": "Micro-app uploaded successfully"};
     }
 
@@ -342,11 +492,23 @@ isolated service http:InterceptableService / on _httpListner {
     # + appId - App ID of the micro-app (used as iconName for compatibility)
     # + return - HTTP response with icon image or an error
     isolated resource function get micro\-apps/[string appId]/icon(http:RequestContext ctx) returns http:Response|http:NotFound|http:InternalServerError {
+        LogRecord logRecord = {
+            level: "INFO",
+            message: "Attempting to fetch icon for micro-app with app ID: " + appId
+        };
+        createLog(logRecord);
         log:printInfo("Attempting to fetch icon for micro-app with app ID: " + appId);
 
         MicroAppIcon|error result = fetchMicroAppIconById(appId);
         if result is error {
+            logRecord = {
+                level: "ERROR",
+                message: "Error fetching icon for micro-app with app ID: " + appId,
+                context: {"result":result.toString()}
+            };
+            createLog(logRecord);
             log:printError("Error fetching icon for micro-app with app ID: " + appId, result);
+            
             if result.message().startsWith("No icon found") {
                 return <http:NotFound>{
                     body: {message: "Icon not found for micro-app with app ID: " + appId}
@@ -359,8 +521,14 @@ isolated service http:InterceptableService / on _httpListner {
 
         http:Response response = new;
         response.setBinaryPayload(result.icon_url);
-
+        
+        logRecord = {
+            level: "INFO",
+            message: "Successfully serving icon for micro-app: " + appId
+        };
+        createLog(logRecord);
         log:printInfo("Successfully serving icon for micro-app: " + appId);
+        
         return response;
     }
 };

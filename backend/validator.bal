@@ -24,7 +24,15 @@ isolated service class JwtInterceptor {
 
         if idToken is error {
             string errorMsg = "Missing invoker info header!";
+            
+            LogRecord logRecord = {
+                level: "ERROR",
+                message: errorMsg,
+                context: {"idToken":idToken.toString()}
+            };
+            createLog(logRecord);
             log:printError(errorMsg, idToken);
+            
             return <http:InternalServerError>{
                 body: {
                     message: errorMsg
@@ -36,7 +44,15 @@ isolated service class JwtInterceptor {
 
         if (payload is jwt:Error) {
             string errorMsg = "JWT validation failed! Unauthorized !!!";
+            LogRecord logRecord = {
+                level: "ERROR",
+                message: errorMsg,
+                context: {"payload":payload.toString()}
+            };
+            createLog(logRecord);
+
             log:printError(errorMsg, payload);
+            
             return <http:InternalServerError>{
                 body: {
                     message: errorMsg
@@ -72,6 +88,12 @@ isolated service class JwtInterceptor {
 
 isolated function validateAccess(string endpoint, string[] groups) returns boolean {
 
+    LogRecord logRecord = {
+        level: "INFO",
+        message: "Validating access for the user"
+    };
+    createLog(logRecord);
+
     // If you need to add any other roles to a specific endpoint the mapping should be added here.
     // The role checking and authorization process is then handled automatically through the defined functions
     final map<string[]> endpointRoles = {
@@ -98,9 +120,19 @@ isolated function validateAccess(string endpoint, string[] groups) returns boole
 isolated function containsElement(string[] array, string element) returns boolean {
     int? index = array.indexOf(element);
     if (index is int) {
+        LogRecord logRecord = {
+            level: "INFO",
+            message: element + " found !"
+        };
+        createLog(logRecord);
         log:printInfo(element + " found !");
         return true;
     } else {
+        LogRecord logRecord = {
+            level: "INFO",
+            message: element + " not found in the array."
+        };
+        createLog(logRecord);        
         io:println(element + " not found in the array.");
         return false;
     }

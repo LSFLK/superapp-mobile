@@ -5,6 +5,7 @@ import ballerina/uuid;
 // Standalone function to create the microapp-specific JWT
 // Usage: string|error token = createMicroappJWT("emp-123", "app-456");
 public isolated function createMicroappJWT(string user_id, string microAppId) returns string|error {
+    
     // Build IssuerConfig for JWT
     jwt:IssuerConfig issuerConfig = {
         issuer: superappIssuer, // Issuer (your superapp backend)
@@ -24,11 +25,24 @@ public isolated function createMicroappJWT(string user_id, string microAppId) re
 
     // Issue (sign) the JWT
     string|jwt:Error token = jwt:issue(issuerConfig);
+    
     if token is jwt:Error {
+        LogRecord logRecord = {
+            level: "ERROR",
+            message: "Failed to issue JWT",
+            context: {"token":token.toString()}
+        };
+        createLog(logRecord); 
         log:printError("Failed to issue JWT", 'error = token);
         return token;
     }
 
+    LogRecord logRecord = {
+        level: "INFO",
+        message: "Generated microapp JWT for user_id: " + user_id + ", micro_app_id: " + microAppId
+    };
+    createLog(logRecord); 
     log:printInfo("Generated microapp JWT for user_id: " + user_id + ", micro_app_id: " + microAppId);
+    
     return token;
 }

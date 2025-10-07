@@ -3,7 +3,12 @@ import ballerina/sql;
 // Function to insert a micro-app with a ZIP file
 public isolated function insertMicroAppWithZip(string name, string version, byte[] zipData, string appId, string iconUrlPath, string description) returns error? {
 
-    createLog("INFO", "Inserting or updating micro app", { "appId": appId, "name": name, "version": version });
+    LogRecord logRecord = {
+        level: "INFO",
+        message: "Inserting or updating micro app",
+        context: { "appId": appId, "name": name, "version": version }
+    };
+    createLog(logRecord);
 
     // Parameterized query to insert into micro_apps
     //sql:ParameterizedQuery query = `INSERT INTO micro_apps (name, version, zip_blob, app_id) VALUES (${name}, ${version}, ${zipData}, ${appId});`;
@@ -22,14 +27,24 @@ public isolated function insertMicroAppWithZip(string name, string version, byte
     // Execute the query
     sql:ExecutionResult result = check databaseClient->execute(query);
 
-    createLog("INFO", "Micro app insert/update completed", { "appId": appId, "rowsAffected": result.affectedRowCount.toString() });
+    logRecord = {
+        level: "INFO",
+        message: "Micro app insert/update completed",
+        context: { "appId": appId, "rowsAffected": result.affectedRowCount.toString() }
+    };
+    createLog(logRecord);   
 }
 
 
 // Function to insert the istalled app IDs for a user
 public isolated function updateUserDownloadedApps(string email, json appIds) returns error? {
 
-    createLog("INFO", "Updating downloaded apps for user", { "email": email, "appIds": appIds.toString() });
+    LogRecord logRecord = {
+        level: "INFO",
+        message: "Updating downloaded apps for user",
+        context: { "email": email, "appIds": appIds.toString() }
+    };
+    createLog(logRecord);
     
     // Convert the string[] into a JSON array string
     string appsJson = appIds.toJsonString();
@@ -41,7 +56,12 @@ public isolated function updateUserDownloadedApps(string email, json appIds) ret
 
     sql:ExecutionResult result = check databaseClient->execute(query);
 
-    createLog("INFO", "User downloaded apps updated", { "email": email, "rowsAffected": result.affectedRowCount.toString() });
+    logRecord = {
+        level: "INFO",
+        message: "User downloaded apps updated",
+        context: { "email": email, "rowsAffected": result.affectedRowCount.toString() }
+    };
+    createLog(logRecord);
 }
 
 
@@ -49,7 +69,11 @@ public isolated function updateUserDownloadedApps(string email, json appIds) ret
 // Function to fetch all micro-apps from the database
 public isolated function fetchAllMicroApps() returns MicroApp[]|error {
 
-    createLog("INFO", "Fetching all micro apps", {});
+    LogRecord logRecord = {
+        level: "INFO",
+        message: "Fetching all micro apps"
+    };
+    createLog(logRecord);
 
     sql:ParameterizedQuery query = `
         SELECT app_id, name, version, LENGTH(zip_blob) AS zip_blob_length, created_at, description
@@ -75,7 +99,12 @@ public isolated function fetchAllMicroApps() returns MicroApp[]|error {
         };
     check resultStream.close();
 
-    createLog("INFO", "Completed fetching all micro apps", { "totalApps": microApps.length() });
+    logRecord = {
+        level: "INFO",
+        message: "Completed fetching all micro apps",
+        context: { "totalApps": microApps.length() }
+    };
+    createLog(logRecord);
     
     return microApps;
 }
@@ -83,7 +112,12 @@ public isolated function fetchAllMicroApps() returns MicroApp[]|error {
 // Function to fetch a micro-app by its ID
 public isolated function fetchMicroAppById(string app_id) returns MicroApp|error {
 
-    createLog("INFO", "Fetching micro app by ID", { "appId": app_id });
+    LogRecord logRecord = {
+        level: "INFO",
+        message: "Fetching micro app by ID",
+        context: { "appId": app_id }
+    };
+    createLog(logRecord);
 
     sql:ParameterizedQuery query = `
         SELECT app_id, name, version, LENGTH(zip_blob) AS zip_blob_length, created_at, description
@@ -110,10 +144,20 @@ public isolated function fetchMicroAppById(string app_id) returns MicroApp|error
     check resultStream.close();
     
     if foundApp is MicroApp {
-        createLog("INFO", "Micro app found", { "appId": foundApp.app_id, "name": foundApp.name, "zipSize": foundApp.zip_blob_length.toString() });
+        logRecord = {
+            level: "INFO",
+            message: "Micro app found",
+            context: { "appId": foundApp.app_id, "name": foundApp.name, "zipSize": foundApp.zip_blob_length.toString() }
+        };
+        createLog(logRecord);
         return foundApp;
     } else {
-        createLog("WARN", "Micro app not found", { "appId": app_id });
+        logRecord = {
+            level: "WARN",
+            message: "Micro app not found",
+            context: { "appId": app_id }
+        };
+        createLog(logRecord);
         return error("No micro-app found with ID: " + app_id);
     }
 }
@@ -121,7 +165,12 @@ public isolated function fetchMicroAppById(string app_id) returns MicroApp|error
 // Function to fetch the ZIP blob of a micro-app by its ID
 public isolated function fetchMicroAppZipById(string app_id) returns MicroAppDownload|error {
 
-    createLog("INFO", "Fetching ZIP blob for micro-app", { "appId": app_id });
+    LogRecord logRecord = {
+        level: "INFO",
+        message: "Fetching ZIP blob for micro-app",
+        context: { "appId": app_id }
+    };
+    createLog(logRecord);
 
     sql:ParameterizedQuery query = `
         SELECT zip_blob
@@ -139,10 +188,20 @@ public isolated function fetchMicroAppZipById(string app_id) returns MicroAppDow
     check resultStream.close();
 
     if foundApp is MicroAppDownload {
-        createLog("INFO", "Found ZIP for micro-app", { "appId": app_id, "zipSize": foundApp.zip_blob.length() });
+        logRecord = {
+            level: "INFO",
+            message: "Found ZIP for micro-app",
+            context: { "appId": app_id, "zipSize": foundApp.zip_blob.length() }
+        };
+        createLog(logRecord);
         return foundApp;
     } else {
-        createLog("WARN", "No ZIP found for micro-app", { "appId": app_id });
+        logRecord = {
+            level: "WARN",
+            message: "No ZIP found for micro-app",
+            context: { "appId": app_id }
+        };
+        createLog(logRecord);  
         return error("No micro-app ZIP found with ID: " + app_id);
     }
 }
@@ -151,7 +210,11 @@ public isolated function fetchMicroAppZipById(string app_id) returns MicroAppDow
 // Function to fetch all users from the database
 public isolated function fetchAllUsers() returns User[]|error {
 
-    createLog("INFO", "Fetching all users", {});
+    LogRecord logRecord = {
+        level: "INFO",
+        message: "Fetching all users"
+    };
+    createLog(logRecord);
 
     // Define the query
     sql:ParameterizedQuery query = `SELECT * FROM users;`;
@@ -163,13 +226,24 @@ public isolated function fetchAllUsers() returns User[]|error {
     User[] users = [];
     check from User user in resultStream
         do {
-            createLog("INFO", "Fetched user", { "email": user.email, "name": user.first_name + " " + user.last_name });
+            logRecord = {
+                level: "INFO",
+                message: "Fetched user",
+                context: { "email": user.email, "name": user.first_name + " " + user.last_name }
+            };
+            createLog(logRecord);
+
             users.push(user);
         };
 
     check resultStream.close();
 
-    createLog("INFO", "Completed fetching all users", { "totalUsers": users.length() });
+    logRecord = {
+        level: "INFO",
+        message: "Completed fetching all users",
+        context: {"totalUsers": users.length() }
+    };
+    createLog(logRecord);
     
     return users;
 }
@@ -177,7 +251,12 @@ public isolated function fetchAllUsers() returns User[]|error {
 // function to fetch a user by email
 public isolated function fetchUserByEmail(string email) returns User|error {
 
-    createLog("INFO", "Fetching user by email", { "email": email });
+    LogRecord logRecord = {
+        level: "INFO",
+        message: "Fetching user by email",
+        context: { "email": email }
+    };
+    createLog(logRecord);
 
     //sql:ParameterizedQuery query = `SELECT * FROM users WHERE email = ${email};`;
     sql:ParameterizedQuery query = `SELECT user_id, first_name, last_name, email,
@@ -195,17 +274,32 @@ public isolated function fetchUserByEmail(string email) returns User|error {
     check resultStream.close();
 
     if foundUser is User {
-        createLog("INFO", "User found", { "email": foundUser.email, "name": foundUser.first_name + " " + foundUser.last_name });
+        logRecord = {
+            level: "INFO",
+            message: "User found",
+            context: { "email": foundUser.email, "name": foundUser.first_name + " " + foundUser.last_name }
+        };
+        createLog(logRecord);
         return foundUser;
     } else {
-        createLog("WARN", "No user found with email", { "email": email });
+        logRecord = {
+            level: "WARN",
+            message: "No user found with email",
+            context: { "email": email }
+        };
+        createLog(logRecord);
         return error("No user found with email: " + email);
     }
 }
 
 public isolated function fetchMicroAppIconById(string app_id) returns MicroAppIcon|error {
 
-    createLog("INFO", "Fetching micro app icon", { "appId": app_id });
+    LogRecord logRecord = {
+        level: "INFO",
+        message: "Fetching micro app icon",
+        context: { "appId": app_id }
+    };
+    createLog(logRecord);
 
     sql:ParameterizedQuery query = `
         SELECT icon_url
@@ -223,18 +317,38 @@ public isolated function fetchMicroAppIconById(string app_id) returns MicroAppIc
     check resultStream.close();
     
     if foundIcon is MicroAppIcon {
-        createLog("INFO", "Icon fetched for micro-app", { "appId": app_id, "iconUrl": foundIcon.icon_url });
+        logRecord = {
+            level: "INFO",
+            message: "Icon fetched for micro-app",
+            context: { "appId": app_id, "iconUrl": foundIcon.icon_url }
+        };
+        createLog(logRecord);
         return foundIcon;
     } else {
-        createLog("WARN", "No icon found for micro-app", { "appId": app_id });
+        logRecord = {
+            level: "WARN",
+            message: "No icon found for micro-app",
+            context: { "appId": app_id }
+        };
+        createLog(logRecord);
         return error("No icon found for micro-app with ID: " + app_id);
     }
 }
 
 function stopHandler() returns error? {
-    createLog("INFO", "Performing shutdown tasks, closing database connection", {});
+    LogRecord logRecord = {
+        level: "INFO",
+        message: "Performing shutdown tasks, closing database connection"
+    };
+    createLog(logRecord);
     // Add your cleanup logic here (e.g., close files, database connections)
     check databaseClient.close();
-    createLog("INFO", "Shutdown completed successfully", {});
+    
+    logRecord = {
+        level: "INFO",
+        message: "Shutdown completed successfully"
+    };
+    createLog(logRecord);
+    
     return ();
 }

@@ -50,3 +50,9 @@ public type ZipValidationResult record {|
     int fileCount?;
     int totalUncompressedSize?;
 |};
+
+public type LogRecord record {|
+    string level;
+    string message;
+    string|int|string[]|int[]|map<anydata> context?;
+|};

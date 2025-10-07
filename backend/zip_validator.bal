@@ -4,29 +4,71 @@ import ballerina/regex;
 // Main ZIP validation function
 public isolated function validateZipFile(byte[] zipData, string filename) returns ZipValidationResult {
     // string[] errors = [];
-
+    LogRecord logRecord = {
+        level: "JUST INITIALIZED",
+        message: ""
+    };
     // 1. Basic size and signature validation
     ZipValidationResult basicResult = validateBasicZipStructure(zipData);
     if !basicResult.isValid {
+        
+        logRecord = {
+            level: "ERROR",
+            message: "XXX Basic ZIP structure validation failed"
+        };
+        createLog(logRecord); 
         io:println("XXX Basic ZIP structure validation failed");
+        
         return basicResult;
     }
+    
+    logRecord = {
+        level: "INFO",
+        message: "1) Basic ZIP structure validation passed"
+    };
+    createLog(logRecord);
     io:println("1) Basic ZIP structure validation passed");
 
     // 2. Filename validation
     ZipValidationResult filenameResult = validateZipFilename(filename);
     if !filenameResult.isValid {
+        
+        logRecord = {
+            level: "ERROR",
+            message: "XXX Basic ZIP structure validation failed"
+        };
+        createLog(logRecord);
         io:println("XXX Filename validation failed");
+        
         return filenameResult;
     }
+    
+    logRecord = {
+        level: "INFO",
+        message: "2) Filename validation passed"
+    };
+    createLog(logRecord);
     io:println("2) Filename validation passed");
 
     // 3. Analyze structure for security
     ZipValidationResult structureResult = analyzeZipStructure(zipData);
     if !structureResult.isValid {
+        
+        logRecord = {
+            level: "ERROR",
+            message: "XXX Basic ZIP structure validation failed"
+        };
+        createLog(logRecord);
         io:println("XXX ZIP content security analysis failed");
+        
         return structureResult;
     }
+
+    logRecord = {
+        level: "INFO",
+        message: "3) ZIP content security analysis passed"
+    };
+    createLog(logRecord);
     io:println("3) ZIP content security analysis passed");
 
     // Return the validation result
