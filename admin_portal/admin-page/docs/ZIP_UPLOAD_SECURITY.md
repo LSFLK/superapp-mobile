@@ -1,8 +1,8 @@
 # ZIP upload security 
 
-Scope: simple, reliable checks you can do in the browser without extracting or parsing entries inside the ZIP file. These checks improve UX and reduce obvious risks but do not replace server-side validation.
+Scope: simple, reliable checks you can do in the browser without extracting or parsing entries inside the ZIP file. These checks improve security and reduce obvious risks.
 
-## What the frontend SHOULD enforce
+## What the Admin SHOULD enforce
 
 1) File extension validation
 
@@ -32,20 +32,40 @@ Scope: simple, reliable checks you can do in the browser without extracting or p
 - Refuse non-HTTPS endpoints (except localhost for development).
 - Only upload to an allowlisted origin you control to avoid token exfiltration.
 
-6) Safe UX and error handling
+6) Upload timestamp & uploader ID
 
-- Don’t set `Content-Type` manually for `FormData`; let the browser set boundaries.
-- Parse JSON or text errors; show concise user-facing messages (no stack traces).
-- Never log tokens or sensitive values in production.
+- Confirm uploader identity and expected timing (no suspicious or anonymous submissions).
 
-## Testing checklist
+7) Filenames Verification
 
-- Valid ZIP under the size cap uploads successfully.
-- Non-ZIP (e.g., renamed `.zip`) is blocked by magic-number check.
-- Oversized ZIP is blocked with a clear message.
-- Uploads to non-HTTPS (non-localhost) are blocked in development builds.
+- no suspicious paths such as:- `../` (directory traversal), absolute paths (`/etc/...`), hidden files (`.bashrc`, `.DS_Store`, `.gitignore`, etc.)
+
+8) Verification of file extensions inside the zip
+
+- allow only expected safe types (e.g., `.txt`, `.csv`, `.json`, `.png`, `.pdf`).
+
+9) Disallow executable or script types
+
+- `.exe`, `.dll`, `.js`, `.jar`, `.py`, `.sh`, `.bat`, `.php`, `.html`, `.htm`, `.jsp`, `.war`, etc.
+
+10) Verification of number of files
+
+- flag uploads with hundreds/thousands of entries (potential ZIP bomb).
+
+11) ZIP bomb / compression ratio
+
+- Uncompressed size / compressed size > 100x → suspicious
+- Reject or quarantine if ratio exceeds your safe threshold (e.g., >50x).
+
+12) Manual File Spot Check (Safe Types Only)
+
+- If only safe file types are listed (e.g., `.txt`, `.csv`, `.pdf`), extract in a sandboxed environment
+- Open a few representative files to confirm legitimate content.
+- Ensure no embedded scripts or macros (especially in `.docx`/`.xls`, or PDFs).
+
+13) Anomaly Detection
+
+- MIME type mismatch vs magic number.
+- ZIP contains nested archives (`.zip`, `.tar.gz`, `.rar` inside ZIP).
+- ZIP is **encrypted** — block unless required by workflow.
 - Error responses from the server display concise, non-sensitive messages.
-
-## Environment knobs
-
-- `REACT_APP_MAX_UPLOAD_MB`: numeric megabytes cap (e.g., 50). Changing this requires a rebuild.
