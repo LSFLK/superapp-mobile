@@ -77,7 +77,7 @@ isolated service class JwtInterceptor {
         if !validateAccess(fullPath, groups) {
             return <http:InternalServerError>{
                 body: {
-                    message: "Forbidden: admin role required"
+                    message: "Forbidden: you are not authorized to access this resource!"
                 }
             };
         }

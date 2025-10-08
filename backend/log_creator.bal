@@ -30,7 +30,15 @@ public isolated function createLog(LogRecord logRecord) {
         logEntry = logEntry + string `| Context: ${contextString}`;
     }
     
+    // Appending to the file
     boolean|error? result = io:fileWriteString(LOG_FILE_PATH, logEntry+"\n", "APPEND");
+
+    // If the logs need to be more persistant (Insert log into DB)
+    // Example:
+        // check dbClient->execute(
+        //     `INSERT INTO logs (timestamp, level, message, context)
+        //      VALUES (${currentTime}, ${logRecord.level}, ${logRecord.message}, ${contextString})`
+        // );
     
     if result is error {
         log:printError("Cannot write to file");
