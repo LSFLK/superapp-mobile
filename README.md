@@ -68,7 +68,7 @@ Here’s a high-level view of the flow:
 1. Micro-apps are listed in the Super App Store.
 2. Users can download micro-apps from the store.
 3. Downloaded micro-apps are stored using AsyncStorage.
-4. (if required) When launched, authentication tokens are exchanged for access.
+4. (if required) When launched, microapp specific tokens are exchanged for access.
 5. The micro-app uses micro-app specific access tokens to communicate with the domain specific backends.
     
 
