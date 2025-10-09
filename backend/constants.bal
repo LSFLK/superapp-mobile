@@ -12,3 +12,6 @@ public const AUDIENCE_2 = "aVro3ATf5ZSglZHItEDj0Kd7M4wa";
 const int ZIP_LOCAL_HEADER_SIGNATURE = 0x04034b50; // "PK\3\4"
 const int ZIP_CENTRAL_HEADER_SIGNATURE = 0x02014b50; // "PK\1\2"
 const int ZIP_END_CENTRAL_SIGNATURE = 0x06054b50; // "PK\5\6"
+
+// Roles
+public const SUPERAPP_ADMIN_ROLE = "superapp_admin";

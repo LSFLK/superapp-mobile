@@ -97,7 +97,7 @@ isolated function validateAccess(string endpoint, string[] groups) returns boole
     // If you need to add any other roles to a specific endpoint the mapping should be added here.
     // The role checking and authorization process is then handled automatically through the defined functions
     final map<string[]> endpointRoles = {
-        "/micro-apps/upload": ["superapp_admin"]
+        "/micro-apps/upload": [SUPERAPP_ADMIN_ROLE]
     };
 
     string[]? requiredRoles = endpointRoles[endpoint];
