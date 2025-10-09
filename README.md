@@ -38,12 +38,13 @@ This repository is the foundation for hosting and managing many small web-based 
 
 ### Backend
 - **Language**: [Ballerina](https://ballerina.io/)
-- **Authentication**: External identity provider (OIDC/OAuth2 compatible)
 
 ### Frontend
 - **Framework**: React Native (Expo)
 - **State Management**: Redux with Thunk
 
+### Authentication
+- External identity provider (OIDC/OAuth2 compatible)
 
 ## 🧱 System Architecture
 
@@ -68,8 +69,8 @@ Here’s a high-level view of the flow:
 1. Micro-apps are listed in the Super App Store.
 2. Users can download micro-apps from the store.
 3. Downloaded micro-apps are stored using AsyncStorage.
-4. (if required) When launched, microapp specific tokens are exchanged for access.
-5. The micro-app uses micro-app specific access tokens to communicate with the domain specific backends.
+4. (if required) When launched, microapp specific tokens are issued by the superapp for access.
+5. The micro-app uses micro-app specific access tokens to communicate with the respective backends.
     
 
 ## 🚀 Getting Started
