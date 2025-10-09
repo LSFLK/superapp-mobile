@@ -2,14 +2,14 @@
 
 Backend service for Superapp Mobile, implemented in Ballerina. It provides:
 - JWT-protected REST APIs for users and micro-apps
-- Micro-app upload (multipart), metadata listing, ZIP download, and icon serving
+- Micro-app upload (multipart), metadata listing, ZIP download
 - Per-micro-app JWT minting for downstream services
 - MySQL database integration with SSL and connection pooling
 
 
 ### Tech Stack
 - Ballerina 2201.12.9 (Swan Lake)
-- MySQL (via `ballerinax/mysql`)
+- SQL (via `ballerinax/sql`)
 - JWT (sign/validate), HTTP/HTTPS service and interceptors
 
 
@@ -27,7 +27,7 @@ Backend service for Superapp Mobile, implemented in Ballerina. It provides:
 
 ## Prerequisites
 - Ballerina distribution `2201.12.9` or compatible
-- MySQL database and credentials (See the ["Database Schema Expectations"](#database-schema-expectations) for the schema definition)
+- SQL database and credentials (See the ["Database Schema Expectations"](#database-schema-expectations) for the schema definition)
 - RS256 private key (`.pem`) for signing micro-app JWTs
 - Identity Provider (IdP) public certificate (`.crt`) to validate incoming JWTs (Asgardeo in example)
 
@@ -92,7 +92,6 @@ You can choose how to secure the network transport to this backend.
 - API Gateway or Reverse Proxy (recommended for production):
   - Terminate TLS at your gateway/proxy (e.g., NGINX, Kong, Choreo API Gateway, Cloud LB) and forward to the backend.
   - You may keep the backend listener as plain HTTP (default) within a private network.
-  - If you also want encrypted hop between gateway and backend, configure your gateway to connect to the backend via HTTPS and use a certificate trusted by the gateway.
 
 - Direct HTTPS from clients to backend (no gateway):
   - Enable the TLS listener in `main.bal` and provide a certificate/key.
@@ -154,7 +153,7 @@ Security: All endpoints require header `x-jwt-assertion: <jwt>` unless noted. JS
 
 
 ## Environment Variables (Alternative)
-All configurables can be supplied via environment variables supported by Ballerina (e.g., `--`, or environment variable mapping). Prefer `config.toml` for local dev.
+All configurables can be supplied via environment variables supported by Ballerina. Prefer `config.toml` for local dev.
 
 ## Deployment Notes
 - Build the JAR via `bal build` and deploy in a JVM environment that can access `config.toml` and key material.
