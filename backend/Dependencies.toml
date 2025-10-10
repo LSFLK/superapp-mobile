@@ -396,7 +396,7 @@ modules = [
 ]
 
 [[package]]
-org = "sandamini"
+org = "lsf"
 name = "superapp_backend"
 version = "0.1.0"
 dependencies = [
@@ -415,6 +415,10 @@ dependencies = [
 	{org = "ballerinax", name = "mysql.driver"}
 ]
 modules = [
-	{org = "sandamini", packageName = "superapp_backend", moduleName = "superapp_backend"}
+	{org = "lsf", packageName = "superapp_backend", moduleName = "superapp_backend"},
+	{org = "lsf", packageName = "superapp_backend", moduleName = "superapp_backend.auth"},
+	{org = "lsf", packageName = "superapp_backend", moduleName = "superapp_backend.database"},
+	{org = "lsf", packageName = "superapp_backend", moduleName = "superapp_backend.logging"},
+	{org = "lsf", packageName = "superapp_backend", moduleName = "superapp_backend.validation"}
 ]
 

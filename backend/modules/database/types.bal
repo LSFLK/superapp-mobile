@@ -13,7 +13,7 @@ type DatabaseConfig record {|
     ConnectionPool connectionPool?;
 |};
 
-type User record {
+public type User record {
     int user_id;
     string first_name;
     string last_name;
@@ -21,38 +21,21 @@ type User record {
     json? downloaded_app_ids;
 };
 
-// Record for micro_app
-type MicroApp record {
+public type MicroApp record {
     string app_id;
     string name;
     string version;
     byte[]? icon_url;
     int? zip_blob_length;   // size in bytes
-    string? created_at;     // timestamp as string
+    string? created_at;  
     string download_url;
     string? description;
 };
 
-// MicroAppDownload type for fetching ZIP blob
-type MicroAppDownload record {
+public type MicroAppDownload record {
     byte[] zip_blob;
 };
 
-// MicroAppIcon type for fetching icon blob
-type MicroAppIcon record {
+public type MicroAppIcon record {
     byte[] icon_url;
 };
-
-// ZIP validation result
-public type ZipValidationResult record {|
-    boolean isValid;
-    string[] errors;
-    int fileCount?;
-    int totalUncompressedSize?;
-|};
-
-public type LogRecord record {|
-    string level;
-    string message;
-    string|int|string[]|int[]|map<anydata> context?;
-|};

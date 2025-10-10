@@ -2,32 +2,50 @@ import ballerina/http;
 import ballerina/io;
 import ballerina/lang.runtime;
 import ballerina/log;
+import ballerina/time;
+
+import superapp_backend.database;
+import superapp_backend.auth;
+import superapp_backend.logging;
+
+// ============================================================================
+// Service Initialization
+// ============================================================================
 
 function init() {
+    logging:log({level: "INFO", message: "Initializing the superapp backend service...", context: {"environment": environment, "port": serverPort, "debugMode": debugMode}});
+    io:println("========================================");
+    io:println("Superapp Backend Service");
+    io:println("Environment: " + environment);
+    io:println("Port: " + serverPort.toString());
+    io:println("========================================");
+    error? dbValidation = database:validateDatabaseConnection();
+    if dbValidation is error {
+        logging:log({level: "ERROR", message: "Failed to validate database connection on startup", context: {"error": dbValidation.toString()}});
+        io:println("ERROR: Database validation failed - " + dbValidation.message());
+    } else {
+        logging:log({level: "INFO", message: "Database connection validated successfully"});
+        io:println("Database connection validated successfully");
+    }
+    logging:log({level: "INFO", message: "Superapp backend initialization complete"});
+    io:println("Initialization complete. Service is ready.");
+    io:println("========================================");
 
-    LogRecord logRecord = {
-        level: "INFO",
-        message: "Initializing the superapp backend service..."
-    };
-    createLog(logRecord);
-    io:println("Initializing the superapp backend service...");
 
-    // Registers a function that will be called during the graceful shutdown.
-    runtime:onGracefulStop(stopHandler);
+    runtime:onGracefulStop(database:stopHandler);
 }
 
-isolated service class ErrorInterceptor {
+// ============================================================================
+// Error Interceptor
+// ============================================================================
+
+service class ErrorInterceptor {
     *http:ResponseErrorInterceptor;
 
     remote function interceptResponseError(error err, http:RequestContext ctx) returns http:BadRequest|error {
         if err is http:PayloadBindingError {
             string customError = "Payload binding failed!";
-            LogRecord logRecord = {
-                level: "ERROR",
-                message: "Payload binding failed!"
-            };
-            createLog(logRecord);
-            log:printError(customError, err);
+            logging:log({level: "ERROR", message: customError, context: {"error": err.toString()}});
             return {
                 body: {
                     message: customError
@@ -38,10 +56,18 @@ isolated service class ErrorInterceptor {
     }
 }
 
-////////// HTTP Listner without TLS
-listener http:Listener _httpListner = new (serverPort, 
+// ============================================================================
+// HTTP Listener Configuration
+// ============================================================================
+
+// HTTP Listener without TLS (recommended: use API Gateway for TLS in production)
+listener http:Listener httpListener = check new (serverPort, 
     config = {
-        requestLimits: {maxHeaderSize}
+        requestLimits: {
+            maxHeaderSize: maxHeaderSize,
+            maxEntityBodySize: maxEntityBodySize * 1024 * 1024 // Convert MB to bytes
+        },
+        timeout: requestTimeout
     }
 );
 
@@ -58,477 +84,133 @@ listener http:Listener _httpListner = new (serverPort,
 //     }
 // );
 
+// ============================================================================
+// Main HTTP Service
+// ============================================================================
 
-// CORS configuration for frontend access 
+// CORS configuration for frontend access
 @http:ServiceConfig {
     cors: {
-        allowOrigins: ["*"],
-        allowCredentials: false,
+        allowOrigins: allowedOrigins,
+        allowCredentials: corsAllowCredentials,
         allowHeaders: ["Authorization", "Content-Type", "x-jwt-assertion"],
-        allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+        allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        maxAge: 3600
     }
 }
-isolated service http:InterceptableService / on _httpListner {
+isolated service http:InterceptableService / on httpListener {
 
-    # + return - ErrorInterceptor
+    // Register interceptors for error handling and authentication
     public function createInterceptors() returns http:Interceptor[] =>
-    //[new ErrorInterceptor()];
-    [
-        new ErrorInterceptor(),
-        new JwtInterceptor()
-    ];
+        [
+            new ErrorInterceptor(),
+            new auth:JwtInterceptor()
+        ];
 
-    #
-    # + ctx - Request context
-    # + user_id - User ID (passed as query parameter)
-    # + micro_app_id - Microapp ID (passed as query parameter)
-    # + return - JSON with JWT or an error
-    isolated resource function get micro\-app\-token(http:RequestContext ctx, string user_id, string micro_app_id) returns json|http:BadRequest|http:InternalServerError {
-        // Validate input parameters
-        if user_id.trim() == "" || micro_app_id.trim() == "" {
-            LogRecord logRecord = {
-                level: "ERROR",
-                message: "Missing or empty user_id or micro_app_id"
-            };
-            createLog(logRecord);
-            log:printError("Missing or empty user_id or micro_app_id");
-            return <http:BadRequest>{
-                body: {"error": "Bad Request: user_id and micro_app_id are required"}
-            };
-        }
+    // ========================================================================
+    // Health Check Endpoints
+    // ========================================================================
 
-        // Generate the microapp-specific JWT
-        string|error token = createMicroappJWT(user_id, micro_app_id);
-        if token is error {
-            LogRecord logRecord = {
-                level: "ERROR",
-                message: "Failed to generate JWT for user_id this time too: " + user_id + ", micro_app_id: " + micro_app_id
-            };
-            createLog(logRecord);
-            log:printError("Failed to generate JWT for user_id this time too: " + user_id + ", micro_app_id: " + micro_app_id, 'error = token);
-            return <http:InternalServerError>{
-                body: {"error": "Internal server error"}
-            };
-        }
-
-        // Return the token in JSON response
-        json response = {"token": token, "expiresAt": tokenTTLSeconds};
-        LogRecord logRecord = {
-            level: "INFO",
-            message: "Successfully generated JWT for user_id: " + user_id + ", micro_app_id: " + micro_app_id
-        };
-        createLog(logRecord);
-        log:printInfo("Successfully generated JWT for user_id: " + user_id + ", micro_app_id: " + micro_app_id);
-        return response;
-    }
-
-    # Updates the downloaded app IDs for a user.
-    #
-    # + ctx - Request context
-    # + req - HTTP request containing the payload
-    # + return - JSON response or an error
-    isolated resource function post users/[string email]/apps(http:RequestContext ctx, http:Request req) returns json|http:BadRequest|http:InternalServerError|http:ClientError {
-
-        json payload = check req.getJsonPayload();
-
-        // Call the existing function
-        error? result = updateUserDownloadedApps(email, payload);
-        if result is error {
-            LogRecord logRecord = {
-                level: "ERROR",
-                message: "Failed to update downloaded apps for email: " + email
-            };
-            createLog(logRecord);            
-            log:printError("Failed to update downloaded apps for email: " + email, 'error = result);
-            return <http:InternalServerError>{
-                body: {"error": "Internal server error"}
-            };
-        }
-
-        // Send success response
-        json response = {"status": "success", "message": "Downloaded apps updated successfully"};
-        LogRecord logRecord = {
-            level: "INFO",
-            message: "Successfully updated downloaded apps for email: " + email
-        };
-        createLog(logRecord);  
-        log:printInfo("Successfully updated downloaded apps for email: " + email);
-        return response;
-    }
-
-    # Fetch a user by email from the database.
-    #
-    # + ctx - Request context
-    # + email - Email of the user to retrieve
-    # + return - User record or an error
-    isolated resource function get users/[string email](http:RequestContext ctx) returns User|http:NotFound|http:InternalServerError {
-        User|error result = fetchUserByEmail(email);
-        if result is error {
-            LogRecord logRecord = {
-                level: "ERROR",
-                message: "Error fetching user with email: " + email,
-                context: {"result" : result.toString()}
-            };
-            createLog(logRecord);             
-            log:printError("Error fetching user with email: " + email, result);
-            if result.message().startsWith("No user found") {
-                return <http:NotFound>{
-                    body: {message: "User not found for email: " + email}
-                };
-            }
-            return <http:InternalServerError>{
-                body: {message: "Failed to fetch user from database"}
-            };
-        }
-        LogRecord logRecord = {
-            level: "INFO",
-            message: "Successfully fetched user with email: " + email
-        };
-        createLog(logRecord);
-        log:printInfo("Successfully fetched user with email: " + email);
-        return result;
-    }
-
-    // Endpoint to retrieve all micro-apps from the database
-    # Fetch all micro-apps from the database.
-    #
-    # + ctx - Request context
-    # + return - Array of MicroApp records or an error
-    isolated resource function get micro\-apps(http:RequestContext ctx) returns MicroApp[]|http:InternalServerError {
-        MicroApp[]|error result = fetchAllMicroApps();
-        if result is error {
-            LogRecord logRecord = {
-                level: "ERROR",
-                message: "Error fetching micro-apps from database",
-                context: {"result" : result.toString()}
-            };
-            createLog(logRecord);
-            log:printError("Error fetching micro-apps from database", result);
-            return <http:InternalServerError>{
-                body: {message: "Failed to fetch micro-apps from database"}
-            };
-        }
-        LogRecord logRecord = {
-            level: "INFO",
-            message: "Successfully fetched " + result.length().toString() + " micro-apps"
-        };
-        createLog(logRecord);
-        log:printInfo("Successfully fetched " + result.length().toString() + " micro-apps");
+    // Detailed health check endpoint
+    isolated resource function get health(http:RequestContext ctx) returns json {
+        log:printInfo("Health check endpoint accessed");
         
-        return result;
-    }
-
-    // Endpoint to retrieve a specific micro-app by its app ID from the database
-    # Fetch a micro-app by its app ID from the database.
-    #
-    # + ctx - Request context
-    # + appId - App ID of the micro-app to retrieve
-    # + return - MicroApp record or an error
-    isolated resource function get micro\-apps/[string appId](http:RequestContext ctx) returns MicroApp|http:NotFound|http:InternalServerError {
-        MicroApp|error result = fetchMicroAppById(appId);
-        if result is error {
-            LogRecord logRecord = {
-                level: "ERROR",
-                message: "Error fetching micro-app with app ID: " + appId,
-                context: {"result":result.toString()}
-            };
-            createLog(logRecord);
-            log:printError("Error fetching micro-app with app ID: " + appId, result);
-            if result.message().startsWith("No micro-app found") {
-                return <http:NotFound>{
-                    body: {message: "Micro-app not found for app ID: " + appId}
-                };
-            }
-            return <http:InternalServerError>{
-                body: {message: "Failed to fetch micro-app from database"}
-            };
-        }
-        LogRecord logRecord = {
-            level: "INFO",
-            message: "Successfully fetched micro-app with app ID: " + appId
-        };
-        createLog(logRecord);
-        log:printInfo("Successfully fetched micro-app with app ID: " + appId);
-        return result;
-    }
-
-    # Download the ZIP file for a micro-app by its app ID from the database.
-    #
-    # + ctx - Request context
-    # + appId - App ID of the micro-app to download
-    # + return - HTTP response with ZIP file or an error
-    isolated resource function get micro\-apps/[string appId]/download(http:RequestContext ctx) returns http:Response|http:NotFound|http:InternalServerError {
-        log:printInfo("Attempting to download micro-app ZIP with app ID: " + appId);
-
-        MicroAppDownload|error result = fetchMicroAppZipById(appId);
-        if result is error {
-            LogRecord logRecord = {
-                level: "ERROR",
-                message: "Error fetching micro-app with app ID: " + appId,
-                context: {"result":result.toString()}
-            };
-            createLog(logRecord);            
-            log:printError("Error fetching ZIP for micro-app with app ID: " + appId, result);
-            
-            if result.message().startsWith("No micro-app ZIP found") {
-                return <http:NotFound>{
-                    body: {message: "Micro-app ZIP file not found for app ID: " + appId}
-                };
-            }
-            
-            return <http:InternalServerError>{
-                body: {message: "Failed to fetch micro-app ZIP from database"}
-            };
-        }
-
-        http:Response response = new;
-        response.setBinaryPayload(result.zip_blob);
-        error? contentTypeResult = response.setContentType("application/zip");
-        if contentTypeResult is error {
-            log:printError("Error setting content type", contentTypeResult);
-        }
-
-        error? headerResult = response.setHeader("Content-Disposition", "attachment; filename=\"" + appId + ".zip\"");
-        if headerResult is error {
-            log:printError("Error setting header", headerResult);
-        }
-
-        log:printInfo("Successfully serving ZIP file for micro-app: " + appId);
-        return response;
-    }
-
-    # Upload a micro-app with ZIP file.
-    #
-    # + req - HTTP request
-    # + return - JSON response or error
-    isolated resource function post micro\-apps/upload(http:Request req) returns json|http:BadRequest|http:InternalServerError {
-        var bodyParts = req.getBodyParts();
-        if bodyParts is error {
-            LogRecord logRecord = {
-                level: "ERROR",
-                message: "Failed to parse multipart body",
-                context: {"bodyParts":bodyParts.toString()}
-            };
-            createLog(logRecord);            
-            log:printError("Failed to parse multipart body", bodyParts);
-            
-            return <http:BadRequest>{
-                body: {"error": "Bad Request: Invalid multipart/form-data"}
-            };
-        }
-
-        string name = "";
-        string version = "";
-        string appId = "";
-        string iconUrlPath = "";
-        byte[] zipData = [];
-        string description = "";
-        string zipFileName = "";
-
-        foreach var part in bodyParts {
-            var disposition = part.getContentDisposition();
-            string fieldName = disposition.name;
-            if fieldName == "zipFile" {
-                var byteArray = part.getByteArray();
-                if byteArray is error {
-                    LogRecord logRecord = {
-                        level: "ERROR",
-                        message: "Error fetching micro-app with app ID: " + appId
-                    };
-                    createLog(logRecord);                
-                    log:printError("Failed to get byte array for ZIP file", byteArray);
-                    
-                    return <http:BadRequest>{
-                        body: {"error": "Bad Request: Invalid ZIP file"}
-                    };
-                }
-                zipData = byteArray;
-                zipFileName = disposition.fileName;
-            } else if fieldName == "name" {
-                var text = part.getText();
-                if text is error {
-                    LogRecord logRecord = {
-                        level: "ERROR",
-                        message: "Error fetching micro-app with app ID: " + appId
-                    };
-                    createLog(logRecord);                      
-                    log:printError("Failed to get text for name", text);
-                    
-                    return <http:BadRequest>{
-                        body: {"error": "Bad Request: Invalid name"}
-                    };
-                }
-                name = text;
-            } else if fieldName == "version" {
-                var text = part.getText();
-                if text is error {
-                    LogRecord logRecord = {
-                        level: "ERROR",
-                        message: "Failed to get text for version",
-                        context: {"text":text.toString()}
-                    };
-                    createLog(logRecord);
-                    log:printError("Failed to get text for version", text);
-                    
-                    return <http:BadRequest>{
-                        body: {"error": "Bad Request: Invalid version"}
-                    };
-                }
-                version = text;
-            } else if fieldName == "appId" {
-                var text = part.getText();
-                if text is error {
-                    LogRecord logRecord = {
-                        level: "ERROR",
-                        message: "Failed to get text for appId",
-                        context: {"text":text.toString()}
-                    };
-                    createLog(logRecord);
-                    log:printError("Failed to get text for appId", text);
-                    
-                    return <http:BadRequest>{
-                        body: {"error": "Bad Request: Invalid appId"}
-                    };
-                }
-                appId = text;
-            } else if fieldName == "iconUrlPath" {
-                var text = part.getText();
-                if text is error {
-                    LogRecord logRecord = {
-                        level: "ERROR",
-                        message: "Failed to get text for iconUrlPath",
-                        context: {"text":text.toString()}
-                    };
-                    createLog(logRecord);
-                    log:printError("Failed to get text for iconUrlPath", text);
-                    
-                    return <http:BadRequest>{
-                        body: {"error": "Bad Request: Invalid iconUrlPath"}
-                    };
-                }
-                iconUrlPath = text;
-            } else if fieldName == "description" {
-                var text = part.getText();
-                if text is error {
-                    LogRecord logRecord = {
-                        level: "ERROR",
-                        message: "Failed to get text for description",
-                        context: {"text":text.toString()}
-                    };
-                    createLog(logRecord);
-                    log:printError("Failed to get text for description", text);
-                    
-                    return <http:BadRequest>{
-                        body: {"error": "Bad Request: Invalid description"}
-                    };
-                }
-                description = text;
-            }
-        }
-
-        if zipData.length() == 0 {
-            LogRecord logRecord = {
-                level: "ERROR",
-                message: "ZIP file not found in request"
-            };
-            createLog(logRecord);
-            log:printError("ZIP file not found in request");
-            
-            return <http:BadRequest>{
-                body: {"error": "Bad Request: ZIP file is required"}
-            };
-        }
-
-        if name.trim() == "" || version.trim() == "" || appId.trim() == "" {
-            return <http:BadRequest>{
-                body: {"error": "Bad Request: name, version, and appId are required"}
-            };
-        }
-
-        // --- ZIP Validation ---
-        ZipValidationResult validationResult = validateZipFile(zipData, zipFileName);
-        if !validationResult.isValid {
-            LogRecord logRecord = {
-                level: "ERROR",
-                message: "ZIP file validation failed: " + validationResult.errors.toString()
-            };
-            createLog(logRecord);
-            log:printError("ZIP file validation failed: " + validationResult.errors.toString());
-            
-            return <http:BadRequest>{
-                body: {"error": "ZIP file validation failed", "details": validationResult.errors}
-            };
-        }
-
-        // --- Insert micro app ---
-        error? result = insertMicroAppWithZip(name, version, zipData, appId, iconUrlPath, description);
-        if result is error {
-            LogRecord logRecord = {
-                level: "ERROR",
-                message: "Failed to insert micro-app",
-                context: {"result":result.toString()}
-            };
-            createLog(logRecord);
-            log:printError("Failed to insert micro-app", result);
-            
-            return <http:InternalServerError>{
-                body: {"error": "Failed to insert micro-app"}
-            };
+        if !enableDetailedHealth {
+            return {"status": "ok", "timestamp": time:utcNow()[0].toString()};
         }
         
-        LogRecord logRecord = {
-            level: "INFO",
-            message: "Micro-app uploaded successfully: " + name
+        // Detailed health check
+        json response = {
+            "status": "ok",
+            "timestamp": time:utcNow()[0].toString(),
+            "environment": environment,
+            "version": "1.0.0"
         };
-        createLog(logRecord);
-        log:printInfo("Micro-app uploaded successfully: " + name);
         
-        return {"message": "Micro-app uploaded successfully"};
-    }
-
-    # Fetch the icon for a micro-app by its app ID from the database.
-    #
-    # + ctx - Request context
-    # + appId - App ID of the micro-app (used as iconName for compatibility)
-    # + return - HTTP response with icon image or an error
-    isolated resource function get micro\-apps/[string appId]/icon(http:RequestContext ctx) returns http:Response|http:NotFound|http:InternalServerError {
-        LogRecord logRecord = {
-            level: "INFO",
-            message: "Attempting to fetch icon for micro-app with app ID: " + appId
-        };
-        createLog(logRecord);
-        log:printInfo("Attempting to fetch icon for micro-app with app ID: " + appId);
-
-        MicroAppIcon|error result = fetchMicroAppIconById(appId);
-        if result is error {
-            logRecord = {
-                level: "ERROR",
-                message: "Error fetching icon for micro-app with app ID: " + appId,
-                context: {"result":result.toString()}
-            };
-            createLog(logRecord);
-            log:printError("Error fetching icon for micro-app with app ID: " + appId, result);
-            
-            if result.message().startsWith("No icon found") {
-                return <http:NotFound>{
-                    body: {message: "Icon not found for micro-app with app ID: " + appId}
-                };
-            }
-            return <http:InternalServerError>{
-                body: {message: "Failed to fetch icon from database"}
+        // Include database health if enabled
+        if includeDbHealthCheck {
+            boolean dbHealthy = database:checkDatabaseHealth();
+            response = {
+                "status": "ok",
+                "timestamp": time:utcNow()[0].toString(),
+                "environment": environment,
+                "version": "1.0.0",
+                "database": dbHealthy ? "healthy" : "unhealthy"
             };
         }
-
-        http:Response response = new;
-        response.setBinaryPayload(result.icon_url);
-        
-        logRecord = {
-            level: "INFO",
-            message: "Successfully serving icon for micro-app: " + appId
-        };
-        createLog(logRecord);
-        log:printInfo("Successfully serving icon for micro-app: " + appId);
         
         return response;
     }
-};
+
+
+    // ========================================================================
+    // Authentication Endpoints
+    // ========================================================================
+
+    // Generate micro-app specific JWT token
+    isolated resource function get micro\-app\-token(
+        http:RequestContext ctx, 
+        string user_id, 
+        string micro_app_id
+    ) returns json|http:BadRequest|http:InternalServerError {
+        return handleMicroAppToken(user_id, micro_app_id);
+    }
+
+    // ========================================================================
+    // User Management Endpoints
+    // ========================================================================
+
+    // Update user's downloaded apps
+    isolated resource function post users/[string email]/apps(
+        http:RequestContext ctx, 
+        http:Request req
+    ) returns json|http:BadRequest|http:InternalServerError|http:ClientError {
+        return handleUpdateUserApps(email, req);
+    }
+
+    // Fetch user by email
+    isolated resource function get users/[string email](
+        http:RequestContext ctx
+    ) returns database:User|http:NotFound|http:InternalServerError {
+        return handleGetUser(email);
+    }
+
+    // ========================================================================
+    // Micro-App Management Endpoints
+    // ========================================================================
+
+    // Fetch all micro-apps
+    isolated resource function get micro\-apps(
+        http:RequestContext ctx
+    ) returns database:MicroApp[]|http:InternalServerError {
+        return handleGetAllMicroApps();
+    }
+
+    // Fetch specific micro-app by ID
+    isolated resource function get micro\-apps/[string appId](
+        http:RequestContext ctx
+    ) returns database:MicroApp|http:NotFound|http:InternalServerError {
+        return handleGetMicroApp(appId);
+    }
+
+    // Download micro-app ZIP file
+    isolated resource function get micro\-apps/[string appId]/download(
+        http:RequestContext ctx
+    ) returns http:Response|http:NotFound|http:InternalServerError {
+        return handleDownloadMicroApp(appId);
+    }
+
+    // Fetch micro-app icon
+    isolated resource function get micro\-apps/[string appId]/icon(
+        http:RequestContext ctx
+    ) returns http:Response|http:NotFound|http:InternalServerError {
+        return handleGetMicroAppIcon(appId);
+    }
+
+    // Upload micro-app
+    isolated resource function post micro\-apps/upload(
+        http:Request req
+    ) returns json|http:BadRequest|http:InternalServerError {
+        return handleUploadMicroApp(req);
+    }
+}

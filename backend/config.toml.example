@@ -1,14 +1,64 @@
-# Root-level (Add a private-key in the .pem format and the identity provider's public key in the .crt format to the same directory)
-privateKeyPath = "./<your-superapp-private-key>.pem"
-publicKeyPath = "./<your-idp-certificate>.crt"
+# ============================================================================
+# Superapp Backend Configuration Example
+# ============================================================================
+# Copy this file to config.toml and update with your actual values
 
-# Optional (for direct HTTPS from clients to backend)
-selfSignedCertFile = "./server-cert.crt"  
-selfSignedKeyFile  = "./server-key.key"
+# ============================================================================
+# Server Configuration (Root Level)
+# ============================================================================
+serverPort = 9090
+maxHeaderSize = 16384
+maxEntityBodySize = 50
+requestTimeout = 60.0
+keepAliveTimeout = 120.0
+enableAccessLogs = true
 
-[databaseConfig]
-host = "<your-db-host-name>"
-user = "<your-db_admin-name>"
-password = "<your-db-password>"
-database = "<your-db-name>"
-port = <port>
+# ============================================================================
+# Environment Configuration
+# ============================================================================
+environment = "dev"  # Options: "dev", "staging", "production"
+debugMode = false
+
+# ============================================================================
+# TLS/SSL Configuration (Optional)
+# ============================================================================
+# Leave empty for HTTP only (recommended: use API gateway for TLS)
+tlsCertFile = ""
+tlsKeyFile = ""
+
+# ============================================================================
+# CORS Configuration
+# ============================================================================
+allowedOrigins = ["*"]  # In production: ["https://yourdomain.com"]
+corsAllowCredentials = false
+
+# ============================================================================
+# Health Check Configuration
+# ============================================================================
+enableDetailedHealth = true
+includeDbHealthCheck = true
+
+# ============================================================================
+# Database Module Configuration
+# ============================================================================
+[lsf.superapp_backend.database]
+# Base URL for micro-app downloads (where this service is hosted)
+superappBaseUrl = "http://localhost:9090"
+
+[lsf.superapp_backend.database.databaseConfig]
+# MySQL Database Connection Settings
+host = "your-mysql-host.com"
+user = "your-username"
+password = "your-password"
+database = "your-database-name"
+port = 3306
+
+# ============================================================================
+# Authentication Module Configuration
+# ============================================================================
+[lsf.superapp_backend.auth]
+# JWT Configuration
+privateKeyPath = "./private.pem"        # Path to private key for JWT signing
+publicKeyPath = "./public.crt"          # Path to public key for JWT validation
+superappIssuer = "superapp-issuer"      # JWT issuer identifier
+tokenTTLSeconds = 300.0                 # Token expiry time in seconds (5 minutes)

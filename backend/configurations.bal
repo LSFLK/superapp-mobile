@@ -1,18 +1,62 @@
-// Configurations (add these to your Config.toml or set as environment variables)
+// ============================================================================
+// Server Configuration
+// ============================================================================
 
 configurable int serverPort = 9090;
-configurable int maxHeaderSize = 16384; 
+configurable int maxHeaderSize = 16384; // Maximum HTTP header size in bytes (16KB default)
+configurable int maxEntityBodySize = 50; // Maximum entity body size in MB (default 50MB)
 
-configurable string superappIssuer = "superapp-issuer"; 
-configurable decimal tokenTTLSeconds = 300; 
-configurable string privateKeyPath = ?; 
-configurable string publicKeyPath = ?; 
+// Server timeout configurations (in seconds)
+configurable decimal requestTimeout = 60;
+configurable decimal keepAliveTimeout = 120;
 
-// Uncomment the following if you want to use direct HTTPS from clients to backend
-// configurable string selfSignedCertFile = ?;
-// configurable string selfSignedKeyFile = ?;
+// Enable/disable HTTP access logs
+configurable boolean enableAccessLogs = true;
 
-// Configuration for validation limits
-configurable int maxFilesInZip = 100;
-configurable int maxUncompressedSizeMB = 100;
-configurable int maxCompressionRatio = 100; // Max 100:1 compression ratio (Can increase if you want to relax the threshold)
+// ============================================================================
+// Environment Configuration
+// ============================================================================
+
+// Environment identifier: dev, staging, production
+configurable string environment = "dev";
+
+// Enable debug mode (more verbose logging)
+configurable boolean debugMode = false;
+
+
+// ============================================================================
+// TLS/SSL Configuration (Optional - for direct HTTPS)
+// ============================================================================
+// Note: In production, it's recommended to use an API gateway or load balancer
+// for TLS termination rather than handling it directly in the application.
+
+// TLS certificate file path
+configurable string tlsCertFile = "";
+
+// TLS private key file path
+configurable string tlsKeyFile = "";
+
+
+
+// ============================================================================
+// CORS Configuration
+// ============================================================================
+
+// Allowed origins for CORS (comma-separated in production, or "*" for dev)
+configurable string[] allowedOrigins = ["*"];
+
+// Enable CORS credentials
+configurable boolean corsAllowCredentials = false;
+
+
+// ============================================================================
+// Health Check Configuration
+// ============================================================================
+
+// Enable detailed health check endpoint
+configurable boolean enableDetailedHealth = true;
+
+// Include database status in health check
+configurable boolean includeDbHealthCheck = true;
+
+
