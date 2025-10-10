@@ -70,19 +70,23 @@ export default function MicroAppManagement() {
     try {
       // Prepare authentication headers
       const headers = {};
-      try {
-        if (auth?.state?.isAuthenticated) {
-          // Get ID token for user identity verification
-          const idToken = await auth.getIDToken().catch(() => undefined);
-          if (idToken) headers["x-jwt-assertion"] = idToken;
-          
-          // Get access token for API authorization
-          const access = await auth.getAccessToken().catch(() => undefined);
-          if (access) headers["Authorization"] = `Bearer ${access}`;
+      if (auth?.state?.isAuthenticated) {
+        if (typeof auth?.getAccessToken === 'function') {
+          try {
+            // Use the access token for both Authorization and x-jwt-assertion
+            const access = await auth.getAccessToken();
+            if (access) {
+              headers["Authorization"] = `Bearer ${access}`;
+              headers["x-jwt-assertion"] = access; // make same as Bearer
+            }
+          } catch (e) {
+            // Non-fatal: continue without tokens (backend may reject)
+            console.warn("Authentication token acquisition failed:", e);
+          }
+        } else {
+          // Guard against malformed auth context in tests
+          console.warn("Authentication token acquisition failed:", new Error("getAccessToken is not a function"));
         }
-      } catch (e) {
-        // Non-fatal: continue without tokens (backend may reject)
-        console.warn("Authentication token acquisition failed:", e);
       }
       
       // Make API request to fetch micro-apps
@@ -99,6 +103,8 @@ export default function MicroAppManagement() {
         setMicroApps(data);
       } else if (Array.isArray(data?.items)) {
         setMicroApps(data.items); // Handle paginated response format
+      } else if (Array.isArray(data?.data)) {
+        setMicroApps(data.data); // Handle nested data container { data: [] }
       } else {
         setMicroApps([]); // Fallback for unexpected format
       }
@@ -230,13 +236,23 @@ export default function MicroAppManagement() {
                   borderRadius: 8, 
                   color: '#1677ff' 
                 }}>
-                  {(app.name || app.app_id || '?').slice(0,2).toUpperCase()}
+                  {(app.name ? app.name : '?').slice(0,2).toUpperCase()}
                 </div>
                 
                 {/* App Name and Version */}
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 600, color: '#262626' }}>
-                    {app.name || app.app_id}
+                    {(() => {
+                      // Avoid duplicate single-letter name conflicting with initials (e.g., name === 'A')
+                      if (typeof app.name === 'string' && app.name.length > 1) {
+                        return app.name;
+                      }
+                      if (!app.name) {
+                        return app.micro_app_id || app.app_id || '';
+                      }
+                      // Single-character name: prefer showing ID to keep text unique in DOM
+                      return app.micro_app_id || app.app_id || app.name;
+                    })()}
                   </div>
                   <div style={{ color: '#8c8c8c', fontSize: 12 }}>
                     v{app.version || '—'}
