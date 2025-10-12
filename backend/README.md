@@ -149,7 +149,6 @@ Security: All endpoints require header `x-jwt-assertion: <jwt>` unless noted. JS
 | `/micro-apps` | GET | Retrieve all micro-apps | `MicroApp[]` |
 | `/micro-apps/{appId}` | GET | Retrieve micro-app details by App ID | `MicroApp` or `404 NotFound` |
 | `/micro-apps/{appId}/download` | GET | Download micro-app ZIP by App ID | Binary ZIP (`application/zip`) |
-| `/micro-apps/{appId}/icon` | GET | Retrieve icon by App ID | Binary Image (PNG/JPEG) |
 
 
 ## Environment Variables (Alternative)
