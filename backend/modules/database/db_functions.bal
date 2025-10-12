@@ -8,24 +8,10 @@ import superapp_backend.auth;
 
 // Function to insert a micro-app with a ZIP file
 public isolated function insertMicroAppWithZip(string name, string version, byte[] zipData, string appId, string iconUrlPath, string description, string[]? allowedFunctions) returns error? {
-
     string signedManifest = check auth:createSignedManifest(zipData, allowedFunctions);
-
     sql:ParameterizedQuery query = getInsertMicroAppQuery(name, version, zipData, appId, iconUrlPath, description, signedManifest);
-    
     sql:ExecutionResult result = check databaseClient->execute(query);
     
-}
-
-// ============================================================================
-// User Functions
-// ============================================================================
-
-// Function to update the installed app IDs for a user
-public isolated function updateUserDownloadedApps(string email, json appIds) returns error? {
-    string appsJson = appIds.toJsonString();
-    sql:ParameterizedQuery query = getUpdateUserDownloadedAppsQuery(email, appsJson);
-    sql:ExecutionResult result = check databaseClient->execute(query);
 }
 
 // Function to fetch all micro-apps from the database
@@ -99,6 +85,16 @@ public isolated function fetchMicroAppZipById(string app_id) returns MicroAppDow
     }
 }
 
+// ============================================================================
+// User Functions
+// ============================================================================
+
+// Function to update the installed app IDs for a user
+public isolated function updateUserDownloadedApps(string email, json appIds) returns error? {
+    string appsJson = appIds.toJsonString();
+    sql:ParameterizedQuery query = getUpdateUserDownloadedAppsQuery(email, appsJson);
+    sql:ExecutionResult result = check databaseClient->execute(query);
+}
 
 // Function to fetch all users from the database
 public isolated function fetchAllUsers() returns User[]|error {
@@ -131,24 +127,5 @@ public isolated function fetchUserByEmail(string email) returns User|error {
         return foundUser;
     } else {
         return error("No user found with email: " + email);
-    }
-}
-
-// Function to fetch micro-app icon by ID
-public isolated function fetchMicroAppIconById(string app_id) returns MicroAppIcon|error {
-    sql:ParameterizedQuery query = getSelectMicroAppIconQuery(app_id);
-    stream<MicroAppIcon, sql:Error?> resultStream = databaseClient->query(query);
-    
-    MicroAppIcon? foundIcon = check from MicroAppIcon icon in resultStream
-        do {
-            return icon;
-        };
-
-    check resultStream.close();
-    
-    if foundIcon is MicroAppIcon {
-        return foundIcon;
-    } else {
-        return error("No icon found for micro-app with ID: " + app_id);
     }
 }

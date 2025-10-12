@@ -14,10 +14,7 @@ SuperappMobileDatabaseConfig superappMobileDatabaseConfig = {
     options: {
         ssl: {mode: mysql:SSL_PREFERRED},
         connectTimeout: 10, // 10 seconds
-        socketTimeout: 30, // 30 seconds
-
-        // Disable autocommit for transaction control
-        useXADatasource: false
+        socketTimeout: 30 // 30 seconds
     }
 };
 final mysql:Client databaseClient = check new (...superappMobileDatabaseConfig);

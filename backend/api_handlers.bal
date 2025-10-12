@@ -212,47 +212,6 @@ public isolated function handleDownloadMicroApp(string appId)
     return response;
 }
 
-// Fetches the icon for a micro-app
-public isolated function handleGetMicroAppIcon(string appId) 
-    returns http:Response|http:NotFound|http:InternalServerError {
-    
-    logging:LogRecord logRecord = {
-        level: "INFO",
-        message: "Attempting to fetch icon for micro-app with app ID: " + appId
-    };
-    logging:log(logRecord);
-
-    database:MicroAppIcon|error result = database:fetchMicroAppIconById(appId);
-    if result is error {
-        logRecord = {
-            level: "ERROR",
-            message: "Error fetching icon for micro-app with app ID: " + appId,
-            context: {"result": result.toString()}
-        };
-        logging:log(logRecord);
-        logging:log({level: "ERROR", message: "Error fetching icon", context: {"error": result.toString()}});
-        
-        if result.message().startsWith("No icon found") {
-            return <http:NotFound>{
-                body: {message: "Icon not found for micro-app with app ID: " + appId}
-            };
-        }
-        return <http:InternalServerError>{
-            body: {message: "Failed to fetch icon from database"}
-        };
-    }
-
-    http:Response response = new;
-    response.setBinaryPayload(result.icon_url);
-    
-    logRecord = {
-        level: "INFO",
-        message: "Successfully serving icon for micro-app: " + appId
-    };
-    logging:log(logRecord);
-    
-    return response;
-}
 
 // Uploads a micro-app with ZIP file
 public isolated function handleUploadMicroApp(http:Request req) 

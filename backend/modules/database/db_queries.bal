@@ -54,15 +54,6 @@ public isolated function getSelectMicroAppZipQuery(string appId) returns sql:Par
     `;
 }
 
-// Fetch micro-app icon by ID
-public isolated function getSelectMicroAppIconQuery(string appId) returns sql:ParameterizedQuery {
-    return `
-        SELECT icon_url
-        FROM micro_apps
-        WHERE app_id = ${appId};
-    `;
-}
-
 // ============================================================================
 // User Queries
 // ============================================================================

@@ -1,7 +1,7 @@
 public const JWT_ASSERTION_HEADER = "x-jwt-assertion";
 public const ISSUER = "https://api.asgardeo.io/t/lsfproject/oauth2/token";
-public const SUPERAPP_AUDIENCE = "5jjnGuEZz1BcyfhJ_CCHrbdJEzEa";
-public const ADMIN_PORTAL_AUDIENCE = "aVro3ATf5ZSglZHItEDj0Kd7M4wa";
+public const SUPERAPP_MOBILE_AUDIENCE = "5jjnGuEZz1BcyfhJ_CCHrbdJEzEa";
+public const SUPERAPP_ADMIN_PORTAL_AUDIENCE = "aVro3ATf5ZSglZHItEDj0Kd7M4wa";
 
 const ERR_MSG_NO_ACCESS_TOKEN = "Missing invoker info header!";
 const ERR_MSG_JWT_VALIDATION_FAILED = "JWT validation failed! Unauthorized !!!";

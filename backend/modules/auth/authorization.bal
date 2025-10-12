@@ -8,7 +8,7 @@ configurable string publicKeyPath = ?;
 
 final readonly & jwt:ValidatorConfig validatorConfig = {
     issuer: ISSUER,
-    audience: [SUPERAPP_AUDIENCE, ADMIN_PORTAL_AUDIENCE],
+    audience: [SUPERAPP_MOBILE_AUDIENCE, SUPERAPP_ADMIN_PORTAL_AUDIENCE],
     signatureConfig: {
         certFile: publicKeyPath
     }

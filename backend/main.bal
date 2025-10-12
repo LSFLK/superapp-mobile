@@ -200,13 +200,6 @@ isolated service http:InterceptableService / on httpListener {
         return handleDownloadMicroApp(appId);
     }
 
-    // Fetch micro-app icon
-    isolated resource function get micro\-apps/[string appId]/icon(
-        http:RequestContext ctx
-    ) returns http:Response|http:NotFound|http:InternalServerError {
-        return handleGetMicroAppIcon(appId);
-    }
-
     // Upload micro-app
     isolated resource function post micro\-apps/upload(
         http:Request req
