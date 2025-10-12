@@ -11,18 +11,20 @@ public isolated function getInsertMicroAppQuery(
     byte[] zipData, 
     string appId, 
     string iconUrlPath, 
-    string description
+    string description,
+    string signedManifest
 ) returns sql:ParameterizedQuery {
     return `
-        INSERT INTO micro_apps (name, version, zip_blob, app_id, icon_url, description)
-        VALUES (${name}, ${version}, ${zipData}, ${appId}, ${iconUrlPath}, ${description})
+        INSERT INTO micro_apps (name, version, zip_blob, app_id, icon_url, description, signed_manifest)
+        VALUES (${name}, ${version}, ${zipData}, ${appId}, ${iconUrlPath}, ${description}, ${signedManifest})
         ON DUPLICATE KEY UPDATE
             name = VALUES(name),
             version = VALUES(version),
             zip_blob = VALUES(zip_blob),
             icon_url = VALUES(icon_url),
             created_at = CURRENT_TIMESTAMP,
-            description = VALUES(description);
+            description = VALUES(description),
+            signed_manifest = VALUES(signed_manifest);
     `;
 }
 

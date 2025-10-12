@@ -9,3 +9,6 @@ const ERR_MSG_ACCESS_DENIED = "Access denied! You do not have permission to acce
 
 // Roles
 public const SUPERAPP_ADMIN_ROLE = "superapp_admin";
+
+// Available functions that can be assigned to micro-apps
+const string[] AVAILABLE_FUNCTIONS = ["micro_app_token", "security_audit", "confirm_alert"];

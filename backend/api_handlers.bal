@@ -417,8 +417,10 @@ public isolated function handleUploadMicroApp(http:Request req)
         };
     }
 
+    string[]? allowed_Functions = [];
+
     // Insert micro app
-    error? result = database:insertMicroAppWithZip(name, version, zipData, appId, iconUrlPath, description);
+    error? result = database:insertMicroAppWithZip(name, version, zipData, appId, iconUrlPath, description, allowed_Functions);
     if result is error {
         logging:LogRecord logRecord = {
             level: "ERROR",

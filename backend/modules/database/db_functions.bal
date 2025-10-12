@@ -1,13 +1,20 @@
 import ballerina/sql;
 
+import superapp_backend.auth;
+
 // ============================================================================
 // Micro-App Functions
 // ============================================================================
 
 // Function to insert a micro-app with a ZIP file
-public isolated function insertMicroAppWithZip(string name, string version, byte[] zipData, string appId, string iconUrlPath, string description) returns error? {
-    sql:ParameterizedQuery query = getInsertMicroAppQuery(name, version, zipData, appId, iconUrlPath, description);
+public isolated function insertMicroAppWithZip(string name, string version, byte[] zipData, string appId, string iconUrlPath, string description, string[]? allowedFunctions) returns error? {
+
+    string signedManifest = check auth:createSignedManifest(zipData, allowedFunctions);
+
+    sql:ParameterizedQuery query = getInsertMicroAppQuery(name, version, zipData, appId, iconUrlPath, description, signedManifest);
+    
     sql:ExecutionResult result = check databaseClient->execute(query);
+    
 }
 
 // ============================================================================
