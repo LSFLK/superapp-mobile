@@ -13,7 +13,7 @@ const Loading: React.FC<LoadingProps> = ({ message = 'Loading...', style = {} })
   return (
     <div
       style={{
-        ...(COMMON_STYLES as any).loadingText,
+  ...COMMON_STYLES.loadingText,
         ...style,
       }}
     >

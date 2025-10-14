@@ -28,7 +28,7 @@ const Button: React.FC<ButtonProps> = ({
 }) => {
   // Merge base styles with variant-specific styling
   const baseStyle: React.CSSProperties = {
-    ...((COMMON_STYLES as any).button),
+    ...(COMMON_STYLES.button),
     backgroundColor: variant === 'primary' ? '#1677ff' : '#f0f0f0',
     color: variant === 'primary' ? 'white' : '#262626',
     opacity: disabled ? 0.6 : 1,

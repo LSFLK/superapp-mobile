@@ -15,9 +15,22 @@ jest.mock('@asgardeo/auth-react', () => ({
   useAuthContext: () => mockAuth,
 }));
 
-jest.mock('./constants/api', () => ({
-  getEndpoint: jest.fn((k: string) => (k === 'MICROAPPS_LIST' ? 'http://api.test/microapps' : 'http://api.test')),
-}));
+jest.mock('./constants/api', () => {
+  const real = jest.requireActual('./constants/api');
+  return {
+    ...real,
+    getEndpoint: jest.fn((k: string) => {
+      // In tests, prefer env overrides when set; else fall back to defaults
+      const envMap: Record<string, string | undefined> = {
+        MICROAPPS_LIST: process.env.REACT_APP_MICROAPPS_LIST_URL,
+        MICROAPPS_UPLOAD: process.env.REACT_APP_MICROAPPS_UPLOAD_URL,
+        USERS_BASE: process.env.REACT_APP_USERS_BASE_URL,
+        USERS: process.env.REACT_APP_USERS_URL,
+      };
+      return (envMap[k] || real.getEndpoint(k)).replace(/\/$/, '');
+    }),
+  };
+});
 
 beforeEach(() => {
   mockAuth = {

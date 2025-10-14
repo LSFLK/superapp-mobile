@@ -51,9 +51,13 @@ export default function MicroAppManagement(): React.ReactElement {
             const access = await auth.getAccessToken();
             if (access) {
               headers["Authorization"] = `Bearer ${access}`;
-              // Prefer ID token for x-jwt-assertion if available
-             
+              /* // Include x-jwt-assertion only for local testing or when explicitly enabled.
+              const enableAssertion =
+                process.env.REACT_APP_INCLUDE_X_JWT_ASSERTION === "true" ||
+                (typeof window !== "undefined" && /^(localhost|127\.0\.0\.1)$/i.test(window.location.hostname));
+              if (enableAssertion) {
                 headers["x-jwt-assertion"] = access;
+              } */
             
             }
           } catch (e) {

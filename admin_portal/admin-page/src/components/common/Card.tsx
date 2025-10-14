@@ -21,7 +21,7 @@ const Card: React.FC<CardProps> = ({ children, style = {}, className = '' }) => 
       className={`card ${className}`}
       style={{
         // Apply design system card styles first, allow custom overrides to win
-        ...(COMMON_STYLES as any).card,
+        ...(COMMON_STYLES.card as React.CSSProperties),
         ...style,
       }}
     >

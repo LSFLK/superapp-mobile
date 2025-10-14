@@ -208,7 +208,8 @@ describe('MicroAppManagement Component (TS)', () => {
     });
     render(<MicroAppManagement />);
     await waitFor(() => {
-      expect(screen.getByText('Unexpected token')).toBeInTheDocument();
+  // Component surfaces a normalized message on JSON parse failures
+  expect(screen.getByText('Unexpected response format (non-JSON)')).toBeInTheDocument();
     });
   });
 
@@ -439,7 +440,7 @@ describe('MicroAppManagement Component (TS)', () => {
     render(<MicroAppManagement />);
     await waitFor(() => {
       expect((global.fetch as jest.Mock)).toHaveBeenCalledWith('http://api.test/microapps', {
-        headers: {},
+        headers: { Accept: 'application/json' },
       });
     });
   });
@@ -453,7 +454,7 @@ describe('MicroAppManagement Component (TS)', () => {
     render(<MicroAppManagement />);
     await waitFor(() => {
       expect((global.fetch as jest.Mock)).toHaveBeenCalledWith('http://api.test/microapps', {
-        headers: {},
+        headers: { Accept: 'application/json' },
       });
       expect(consoleSpy).toHaveBeenCalledWith(
         'Authentication token acquisition failed:',

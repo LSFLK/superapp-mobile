@@ -41,11 +41,6 @@ export default function setupProxy(app: AppLike): void {
       }
       return path;
     },
-    onProxyReq: (proxyReq: any, req: any) => {
-      const host = proxyReq.getHeader?.('host');
-      // eslint-disable-next-line no-console
-      console.log(`[setupProxy] -> ${proxyReq.method} http://${host}${proxyReq.path}`);
-    },
     onProxyRes: (proxyRes: any, req: any) => {
       // eslint-disable-next-line no-console
       console.log(`[setupProxy] <- ${proxyRes.statusCode} for ${req.method} ${req.originalUrl}`);

@@ -62,7 +62,7 @@ export default function App(): React.ReactElement {
   const onNavigate = (key: 'microapp' | 'profile') => setActiveKey(key);
 
   return (
-    <Box sx={{ minHeight: '100vh' }} data-testid="layout">
+    <Box sx={{ minHeight: '100vh', display: 'flex' }} data-testid="layout">
       {isAuthed ? (
         <>
           <MenuBar
@@ -72,7 +72,7 @@ export default function App(): React.ReactElement {
             activeKey={activeKey}
             placement="left"
           />
-          <Box sx={{ ml: '200px' , mt:'-680px'}}>
+          <Box component="main" sx={{ flexGrow: 1 }}>
             <Container data-testid="content" sx={{ p: 0 }}>
               <div className="greeting" style={COMMON_STYLES.greeting}>
                 Hi {firstName},
