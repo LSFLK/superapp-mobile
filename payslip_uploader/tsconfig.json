@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+  "baseUrl": "src",
+  "skipLibCheck": true,
+  "jsx": "react-jsx",
+  "esModuleInterop": true
+  },
+  "include": ["src"]
+}
