@@ -42,7 +42,7 @@ describe('Card Component', () => {
 
   test('applies default card className', () => {
     const { container } = render(<Card>Content</Card>);
-    const cardElement = container.firstChild;
+    const cardElement = container.firstChild as HTMLElement;
     
     expect(cardElement).toHaveClass('card');
   });
@@ -51,7 +51,7 @@ describe('Card Component', () => {
     const { container } = render(
       <Card className="custom-class">Content</Card>
     );
-    const cardElement = container.firstChild;
+    const cardElement = container.firstChild as HTMLElement;
     
     expect(cardElement).toHaveClass('card');
     expect(cardElement).toHaveClass('custom-class');
@@ -59,7 +59,7 @@ describe('Card Component', () => {
 
   test('applies default styles from COMMON_STYLES', () => {
     const { container } = render(<Card>Content</Card>);
-    const cardElement = container.firstChild;
+    const cardElement = container.firstChild as HTMLElement;
     
     expect(cardElement).toHaveStyle({
       backgroundColor: '#ffffff',
@@ -73,12 +73,12 @@ describe('Card Component', () => {
     const customStyle = {
       maxWidth: '400px',
       margin: '10px'
-    };
+    } as React.CSSProperties;
     
     const { container } = render(
       <Card style={customStyle}>Content</Card>
     );
-    const cardElement = container.firstChild;
+    const cardElement = container.firstChild as HTMLElement;
     
     // Should have both default and custom styles
     expect(cardElement).toHaveStyle({
@@ -92,12 +92,12 @@ describe('Card Component', () => {
     const customStyle = {
       backgroundColor: '#f0f0f0', // Override default background
       padding: '20px'             // Override default padding
-    };
+    } as React.CSSProperties;
     
     const { container } = render(
       <Card style={customStyle}>Content</Card>
     );
-    const cardElement = container.firstChild;
+    const cardElement = container.firstChild as HTMLElement;
     
     expect(cardElement).toHaveStyle({
       backgroundColor: '#f0f0f0', // Should be overridden
@@ -106,8 +106,8 @@ describe('Card Component', () => {
   });
 
   test('handles empty children', () => {
-    const { container } = render(<Card />);
-    const cardElement = container.firstChild;
+    const { container } = render(<Card>{null}</Card>);
+    const cardElement = container.firstChild as HTMLElement;
     
     expect(cardElement).toBeInTheDocument();
     expect(cardElement).toHaveClass('card');
@@ -133,7 +133,7 @@ describe('Card Component', () => {
     const { container } = render(
       <Card className="class1 class2 class3">Content</Card>
     );
-    const cardElement = container.firstChild;
+    const cardElement = container.firstChild as HTMLElement;
     
     expect(cardElement).toHaveClass('card');
     expect(cardElement).toHaveClass('class1');
@@ -143,9 +143,8 @@ describe('Card Component', () => {
 
   test('renders as a div element', () => {
     const { container } = render(<Card>Content</Card>);
-    const cardElement = container.firstChild;
+    const cardElement = container.firstChild as HTMLElement;
     
     expect(cardElement.tagName).toBe('DIV');
   });
-
 });

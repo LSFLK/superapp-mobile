@@ -13,7 +13,7 @@ jest.mock('../../constants/styles', () => ({
   },
 }));
 
-describe('Loading component', () => {
+describe('Loading component (TS)', () => {
   test('renders with default message', () => {
     render(<Loading />);
     expect(screen.getByText('Loading...')).toBeInTheDocument();
@@ -29,8 +29,9 @@ describe('Loading component', () => {
       <Loading style={{ fontSize: '16px', color: 'red' }} />
     );
 
-    const div = container.querySelector('div');
+    const div = container.querySelector('div') as HTMLDivElement | null;
     expect(div).not.toBeNull();
+    if (!div) return; // type guard for TS
 
     // Custom style applied
     expect(div).toHaveStyle('font-size: 16px');

@@ -4,7 +4,20 @@ import '@testing-library/jest-dom';
 import RoleBasedAccessControl from '../RoleBasedAccessControl';
 
 // Mock Asgardeo auth context
-let mockAuth;
+type MockAuth = {
+  state: {
+    isAuthenticated: boolean;
+    accessToken: string | null;
+    accessTokenPayload: any | null;
+  };
+  getAccessToken: jest.Mock<Promise<string | null>, []>;
+  getIDToken: jest.Mock<Promise<string | null>, []>;
+  getDecodedIDToken: jest.Mock<any, []>;
+  getBasicUserInfo: jest.Mock<Promise<any>, []>;
+  signOut: jest.Mock<void, []>;
+};
+
+let mockAuth: MockAuth;
 jest.mock('@asgardeo/auth-react', () => ({
   useAuthContext: () => mockAuth,
 }));
@@ -15,11 +28,11 @@ describe('RoleBasedAccessControl', () => {
   beforeEach(() => {
     mockAuth = {
       state: { isAuthenticated: false, accessToken: null, accessTokenPayload: null },
-      getAccessToken: jest.fn(),
-      getIDToken: jest.fn(),
-      getDecodedIDToken: jest.fn(),
-      getBasicUserInfo: jest.fn(),
-      signOut: jest.fn(),
+      getAccessToken: jest.fn<Promise<string | null>, []>(),
+      getIDToken: jest.fn<Promise<string | null>, []>(),
+      getDecodedIDToken: jest.fn<any, []>(),
+      getBasicUserInfo: jest.fn<Promise<any>, []>(),
+      signOut: jest.fn<void, []>(),
     };
   });
 
@@ -27,7 +40,7 @@ describe('RoleBasedAccessControl', () => {
     mockAuth.state.isAuthenticated = false;
 
     render(
-      <RoleBasedAccessControl>
+  <RoleBasedAccessControl requiredGroups={["superapp_admin"]}>
         <Protected />
       </RoleBasedAccessControl>
     );
@@ -43,7 +56,7 @@ describe('RoleBasedAccessControl', () => {
     mockAuth.getDecodedIDToken.mockReturnValue({ groups: ['superapp_admin'] });
 
     render(
-      <RoleBasedAccessControl>
+  <RoleBasedAccessControl requiredGroups={["superapp_admin"]}>
         <Protected />
       </RoleBasedAccessControl>
     );
@@ -94,7 +107,7 @@ describe('RoleBasedAccessControl', () => {
     mockAuth.getDecodedIDToken.mockReturnValue({ groups: ['viewer'] });
 
     render(
-      <RoleBasedAccessControl>
+  <RoleBasedAccessControl requiredGroups={["superapp_admin"]}>
         <Protected />
       </RoleBasedAccessControl>
     );

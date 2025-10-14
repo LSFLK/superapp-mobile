@@ -2,56 +2,28 @@ import React from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
+// Narrow type for the mocked auth context
+type MockAuth = {
+  state: { isAuthenticated: boolean; username?: string; displayName?: string };
+  signIn: jest.Mock;
+  signOut: jest.Mock;
+  getAccessToken: jest.Mock<Promise<string>>;
+  getIDToken: jest.Mock<Promise<string>>;
+  getDecodedIDToken: jest.Mock<any, any>;
+  getBasicUserInfo: jest.Mock<any, any>;
+};
+
 // Mock Asgardeo auth context with a mutable object so each test can adjust it
-let mockAuth;
+let mockAuth: MockAuth;
 jest.mock('@asgardeo/auth-react', () => ({
   useAuthContext: () => mockAuth,
 }));
 
-// Mock Ant Design to keep DOM light and clickable
-jest.mock('antd', () => {
-  const Layout = ({ children, ...props }) => <div data-testid="layout" {...props}>{children}</div>;
-  Layout.Sider = ({ children, collapsible, breakpoint, theme, ...props }) => (
-    <div data-testid="sider" {...props}>{children}</div>
-  );
-  Layout.Content = ({ children, ...props }) => <div data-testid="content" {...props}>{children}</div>;
-  return {
-    Layout,
-    Menu: ({ items, onClick, selectedKeys, ...props }) => (
-      <div data-testid="menu" {...props}>
-        {items.map(item => (
-          <div
-            key={item.key}
-            role="menuitem"
-            data-testid={`menu-item-${item.key}`}
-            className={selectedKeys?.includes(item.key) ? 'selected' : ''}
-            onClick={() => onClick?.({ key: item.key })}
-          >
-            {item.label}
-          </div>
-        ))}
-      </div>
-    ),
-    Typography: {
-      Title: ({ children, ...props }) => <h1 {...props}>{children}</h1>,
-      Paragraph: ({ children, ...props }) => <p {...props}>{children}</p>,
-    },
-    theme: {
-      useToken: () => ({ token: { colorBgContainer: '#fff', colorTextHeading: '#000' } })
-    }
-  };
-});
-
-// Mock AntD icons used by MenuBar
-jest.mock('@ant-design/icons', () => ({
-  AppstoreOutlined: () => <span>AppIcon</span>,
-  UserOutlined: () => <span>UserIcon</span>,
-  LogoutOutlined: () => <span>LogoutIcon</span>,
-}));
+// No UI library mocks needed; components render semantic elements with data-testids
 
 // MicroAppManagement relies on this to fetch apps
 jest.mock('../../constants/api', () => ({
-  getEndpoint: jest.fn((key) => {
+  getEndpoint: jest.fn((key: string) => {
     if (key === 'MICROAPPS_LIST') return 'http://api.test/microapps';
     if (key === 'USERS_BASE') return 'http://api.test';
     return 'http://api.test';
@@ -60,17 +32,17 @@ jest.mock('../../constants/api', () => ({
 
 // Keep Button/Card/Loading simple to stabilize assertions
 jest.mock('../../components/common/Button', () => {
-  return function MockButton({ children, onClick, disabled, ...rest }) {
+  return function MockButton({ children, onClick, disabled, ...rest }: any) {
     return <button onClick={onClick} disabled={disabled} {...rest}>{children}</button>;
   };
 });
 jest.mock('../../components/common/Card', () => {
-  return function MockCard({ children, ...rest }) {
+  return function MockCard({ children, ...rest }: any) {
     return <div data-testid="card" {...rest}>{children}</div>;
   };
 });
 jest.mock('../../components/common/Loading', () => {
-  return function MockLoading({ message }) {
+  return function MockLoading({ message }: { message: string }) {
     return <div data-testid="loading">{message}</div>;
   };
 });
@@ -95,8 +67,9 @@ beforeEach(() => {
     getIDToken: jest.fn().mockResolvedValue('id-123'),
     getDecodedIDToken: jest.fn(),
     getBasicUserInfo: jest.fn(),
-  };
+  } as unknown as MockAuth;
 
+  // @ts-ignore
   global.fetch = jest.fn().mockResolvedValue({
     ok: true,
     json: async () => ([
@@ -158,9 +131,9 @@ describe('Admin Portal App integration', () => {
     const profileItem = screen.getByText('User Profile');
     fireEvent.click(profileItem);
 
-  // UserProfile should be rendered in content area (not sidebar)
-  const content = await screen.findByTestId('content');
-  expect(content).toHaveTextContent('User Profile');
+    // UserProfile should be rendered in content area (not sidebar)
+    const content = await screen.findByTestId('content');
+    expect(content).toHaveTextContent('User Profile');
     // Micro app section should no longer be visible
     expect(screen.queryByText('Available Micro Apps')).not.toBeInTheDocument();
 

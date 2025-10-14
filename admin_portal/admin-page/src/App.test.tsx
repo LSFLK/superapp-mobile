@@ -3,33 +3,20 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import App from './App';
 
-let mockAuth;
+type MockAuth = {
+  state: { isAuthenticated: boolean; username?: string; displayName?: string };
+  signIn: jest.Mock<any, any>;
+  signOut: jest.Mock<any, any>;
+  getAccessToken: jest.Mock<any, any>;
+};
+
+let mockAuth: MockAuth;
 jest.mock('@asgardeo/auth-react', () => ({
   useAuthContext: () => mockAuth,
 }));
 
-// Simplify AntD to avoid heavy DOM
-jest.mock('antd', () => {
-  const Layout = ({ children }) => <div>{children}</div>;
-  Layout.Sider = ({ children }) => <aside>{children}</aside>;
-  Layout.Content = ({ children }) => <section>{children}</section>;
-  return {
-    Layout,
-    Content: Layout.Content,
-    Menu: ({ items, onClick }) => (
-      <nav>
-        {items.map(i => (
-          <button key={i.key} onClick={() => onClick?.({ key: i.key })}>{i.label}</button>
-        ))}
-      </nav>
-    ),
-    Typography: { Title: ({ children }) => <h1>{children}</h1> },
-    theme: { useToken: () => ({ token: { colorBgContainer: '#fff', colorTextHeading: '#000' } }) }
-  };
-});
-
 jest.mock('./constants/api', () => ({
-  getEndpoint: jest.fn((k) => k === 'MICROAPPS_LIST' ? 'http://api.test/microapps' : 'http://api.test')
+  getEndpoint: jest.fn((k: string) => (k === 'MICROAPPS_LIST' ? 'http://api.test/microapps' : 'http://api.test')),
 }));
 
 beforeEach(() => {
@@ -39,6 +26,7 @@ beforeEach(() => {
     signOut: jest.fn(),
     getAccessToken: jest.fn(),
   };
+  // @ts-ignore
   global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => [] });
 });
 

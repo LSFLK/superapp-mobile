@@ -25,7 +25,9 @@
   }
 }
 
-* { box-sizing: border-box; }
+/* Ensure consistent sizing to prevent full-width Drawer due to resets */
+html { box-sizing: border-box; }
+*, *::before, *::after { box-sizing: border-box; }
 
 html, body, #root {
   height: 100%;
@@ -102,13 +104,12 @@ body {
 .hero p { margin: 0; color: var(--muted); }
 
 .greeting {
-  position: fixed;
-  top: 20px;
-  left: 20px;
+  position: static;
+  margin: 8px 0 12px;
   color: #000;
-  font-size: 1.25rem;
-  z-index: 1000;
-  padding: 8px 12px;
+  font-size: 1.1rem;
+  z-index: 1;
+  padding: 0;
 }
 
 /* Cards */

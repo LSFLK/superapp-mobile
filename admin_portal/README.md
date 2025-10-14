@@ -17,16 +17,16 @@ admin_portal/admin-page/src/
 │   └── UserProfile.jsx        # User profile display
 ├── constants/
 │   ├── api.js                 # API endpoints and configuration
-│   └── styles.js              # Design system and styling constants
-├── App.js                     # Main application component
+│   └── styles.ts              # Design system and styling constants
+├── App.tsx                    # Main application component
 ├── App.css                    # Application-specific styles
-├── index.js                   # Application entry point
+├── index.tsx                  # Application entry point
 └── index.css                  # Global styles and CSS variables
 ```
 
 ## 🚀 Application Entry Point
 
-### index.js
+### index.tsx
 The main entry point that bootstraps the React application with:
 
 - **AuthProvider**: Configures OAuth2/OIDC authentication with RBAC
@@ -40,7 +40,7 @@ The main entry point that bootstraps the React application with:
 
 ## 🏗️ Core Application Component
 
-### App.js
+### App.tsx
 The root application component that orchestrates the entire admin portal:
 
 **Responsibilities:**
@@ -134,7 +134,7 @@ The root application component that orchestrates the entire admin portal:
 
 ## 🎨 Design System & Theming
 
-### constants/styles.js
+### constants/styles.ts
 **Purpose**: Centralized design system and styling constants
 
 **Color Palette:**

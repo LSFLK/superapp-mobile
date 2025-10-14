@@ -101,7 +101,7 @@ The admin portal uses a light-weight custom theme without external UI libraries.
 
 - Global CSS variables and base styles live in `src/index.css`.
 - Layout (navbar, container, hero) and utility classes (`btn`, `card`, `dropzone`) are defined there as well.
-- App structure is in `src/App.js` with a top navbar and a content card wrapping the uploader.
+- App structure is in `src/App.tsx` with a top navbar and a content card wrapping the uploader.
 
 Quick theme tweaks:
 - Change primary color: update `--primary-600` and `--primary-700` in `:root`.

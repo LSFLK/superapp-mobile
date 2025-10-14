@@ -1,0 +1,258 @@
+/**
+ * MicroAppManagement Component (TypeScript)
+ */
+import React, { useEffect, useState, useCallback } from "react";
+import { useAuthContext } from "@asgardeo/auth-react";
+import UploadMicroApp from "./UploadMicroApp";
+import type ReactNamespace from 'react';
+import Button from "./common/Button";
+import Loading from "./common/Loading";
+import Card from "./common/Card";
+import { COLORS } from "../constants/styles";
+import { getEndpoint } from "../constants/api";
+
+const UploadMicroAppTyped = UploadMicroApp as unknown as ReactNamespace.FC<{ onUploaded?: () => void }>;
+
+type MicroApp = {
+  micro_app_id?: string;
+  app_id?: string;
+  name?: string;
+  version?: string;
+  description?: string;
+};
+
+type AuthContextLike = {
+  state?: { isAuthenticated?: boolean };
+  getAccessToken?: () => Promise<string>;
+  
+};
+
+// UploadMicroApp is now fully typed in TypeScript
+
+export default function MicroAppManagement(): React.ReactElement {
+  // Authentication context for secure API calls
+  const auth = useAuthContext() as AuthContextLike;
+
+  // Component state management
+  const [showUpload, setShowUpload] = useState<boolean>(false);
+  const [microApps, setMicroApps] = useState<MicroApp[]>([]);
+  const [loadingList, setLoadingList] = useState<boolean>(false);
+  const [listError, setListError] = useState<string>("");
+
+  const fetchMicroApps = useCallback(async () => {
+    setLoadingList(true);
+    setListError("");
+
+    try {
+      const headers: Record<string, string> = { Accept: 'application/json' };
+      if (auth?.state?.isAuthenticated) {
+        if (typeof auth?.getAccessToken === "function") {
+          try {
+            const access = await auth.getAccessToken();
+            if (access) {
+              headers["Authorization"] = `Bearer ${access}`;
+              // Prefer ID token for x-jwt-assertion if available
+             
+                headers["x-jwt-assertion"] = access;
+            
+            }
+          } catch (e) {
+            console.warn("Authentication token acquisition failed:", e);
+          }
+        } else {
+          console.warn(
+            "Authentication token acquisition failed:",
+            new Error("getAccessToken is not a function")
+          );
+        }
+      }
+
+      const endpoint = getEndpoint("MICROAPPS_LIST");
+      console.log('[MicroAppManagement] Fetching micro-apps from', endpoint);
+      const res = await fetch(endpoint, { headers });
+
+      if (!res.ok) {
+        throw new Error(`Failed to load micro-apps (${res.status})`);
+      }
+
+      // Attempt robust JSON parsing and normalization
+      let data: any = null;
+      try {
+        data = await res.json();
+      } catch (err) {
+        console.error('[MicroAppManagement] Non-JSON response from endpoint', { endpoint });
+        throw new Error('Unexpected response format (non-JSON)');
+      }
+
+      const normalize = (d: any): MicroApp[] => {
+        if (Array.isArray(d)) return d as MicroApp[];
+        if (!d || typeof d !== 'object') return [];
+        // Common container keys
+        const candidates = [
+          'items', 'data', 'content', 'results', 'records', 'list', 'microApps', 'microapps'
+        ];
+        for (const key of candidates) {
+          const v = d[key];
+          if (Array.isArray(v)) return v as MicroApp[];
+          if (v && typeof v === 'object') {
+            // Nested container like { data: { items: [...] } }
+            for (const k2 of candidates) {
+              const v2 = v[k2];
+              if (Array.isArray(v2)) return v2 as MicroApp[];
+            }
+          }
+        }
+        return [];
+      };
+
+      const normalized = normalize(data);
+      console.log('[MicroAppManagement] Received micro-apps count:', normalized.length);
+      setMicroApps(normalized);
+    } catch (e) {
+      const errorMessage = e instanceof Error ? e.message : "Error loading apps";
+      setListError(errorMessage);
+      console.error("Micro-app fetch error:", e);
+    } finally {
+      setLoadingList(false);
+    }
+  }, [auth]);
+
+  useEffect(() => {
+    fetchMicroApps();
+  }, [fetchMicroApps]);
+
+  return (
+    <div style={{ color: COLORS.primary, lineHeight: 1.15 }}>
+      {!showUpload && (
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 8,
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 12,
+          }}
+        >
+          <h2 style={{ margin: 0, color: COLORS.primary }}>Available Micro Apps</h2>
+          <div style={{ display: "flex", gap: 0, marginTop: 0 }}>
+            <Button onClick={fetchMicroApps} disabled={loadingList}>
+              {loadingList ? "Refreshing…" : "Refresh"}
+            </Button>
+
+            <Button onClick={() => setShowUpload((s) => !s)}>
+              {showUpload ? "Close Upload" : "Add new"}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {showUpload && (
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
+          <Button onClick={() => setShowUpload(false)}>Close</Button>
+        </div>
+      )}
+
+      {listError && !showUpload && (
+        <Card
+          style={{
+            background: "#2d1f1f",
+            border: "1px solid #5a2f2f",
+            color: "#fca5a5",
+            padding: 12,
+            marginBottom: 16,
+          }}
+        >
+          {listError}
+        </Card>
+      )}
+
+  {showUpload && (
+        <Card style={{ padding: 16, marginBottom: 20 }}>
+          <UploadMicroAppTyped
+            onUploaded={() => {
+              fetchMicroApps();
+              setShowUpload(false);
+            }}
+          />
+        </Card>
+      )}
+
+      {!showUpload && (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+            gap: 12,
+          }}
+        >
+          {loadingList && microApps.length === 0 && (
+            <Loading message="Loading micro-apps…" />
+          )}
+
+          {!loadingList && microApps.length === 0 && !listError && (
+            <Card style={{ padding: 16, background: "#111", color: '#fff' }}>
+              No micro-apps found.
+            </Card>
+          )}
+
+          {microApps.map((app) => (
+            <Card
+              key={app.micro_app_id || app.app_id || Math.random().toString(36)}
+              style={{
+                padding: 16,
+                background: '#f5faff',
+                border: '1px solid #e6f4ff',
+                cursor: 'default',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+                borderRadius: 14,
+                boxShadow: '0 3px 8px -2px rgba(0,58,103,0.15)'
+              }}
+            >
+              <div style={{ display: 'flex', gap: 12 }}>
+                <div
+                  style={{
+                    width: 48,
+                    height: 48,
+                    background: '#e6f4ff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 600,
+                    borderRadius: 8,
+                    color: '#1677ff',
+                  }}
+                >
+                  {(app.name ? app.name : '?').slice(0, 2).toUpperCase()}
+                </div>
+
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, color: '#262626' }}>
+                    {(() => {
+                      if (typeof app.name === 'string' && app.name.length > 1) {
+                        return app.name;
+                      }
+                      if (!app.name) {
+                        return app.micro_app_id || app.app_id || '';
+                      }
+                      return app.micro_app_id || app.app_id || app.name;
+                    })()}
+                  </div>
+                  <div style={{ color: '#8c8c8c', fontSize: 12 }}>
+                    v{app.version || '—'}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ color: '#595959', fontSize: 12, flexGrow: 1 }}>
+                {app.description || 'No description'}
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
