@@ -2,7 +2,9 @@
  * Utilities for working with ZIP files and safely handling server messages.
  */
 
-export const MAX_UPLOAD_MB = Number(process.env.REACT_APP_MAX_UPLOAD_MB ?? "50");
+export const MAX_UPLOAD_MB = Number(
+  process.env.REACT_APP_MAX_UPLOAD_MB ?? "50",
+);
 export const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
 
 export const ZIP_SIGNATURES: number[][] = [
@@ -17,14 +19,17 @@ export function isZipMagic(buf: ArrayBuffer | null | undefined): boolean {
 }
 
 export async function validateZipFile(
-  file: File | null
+  file: File | null,
 ): Promise<{ ok: boolean; message?: string }> {
   if (!file) return { ok: false, message: "Please choose a ZIP file." };
   if (!/\.zip$/i.test(file.name)) {
     return { ok: false, message: "Selected file must be a .zip archive." };
   }
   if (file.size > MAX_UPLOAD_BYTES) {
-    return { ok: false, message: `File is too large. Max ${MAX_UPLOAD_MB} MB.` };
+    return {
+      ok: false,
+      message: `File is too large. Max ${MAX_UPLOAD_MB} MB.`,
+    };
   }
   // Check magic bytes
   const header = await file

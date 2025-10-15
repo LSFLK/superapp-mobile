@@ -1,7 +1,7 @@
-import React from 'react';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import RoleBasedAccessControl from '../RoleBasedAccessControl';
+import React from "react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import "@testing-library/jest-dom";
+import RoleBasedAccessControl from "../RoleBasedAccessControl";
 
 // Mock Asgardeo auth context
 type MockAuth = {
@@ -18,16 +18,20 @@ type MockAuth = {
 };
 
 let mockAuth: MockAuth;
-jest.mock('@asgardeo/auth-react', () => ({
+jest.mock("@asgardeo/auth-react", () => ({
   useAuthContext: () => mockAuth,
 }));
 
 const Protected = () => <div data-testid="protected">Protected Content</div>;
 
-describe('RoleBasedAccessControl', () => {
+describe("RoleBasedAccessControl", () => {
   beforeEach(() => {
     mockAuth = {
-      state: { isAuthenticated: false, accessToken: null, accessTokenPayload: null },
+      state: {
+        isAuthenticated: false,
+        accessToken: null,
+        accessTokenPayload: null,
+      },
       getAccessToken: jest.fn<Promise<string | null>, []>(),
       getIDToken: jest.fn<Promise<string | null>, []>(),
       getDecodedIDToken: jest.fn<any, []>(),
@@ -36,84 +40,84 @@ describe('RoleBasedAccessControl', () => {
     };
   });
 
-  test('renders Access Denied when user is not authenticated', async () => {
+  test("renders Access Denied when user is not authenticated", async () => {
     mockAuth.state.isAuthenticated = false;
-
-    render(
-  <RoleBasedAccessControl requiredGroups={["superapp_admin"]}>
-        <Protected />
-      </RoleBasedAccessControl>
-    );
-
-    // Final state should be access denied
-    expect(await screen.findByText('Access Denied')).toBeInTheDocument();
-    expect(screen.queryByTestId('protected')).not.toBeInTheDocument();
-  });
-
-  test('renders children when authenticated and user has required group (via ID token)', async () => {
-    mockAuth.state.isAuthenticated = true;
-    mockAuth.getIDToken.mockResolvedValue('dummy');
-    mockAuth.getDecodedIDToken.mockReturnValue({ groups: ['superapp_admin'] });
-
-    render(
-  <RoleBasedAccessControl requiredGroups={["superapp_admin"]}>
-        <Protected />
-      </RoleBasedAccessControl>
-    );
-
-    // After auth check resolves, protected content should be visible
-    expect(await screen.findByTestId('protected')).toBeInTheDocument();
-    expect(screen.queryByText('Access Denied')).not.toBeInTheDocument();
-  });
-
-  test('shows Access Denied and lists user groups when missing required group', async () => {
-    mockAuth.state.isAuthenticated = true;
-    mockAuth.getIDToken.mockResolvedValue('dummy');
-    mockAuth.getDecodedIDToken.mockReturnValue({ groups: ['viewer'] });
 
     render(
       <RoleBasedAccessControl requiredGroups={["superapp_admin"]}>
         <Protected />
-      </RoleBasedAccessControl>
+      </RoleBasedAccessControl>,
     );
 
-    expect(await screen.findByText('Access Denied')).toBeInTheDocument();
-    // Required group is shown
-    expect(screen.getByText('superapp_admin')).toBeInTheDocument();
-    // User groups section shows the actual group
-    expect(screen.getByText('viewer')).toBeInTheDocument();
-    expect(screen.queryByTestId('protected')).not.toBeInTheDocument();
+    // Final state should be access denied
+    expect(await screen.findByText("Access Denied")).toBeInTheDocument();
+    expect(screen.queryByTestId("protected")).not.toBeInTheDocument();
   });
 
-  test('authorizes if any of multiple required groups match (case-insensitive, partial includes)', async () => {
+  test("renders children when authenticated and user has required group (via ID token)", async () => {
     mockAuth.state.isAuthenticated = true;
-    mockAuth.getIDToken.mockResolvedValue('dummy');
+    mockAuth.getIDToken.mockResolvedValue("dummy");
+    mockAuth.getDecodedIDToken.mockReturnValue({ groups: ["superapp_admin"] });
+
+    render(
+      <RoleBasedAccessControl requiredGroups={["superapp_admin"]}>
+        <Protected />
+      </RoleBasedAccessControl>,
+    );
+
+    // After auth check resolves, protected content should be visible
+    expect(await screen.findByTestId("protected")).toBeInTheDocument();
+    expect(screen.queryByText("Access Denied")).not.toBeInTheDocument();
+  });
+
+  test("shows Access Denied and lists user groups when missing required group", async () => {
+    mockAuth.state.isAuthenticated = true;
+    mockAuth.getIDToken.mockResolvedValue("dummy");
+    mockAuth.getDecodedIDToken.mockReturnValue({ groups: ["viewer"] });
+
+    render(
+      <RoleBasedAccessControl requiredGroups={["superapp_admin"]}>
+        <Protected />
+      </RoleBasedAccessControl>,
+    );
+
+    expect(await screen.findByText("Access Denied")).toBeInTheDocument();
+    // Required group is shown
+    expect(screen.getByText("superapp_admin")).toBeInTheDocument();
+    // User groups section shows the actual group
+    expect(screen.getByText("viewer")).toBeInTheDocument();
+    expect(screen.queryByTestId("protected")).not.toBeInTheDocument();
+  });
+
+  test("authorizes if any of multiple required groups match (case-insensitive, partial includes)", async () => {
+    mockAuth.state.isAuthenticated = true;
+    mockAuth.getIDToken.mockResolvedValue("dummy");
     // The component checks with `includes`, make sure a partial match works
-    mockAuth.getDecodedIDToken.mockReturnValue({ groups: ['Org-OPS-TEAM'] });
+    mockAuth.getDecodedIDToken.mockReturnValue({ groups: ["Org-OPS-TEAM"] });
 
     render(
       <RoleBasedAccessControl requiredGroups={["admin", "ops"]}>
         <Protected />
-      </RoleBasedAccessControl>
+      </RoleBasedAccessControl>,
     );
 
-    expect(await screen.findByTestId('protected')).toBeInTheDocument();
-    expect(screen.queryByText('Access Denied')).not.toBeInTheDocument();
+    expect(await screen.findByTestId("protected")).toBeInTheDocument();
+    expect(screen.queryByText("Access Denied")).not.toBeInTheDocument();
   });
 
-  test('clicking Sign Out calls auth.signOut on denied screen', async () => {
+  test("clicking Sign Out calls auth.signOut on denied screen", async () => {
     mockAuth.state.isAuthenticated = true;
-    mockAuth.getIDToken.mockResolvedValue('dummy');
-    mockAuth.getDecodedIDToken.mockReturnValue({ groups: ['viewer'] });
+    mockAuth.getIDToken.mockResolvedValue("dummy");
+    mockAuth.getDecodedIDToken.mockReturnValue({ groups: ["viewer"] });
 
     render(
-  <RoleBasedAccessControl requiredGroups={["superapp_admin"]}>
+      <RoleBasedAccessControl requiredGroups={["superapp_admin"]}>
         <Protected />
-      </RoleBasedAccessControl>
+      </RoleBasedAccessControl>,
     );
 
-    expect(await screen.findByText('Access Denied')).toBeInTheDocument();
-    const signOutBtn = screen.getByRole('button', { name: /sign out/i });
+    expect(await screen.findByText("Access Denied")).toBeInTheDocument();
+    const signOutBtn = screen.getByRole("button", { name: /sign out/i });
     fireEvent.click(signOutBtn);
 
     await waitFor(() => expect(mockAuth.signOut).toHaveBeenCalled());

@@ -64,10 +64,16 @@ export default function UserProfile({ state }: UserProfileProps) {
 
   // Effect: Fetch Extended Profile from Backend Service
   useEffect(() => {
-    const email = (basicInfo as any)?.email || state?.email || (basicInfo as any)?.username || state?.username;
+    const email =
+      (basicInfo as any)?.email ||
+      state?.email ||
+      (basicInfo as any)?.username ||
+      state?.username;
     if (!email) return;
 
-    const base = getEndpoint("USERS_BASE") || getEndpoint("MICROAPPS_LIST").replace("/micro-apps", "");
+    const base =
+      getEndpoint("USERS_BASE") ||
+      getEndpoint("MICROAPPS_LIST").replace("/micro-apps", "");
     if (!base || base.trim() === "") {
       setProfileError("User service base URL not configured");
       return;
@@ -79,18 +85,24 @@ export default function UserProfile({ state }: UserProfileProps) {
       setProfileError("");
       try {
         const encoded = encodeURIComponent(email);
-        const endpoint = `${base}/users/${encoded}`.replace(/([^:])\/\//g, "$1/");
+        const endpoint = `${base}/users/${encoded}`.replace(
+          /([^:])\/\//g,
+          "$1/",
+        );
 
         const headers: Record<string, string> = {};
         try {
           if (ctx?.state?.isAuthenticated) {
             const isLocalHost =
-              typeof window !== "undefined" && /^(localhost|127\.0\.0\.1)$/i.test(window.location.hostname);
+              typeof window !== "undefined" &&
+              /^(localhost|127\.0\.0\.1)$/i.test(window.location.hostname);
             const includeAssertion =
-              process.env.REACT_APP_INCLUDE_X_JWT_ASSERTION === "true" || isLocalHost;
+              process.env.REACT_APP_INCLUDE_X_JWT_ASSERTION === "true" ||
+              isLocalHost;
 
             const idToken = await ctx.getIDToken?.().catch(() => undefined);
-            if (idToken && includeAssertion) headers["x-jwt-assertion"] = idToken;
+            if (idToken && includeAssertion)
+              headers["x-jwt-assertion"] = idToken;
             const access = await ctx.getAccessToken?.().catch(() => undefined);
             if (access) headers["Authorization"] = `Bearer ${access}`;
           }
@@ -110,7 +122,9 @@ export default function UserProfile({ state }: UserProfileProps) {
 
         if (!res.ok) {
           const snippet = bodyText.slice(0, 180).replace(/\s+/g, " ").trim();
-          throw new Error(`Profile fetch failed (${res.status}) ${snippet ? "- " + snippet : ""}`);
+          throw new Error(
+            `Profile fetch failed (${res.status}) ${snippet ? "- " + snippet : ""}`,
+          );
         }
 
         let data: any;
@@ -118,7 +132,10 @@ export default function UserProfile({ state }: UserProfileProps) {
           try {
             data = JSON.parse(bodyText || "null");
           } catch (e) {
-            console.warn("[UserProfile] JSON parse error; body starts with:", bodyText.slice(0, 120));
+            console.warn(
+              "[UserProfile] JSON parse error; body starts with:",
+              bodyText.slice(0, 120),
+            );
             throw new Error("Invalid JSON in profile response");
           }
         } else {
@@ -127,13 +144,16 @@ export default function UserProfile({ state }: UserProfileProps) {
             contentType,
             preview: bodyText.slice(0, 200),
           });
-          throw new Error("Unexpected HTML response – check REACT_APP_USERS_BASE_URL");
+          throw new Error(
+            "Unexpected HTML response – check REACT_APP_USERS_BASE_URL",
+          );
         }
 
         if (!abort) setProfile(data);
       } catch (e) {
         if (!abort) {
-          const errorMessage = e instanceof Error ? e.message : "Failed to load profile";
+          const errorMessage =
+            e instanceof Error ? e.message : "Failed to load profile";
           setProfileError(errorMessage);
           console.error("Profile fetch error:", e);
         }
@@ -148,7 +168,8 @@ export default function UserProfile({ state }: UserProfileProps) {
   }, [basicInfo, state, ctx]);
 
   const givenName = (basicInfo as any)?.given_name || state?.given_name || "";
-  const familyName = (basicInfo as any)?.family_name || state?.family_name || "";
+  const familyName =
+    (basicInfo as any)?.family_name || state?.family_name || "";
   const locale = (basicInfo as any)?.locale || "";
   const updatedAt = (basicInfo as any)?.updated_at || "";
   const picture = (basicInfo as any)?.picture || "";
@@ -172,12 +193,20 @@ export default function UserProfile({ state }: UserProfileProps) {
           color: COLORS.primary,
         }}
       >
-        <h2 style={{ marginTop: 0, marginBottom: 12, color: COLORS.primary }}>User Profile</h2>
+        <h2 style={{ marginTop: 0, marginBottom: 12, color: COLORS.primary }}>
+          User Profile
+        </h2>
 
         {loading && <Loading message="Loading user details…" />}
-        {error && <div style={{ color: COLORS.error, marginBottom: 12 }}>{error}</div>}
+        {error && (
+          <div style={{ color: COLORS.error, marginBottom: 12 }}>{error}</div>
+        )}
         {profileLoading && <Loading message="Loading profile…" />}
-        {profileError && <div style={{ color: COLORS.error, marginBottom: 12 }}>{profileError}</div>}
+        {profileError && (
+          <div style={{ color: COLORS.error, marginBottom: 12 }}>
+            {profileError}
+          </div>
+        )}
 
         <div style={{ display: "grid", gap: 8 }}>
           {givenName && (
@@ -197,28 +226,33 @@ export default function UserProfile({ state }: UserProfileProps) {
           )}
           {updatedAt && (
             <div>
-              <b style={{ color: COLORS.primary }}>Updated:</b> {String(updatedAt)}
+              <b style={{ color: COLORS.primary }}>Updated:</b>{" "}
+              {String(updatedAt)}
             </div>
           )}
 
           {profile?.first_name && (
             <div>
-              <b style={{ color: COLORS.primary }}>First name:</b> {profile.first_name}
+              <b style={{ color: COLORS.primary }}>First name:</b>{" "}
+              {profile.first_name}
             </div>
           )}
           {profile?.last_name && (
             <div>
-              <b style={{ color: COLORS.primary }}>Last name:</b> {profile.last_name}
+              <b style={{ color: COLORS.primary }}>Last name:</b>{" "}
+              {profile.last_name}
             </div>
           )}
           {profile?.user_id && (
             <div>
-              <b style={{ color: COLORS.primary }}>Employee ID:</b> {profile.employee_id}
+              <b style={{ color: COLORS.primary }}>Employee ID:</b>{" "}
+              {profile.employee_id}
             </div>
           )}
           {profile?.department && (
             <div>
-              <b style={{ color: COLORS.primary }}>Department:</b> {profile.department}
+              <b style={{ color: COLORS.primary }}>Department:</b>{" "}
+              {profile.department}
             </div>
           )}
         </div>

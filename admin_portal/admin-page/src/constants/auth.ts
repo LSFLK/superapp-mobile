@@ -5,14 +5,14 @@
  */
 
 export const GROUP_CLAIM_KEYS = [
-  'groups',
-  'http://wso2.org/claims/role',
-  'roles',
-  'role',
-  'wso2_role',
+  "groups",
+  "http://wso2.org/claims/role",
+  "roles",
+  "role",
+  "wso2_role",
 ] as const;
 
-export type GroupClaimKey = typeof GROUP_CLAIM_KEYS[number];
+export type GroupClaimKey = (typeof GROUP_CLAIM_KEYS)[number];
 
 /**
  * Normalize a value that could be a string or array-like into a string array.
@@ -29,7 +29,7 @@ export function toStringArray(value: unknown): string[] {
  * Extract user groups from a claims-like object using a set of known keys.
  */
 export function extractGroupsFromClaims(claims: unknown): string[] {
-  if (!claims || typeof claims !== 'object') return [];
+  if (!claims || typeof claims !== "object") return [];
   const obj = claims as Record<string, unknown>;
 
   for (const key of GROUP_CLAIM_KEYS) {

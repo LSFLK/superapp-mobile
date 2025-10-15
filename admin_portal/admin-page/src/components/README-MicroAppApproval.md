@@ -11,14 +11,14 @@ Applies to
 
 Quick decision checklist
 
-1) Source verified: developer identity and change reference.
-2) Integrity: SHA‑256 recorded; signature verified if provided.
-3) Archive safety: valid ZIP, no Zip Slip paths, no nested archives, no zip bombs.
-4) Manifest: name, version, appId, description, bridge permissions, allowed origins, integrity hash present.
-5) Network posture: HTTPS only; external domains on an allowlist.
-6) Code patterns: no eval/new Function/document.write/atob obfuscation; no dynamic script injection.
-7) Malware scan (optional but recommended): clean.
-8) Least privilege: requested bridge APIs are necessary and minimal.
+1. Source verified: developer identity and change reference.
+2. Integrity: SHA‑256 recorded; signature verified if provided.
+3. Archive safety: valid ZIP, no Zip Slip paths, no nested archives, no zip bombs.
+4. Manifest: name, version, appId, description, bridge permissions, allowed origins, integrity hash present.
+5. Network posture: HTTPS only; external domains on an allowlist.
+6. Code patterns: no eval/new Function/document.write/atob obfuscation; no dynamic script injection.
+7. Malware scan (optional but recommended): clean.
+8. Least privilege: requested bridge APIs are necessary and minimal.
 
 Commands (no extraction to disk)
 
@@ -56,7 +56,7 @@ Scan for risky patterns (stream only)
 
 - for f in $(unzip -Z1 app.zip | grep -Ei '\.(js|mjs|html)$'); do
   echo "== $f ==";
-  unzip -p app.zip "$f" | grep -nE 'eval\(|new Function\(|document\.write\(|atob\(|innerHTML\s*=' || true;
+  unzip -p app.zip "$f" | grep -nE 'eval\(|new Function\(|document\.write\(|atob\(|innerHTML\s\*=' || true;
   unzip -p app.zip "$f" | grep -nE 'fetch\(|XMLHttpRequest|WebSocket|navigator\.sendBeacon' || true;
   done
 
@@ -70,24 +70,24 @@ Only HTTPS and allowlisted domains
 
 Optional malware scan (stream)
 
-- freshclam   # update signatures
+- freshclam # update signatures
 - 7z l app.zip >/dev/null
 - while read -r p; do 7z x -so app.zip "$p" | clamscan --stdout - 2>/dev/null; done < <(7z l -slt app.zip | awk -F'= ' '/Path = /{print $2}')
 
 Approval workflow
 
-1) Intake
+1. Intake
    - Record submitter, ticket/ref, and received SHA‑256.
-2) Static review (commands above)
+2. Static review (commands above)
    - Document any warnings/findings with file paths/line numbers.
-3) Policy check
+3. Policy check
    - Confirm only HTTPS endpoints and allowlisted domains.
-   - Confirm bridge.allowedOrigins restrict to the micro‑app’s local files (e.g., file:///.../micro-app/*).
+   - Confirm bridge.allowedOrigins restrict to the micro‑app’s local files (e.g., file:///.../micro-app/\*).
    - Confirm bridge.permissions is minimal and justified.
-4) Decision
+4. Decision
    - Approve: record decision, SHA‑256, reviewer, date, notes.
    - Reject: return findings to developer; require a new build with a new hash.
-5) Publish
+5. Publish
    - Store the approved SHA‑256 and metadata alongside the uploaded artifact.
    - Optionally, enforce checksum/signature verification at load time.
 

@@ -2,15 +2,15 @@
  * Admin Portal Main Application Component (TypeScript)
  */
 
-import React, { useEffect, useState } from 'react';
-import { useAuthContext } from '@asgardeo/auth-react';
-import { Box, Container, Paper, Button as MuiButton } from '@mui/material';
-import UserProfile from './components/UserProfile';
-import MicroAppManagement from './components/MicroAppManagement';
-import MenuBar from './components/MenuBar';
+import React, { useEffect, useState } from "react";
+import { useAuthContext } from "@asgardeo/auth-react";
+import { Box, Container, Paper, Button as MuiButton } from "@mui/material";
+import UserProfile from "./components/UserProfile";
+import MicroAppManagement from "./components/MicroAppManagement";
+import MenuBar from "./components/MenuBar";
 // import RoleBasedAccessControl from "./components/RoleBasedAccessControl";
 // import GroupDebugger from './components/GroupDebugger';
-import { COMMON_STYLES } from './constants/styles';
+import { COMMON_STYLES } from "./constants/styles";
 
 // Minimal shape for Asgardeo's state object we use
 interface AuthState {
@@ -31,42 +31,50 @@ export default function App(): React.ReactElement {
   const isAuthed = Boolean(state?.isAuthenticated);
 
   // Extract user information from authentication state with fallbacks
-  const username = state?.username || '';
-  const emailLocalPart = username.includes('@') ? username.split('@')[0] : '';
-  const firstName = (state?.displayName || emailLocalPart || state?.given_name || username || '').split(' ')[0];
+  const username = state?.username || "";
+  const emailLocalPart = username.includes("@") ? username.split("@")[0] : "";
+  const firstName = (
+    state?.displayName ||
+    emailLocalPart ||
+    state?.given_name ||
+    username ||
+    ""
+  ).split(" ")[0];
 
   // Navigation state for switching between admin sections
-  const [activeKey, setActiveKey] = useState<'microapp' | 'profile'>('microapp');
+  const [activeKey, setActiveKey] = useState<"microapp" | "profile">(
+    "microapp",
+  );
 
   useEffect(() => {
     if (isAuthed) {
-      console.log('User is authenticated:', username);
+      console.log("User is authenticated:", username);
       (async () => {
         try {
           const token = await ctx?.getAccessToken?.();
           if (token) {
-            console.log('==== ADMIN PORTAL ACCESS TOKEN (Asgardeo) ====');
+            console.log("==== ADMIN PORTAL ACCESS TOKEN (Asgardeo) ====");
             console.log(ctx.getAccessToken());
-            console.log('================================================');
+            console.log("================================================");
           } else {
-            console.warn('Access token not available yet.');
+            console.warn("Access token not available yet.");
           }
         } catch (e) {
-          console.error('Failed to retrieve access token', e);
+          console.error("Failed to retrieve access token", e);
         }
       })();
     }
   }, [isAuthed, username, ctx]);
 
   // Navigation handler for switching between admin sections
-  const onNavigate = (key: 'microapp' | 'profile') => setActiveKey(key);
+  const onNavigate = (key: "microapp" | "profile") => setActiveKey(key);
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex' }} data-testid="layout">
+    <Box sx={{ minHeight: "100vh", display: "flex" }} data-testid="layout">
       {isAuthed ? (
         <>
           <MenuBar
-            onNavigate={(k) => onNavigate(k as 'microapp' | 'profile')}
+            onNavigate={(k) => onNavigate(k as "microapp" | "profile")}
             isAuthed={isAuthed}
             onSignOut={() => void signOut?.()}
             activeKey={activeKey}
@@ -79,12 +87,12 @@ export default function App(): React.ReactElement {
               </div>
               <main style={{ paddingBottom: 24 }}>
                 {/* <GroupDebugger /> */}
-                {activeKey === 'microapp' && (
+                {activeKey === "microapp" && (
                   <section style={{ ...COMMON_STYLES.section, marginTop: 0 }}>
                     <MicroAppManagement />
                   </section>
                 )}
-                {activeKey === 'profile' && (
+                {activeKey === "profile" && (
                   <section className="card">
                     <UserProfile state={state as any} />
                   </section>
@@ -98,22 +106,22 @@ export default function App(): React.ReactElement {
           data-testid="content"
           sx={{
             p: 2,
-            ml: '600px',
-            minHeight: '100vh',
-            display: 'grid',
-            placeItems: 'center',
+            ml: "600px",
+            minHeight: "100vh",
+            display: "grid",
+            placeItems: "center",
           }}
         >
           <Paper
             elevation={8}
             sx={{
-              textAlign: 'center',
-              bgcolor: 'background.paper',
-              color: 'text.primary',
-              border: '1px solid',
-              borderColor: 'divider',
+              textAlign: "center",
+              bgcolor: "background.paper",
+              color: "text.primary",
+              border: "1px solid",
+              borderColor: "divider",
               maxWidth: 440,
-              width: '100%',
+              width: "100%",
               px: 3,
               py: 4,
             }}

@@ -6,8 +6,8 @@
  * card styling with proper spacing, borders, and shadows.
  */
 
-import React from 'react';
-import { COMMON_STYLES } from '../../constants/styles';
+import React from "react";
+import { COMMON_STYLES } from "../../constants/styles";
 
 export type CardProps = {
   children?: React.ReactNode;
@@ -15,7 +15,11 @@ export type CardProps = {
   className?: string;
 };
 
-const Card: React.FC<CardProps> = ({ children, style = {}, className = '' }) => {
+const Card: React.FC<CardProps> = ({
+  children,
+  style = {},
+  className = "",
+}) => {
   return (
     <div
       className={`card ${className}`}

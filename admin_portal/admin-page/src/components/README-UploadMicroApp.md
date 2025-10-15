@@ -6,9 +6,11 @@ UploadMicroApp component
 - Shows success/error modal
 
 Environment variable override
+
 - Create `.env` in project root or `src/.env` for CRA you must use `REACT_APP_` prefix, for example:
 
 REACT_APP_MICROAPPS_BASE_URL="http://localhost:9090"
 
 Auth
+
 - If backend requires auth, extend the fetch to include headers like `Authorization: Bearer <token>` using Asgardeo SDK `ctx.getAccessToken()`.

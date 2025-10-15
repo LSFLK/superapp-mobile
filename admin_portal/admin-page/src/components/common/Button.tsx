@@ -5,10 +5,10 @@
  * across the admin portal. Includes accessibility features and theming support.
  */
 
-import React from 'react';
-import { COMMON_STYLES } from '../../constants/styles';
+import React from "react";
+import { COMMON_STYLES } from "../../constants/styles";
 
-type ButtonVariant = 'primary' | 'secondary';
+type ButtonVariant = "primary" | "secondary";
 
 export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   children?: React.ReactNode;
@@ -22,28 +22,30 @@ const Button: React.FC<ButtonProps> = ({
   children,
   onClick,
   disabled = false,
-  variant = 'primary',
+  variant = "primary",
   style = {},
   ...props
 }) => {
   // Merge base styles with variant-specific styling
   const baseStyle: React.CSSProperties = {
-    ...(COMMON_STYLES.button),
-    backgroundColor: variant === 'primary' ? '#1677ff' : '#f0f0f0',
-    color: variant === 'primary' ? 'white' : '#262626',
+    ...COMMON_STYLES.button,
+    backgroundColor: variant === "primary" ? "#1677ff" : "#f0f0f0",
+    color: variant === "primary" ? "white" : "#262626",
     opacity: disabled ? 0.6 : 1,
-    cursor: disabled ? 'not-allowed' : 'pointer',
+    cursor: disabled ? "not-allowed" : "pointer",
     ...style,
   };
 
   const handleFocus: React.FocusEventHandler<HTMLButtonElement> = (e) => {
     if (!disabled) {
-      e.currentTarget.style.boxShadow = (COMMON_STYLES as any).buttonFocus.boxShadow;
+      e.currentTarget.style.boxShadow = (
+        COMMON_STYLES as any
+      ).buttonFocus.boxShadow;
     }
   };
 
   const handleBlur: React.FocusEventHandler<HTMLButtonElement> = (e) => {
-    e.currentTarget.style.boxShadow = 'none';
+    e.currentTarget.style.boxShadow = "none";
   };
 
   return (

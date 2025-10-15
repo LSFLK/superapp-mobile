@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useAuthContext } from '@asgardeo/auth-react';
-import { extractGroupsFromClaims } from '../constants/auth';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useAuthContext } from "@asgardeo/auth-react";
+import { extractGroupsFromClaims } from "../constants/auth";
 
 type AuthContextLike = {
   state?: {
@@ -26,7 +26,7 @@ export type AuthInfo = {
 
 function decodeJwtPayload(token: string): any | null {
   try {
-    const parts = token.split('.');
+    const parts = token.split(".");
     if (parts.length !== 3) return null;
     const payload = JSON.parse(atob(parts[1]));
     return payload;
@@ -109,7 +109,7 @@ export function useAuthInfo(): AuthInfo {
       const g = await extractUserGroups();
       setGroups(g);
     } catch (e) {
-      setError('Failed to load user groups');
+      setError("Failed to load user groups");
       setGroups([]);
     } finally {
       setLoading(false);
@@ -131,7 +131,7 @@ export function useAuthInfo(): AuthInfo {
         const g = await extractUserGroups();
         if (!cancelled) setGroups(g);
       } catch (e) {
-        if (!cancelled) setError('Failed to load user groups');
+        if (!cancelled) setError("Failed to load user groups");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -143,7 +143,7 @@ export function useAuthInfo(): AuthInfo {
 
   return useMemo(
     () => ({ isAuthenticated, groups, loading, error, refresh, auth }),
-    [isAuthenticated, groups, loading, error, refresh, auth]
+    [isAuthenticated, groups, loading, error, refresh, auth],
   );
 }
 
