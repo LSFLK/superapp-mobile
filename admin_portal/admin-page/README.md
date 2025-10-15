@@ -162,6 +162,19 @@ Troubleshooting:
 - 404 from `/api/payslips/upload`? Confirm the path rewrite now maps exactly to `/gov-superapp/microappbackendprodbranch/v1.0/upload` (no `/payslips` segment). If backend still requires the old path, revert the rewrite.
 - Network ECONNREFUSED locally: corporate VPN / firewall may block the Choreo host.
 
+## Asset Attribution & Licensing
+
+Static assets (favicons, logos, images) must have clear provenance and licenses compatible with this project's Apache-2.0 licensing. The file `public/ASSET_LICENSES.md` tracks each third-party asset.
+
+Current open item:
+- `public/download.jpeg` — source and license unknown. Replace with a vetted SVG (recommended) or document its origin + license in `ASSET_LICENSES.md` before distribution.
+
+When adding or replacing assets:
+1. Prefer vector (SVG) under MIT / Apache-2.0 / CC0.
+2. Record source URL, author, license in `ASSET_LICENSES.md`.
+3. Update `public/index.html` links if filenames change.
+4. Remove unverified files to avoid compliance risk.
+
 ### Auth / Invoker Headers
 
 The uploader now sends both (when authenticated):

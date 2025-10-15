@@ -4,13 +4,13 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAuthContext } from '@asgardeo/auth-react';
-import { Box, Container } from '@mui/material';
+import { Box, Container, Paper, Button as MuiButton } from '@mui/material';
 import UserProfile from './components/UserProfile';
 import MicroAppManagement from './components/MicroAppManagement';
 import MenuBar from './components/MenuBar';
 // import RoleBasedAccessControl from "./components/RoleBasedAccessControl";
 // import GroupDebugger from './components/GroupDebugger';
-import { COMMON_STYLES, COLORS } from './constants/styles';
+import { COMMON_STYLES } from './constants/styles';
 
 // Minimal shape for Asgardeo's state object we use
 interface AuthState {
@@ -94,49 +94,38 @@ export default function App(): React.ReactElement {
           </Box>
         </>
       ) : (
-        <Box data-testid="content" sx={{ p: 0, minHeight: '100vh' }}>
-          <div
-            style={{
-              minHeight: '100vh',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '32px 16px',
-              background: `linear-gradient(135deg, ${COLORS.background} 0%, #e6f4ff 60%, #d9edff 100%)`,
+        <Box
+          data-testid="content"
+          sx={{
+            p: 2,
+            ml: '600px',
+            minHeight: '100vh',
+            display: 'grid',
+            placeItems: 'center',
+          }}
+        >
+          <Paper
+            elevation={8}
+            sx={{
+              textAlign: 'center',
+              bgcolor: 'background.paper',
+              color: 'text.primary',
+              border: '1px solid',
+              borderColor: 'divider',
+              maxWidth: 440,
+              width: '100%',
+              px: 3,
+              py: 4,
             }}
           >
-            <section
-              className="card"
-              style={{
-                textAlign: 'center',
-                background: '#e6f4ff',
-                border: `1px solid ${COLORS.border}`,
-                color: COLORS.primary,
-                maxWidth: 420,
-                width: '100%',
-                boxShadow: '0 6px 24px -4px rgba(0,58,103,0.15)',
-              }}
-            >
-              <h2 style={{ marginTop: 0, color: COLORS.primary }}>Please Sign In</h2>
-              <p style={{ color: COLORS.secondary, marginTop: 0 }}>
-                You must be logged in to use the admin portal.
-              </p>
-              <button
-                className="btn btn--primary"
-                style={COMMON_STYLES.button}
-                onClick={() => void signIn?.()}
-                onFocus={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.boxShadow = COMMON_STYLES.buttonFocus.boxShadow as string;
-                }}
-                onBlur={(e) => {
-                  (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none';
-                }}
-              >
-                Sign In
-              </button>
-            </section>
-          </div>
+            <h2 style={{ marginTop: 0 }}>Please Sign In</h2>
+            <p style={{ marginTop: 0 }}>
+              You must be logged in to use the admin portal.
+            </p>
+            <MuiButton variant="contained" onClick={() => void signIn?.()}>
+              Sign In
+            </MuiButton>
+          </Paper>
         </Box>
       )}
     </Box>
