@@ -27,6 +27,7 @@ type MicroApp = {
 type AuthContextLike = {
   state?: { isAuthenticated?: boolean };
   getAccessToken?: () => Promise<string>;
+  getIDToken?: () => Promise<string>;
 };
 
 // Common container keys likely used by various backends for array payloads
@@ -60,21 +61,19 @@ export default function MicroAppManagement(): React.ReactElement | null {
     try {
       const headers: Record<string, string> = { Accept: "application/json" };
       if (auth?.state?.isAuthenticated) {
-        
-            if (typeof auth.getAccessToken === "function") {
-              const access = await auth.getAccessToken();
-              if (access) {
-                headers["authorization"] = `Bearer ${access}`;
-                headers["x-jwt-assertion"] = access;
-              }
-            } else {
-              console.warn(
-                "Authentication token acquisition failed:",
-                new Error("getAccessToken is not a function"),
-              );
-            }
-          
+        // Use access token for both Authorization and x-jwt-assertion (invoker).
+        try {
+          const access = await auth.getAccessToken?.().catch(() => undefined);
+
+          if (access) {
+            headers["Authorization"] = `Bearer ${access}`;
+            headers["x-jwt-assertion"] = access;
+          }
+        } catch (e) {
+          const err = e instanceof Error ? e : new Error(String(e));
+          console.warn("Authentication token acquisition failed:", err);
         }
+      }
 
       const endpoint = getEndpoint(API_KEYS.MICROAPPS_LIST);
       console.log("[MicroAppManagement] Fetching micro-apps from", endpoint);
