@@ -8,8 +8,9 @@ import type ReactNamespace from 'react';
 import Button from "./common/Button";
 import Loading from "./common/Loading";
 import Card from "./common/Card";
-import { COLORS } from "../constants/styles";
+import { COLORS, COMMON_STYLES } from "../constants/styles";
 import { getEndpoint } from "../constants/api";
+import { API_KEYS } from "../constants/apiKeys";
 
 const UploadMicroAppTyped = UploadMicroApp as unknown as ReactNamespace.FC<{ onUploaded?: () => void }>;
 
@@ -24,8 +25,19 @@ type MicroApp = {
 type AuthContextLike = {
   state?: { isAuthenticated?: boolean };
   getAccessToken?: () => Promise<string>;
-  
 };
+
+// Common container keys likely used by various backends for array payloads
+enum ContainerKey {
+  Items = 'items',
+  Data = 'data',
+  Content = 'content',
+  Results = 'results',
+  Records = 'records',
+  List = 'list',
+  MicroApps = 'microApps',
+  Microapps = 'microapps',
+}
 
 // UploadMicroApp is now fully typed in TypeScript
 
@@ -58,7 +70,6 @@ export default function MicroAppManagement(): React.ReactElement {
               if (enableAssertion) {
                 headers["x-jwt-assertion"] = access;
               }
-            
             }
           } catch (e) {
             console.warn("Authentication token acquisition failed:", e);
@@ -71,7 +82,7 @@ export default function MicroAppManagement(): React.ReactElement {
         }
       }
 
-      const endpoint = getEndpoint("MICROAPPS_LIST");
+      const endpoint = getEndpoint(API_KEYS.MICROAPPS_LIST);
       console.log('[MicroAppManagement] Fetching micro-apps from', endpoint);
       const res = await fetch(endpoint, { headers });
 
@@ -91,17 +102,15 @@ export default function MicroAppManagement(): React.ReactElement {
       const normalize = (d: any): MicroApp[] => {
         if (Array.isArray(d)) return d as MicroApp[];
         if (!d || typeof d !== 'object') return [];
-        // Common container keys
-        const candidates = [
-          'items', 'data', 'content', 'results', 'records', 'list', 'microApps', 'microapps'
-        ];
+        // Check common container keys
+        const candidates = Object.values(ContainerKey) as string[];
         for (const key of candidates) {
-          const v = d[key];
+          const v = (d as any)[key];
           if (Array.isArray(v)) return v as MicroApp[];
           if (v && typeof v === 'object') {
             // Nested container like { data: { items: [...] } }
             for (const k2 of candidates) {
-              const v2 = v[k2];
+              const v2 = (v as any)[k2];
               if (Array.isArray(v2)) return v2 as MicroApp[];
             }
           }
@@ -160,9 +169,12 @@ export default function MicroAppManagement(): React.ReactElement {
       {listError && !showUpload && (
         <Card
           style={{
-            background: "#2d1f1f",
-            border: "1px solid #5a2f2f",
-            color: "#fca5a5",
+            ...(COMMON_STYLES?.alertError || {
+              background: COLORS.errorSurfaceBackground || '#2d1f1f',
+              border: `1px solid ${COLORS.errorSurfaceBorder || '#5a2f2f'}`,
+              color: COLORS.errorSurfaceText || '#fca5a5',
+              borderRadius: 12,
+            }),
             padding: 12,
             marginBottom: 16,
           }}
@@ -171,7 +183,7 @@ export default function MicroAppManagement(): React.ReactElement {
         </Card>
       )}
 
-  {showUpload && (
+      {showUpload && (
         <Card style={{ padding: 16, marginBottom: 20 }}>
           <UploadMicroAppTyped
             onUploaded={() => {
@@ -195,18 +207,18 @@ export default function MicroAppManagement(): React.ReactElement {
           )}
 
           {!loadingList && microApps.length === 0 && !listError && (
-            <Card style={{ padding: 16, background: "#111", color: '#fff' }}>
+            <Card style={{ padding: 16, background: COLORS.inverted, color: COLORS.invertedText }}>
               No micro-apps found.
             </Card>
           )}
 
           {microApps.map((app) => (
-            <Card
+      <Card
               key={app.micro_app_id || app.app_id || Math.random().toString(36)}
               style={{
                 padding: 16,
-                background: '#f5faff',
-                border: '1px solid #e6f4ff',
+        background: COLORS.cardBackground,
+        border: `1px solid ${COLORS.borderAlt || COLORS.border}`,
                 cursor: 'default',
                 display: 'flex',
                 flexDirection: 'column',
@@ -220,20 +232,20 @@ export default function MicroAppManagement(): React.ReactElement {
                   style={{
                     width: 48,
                     height: 48,
-                    background: '#e6f4ff',
+          background: COLORS.borderAlt || '#e6f4ff',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontWeight: 600,
                     borderRadius: 8,
-                    color: '#1677ff',
+          color: COLORS.accent || '#1677ff',
                   }}
                 >
                   {(app.name ? app.name : '?').slice(0, 2).toUpperCase()}
                 </div>
 
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, color: '#262626' }}>
+          <div style={{ fontWeight: 600, color: COLORS.text }}>
                     {(() => {
                       if (typeof app.name === 'string' && app.name.length > 1) {
                         return app.name;
@@ -244,13 +256,13 @@ export default function MicroAppManagement(): React.ReactElement {
                       return app.micro_app_id || app.app_id || app.name;
                     })()}
                   </div>
-                  <div style={{ color: '#8c8c8c', fontSize: 12 }}>
+          <div style={{ color: COLORS.textMuted, fontSize: 12 }}>
                     v{app.version || '—'}
                   </div>
                 </div>
               </div>
 
-              <div style={{ color: '#595959', fontSize: 12, flexGrow: 1 }}>
+        <div style={{ color: COLORS.textSubtle || '#595959', fontSize: 12, flexGrow: 1 }}>
                 {app.description || 'No description'}
               </div>
             </Card>

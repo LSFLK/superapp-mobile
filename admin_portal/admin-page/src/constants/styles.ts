@@ -13,11 +13,24 @@ export interface ColorPalette {
   background: string;
   border: string;
   cardBackground: string;
+  /** lighter alternative border for subtle surfaces */
+  borderAlt?: string;
   error: string;
   warning: string;
   success: string;
   text: string;
   textMuted: string;
+  /** slightly softer than text for long descriptions */
+  textSubtle?: string;
+  /** strong accent (e.g., avatars/indicators) */
+  accent?: string;
+  /** inverted surface for occasional emphasis */
+  inverted?: string;
+  invertedText?: string;
+  /** error surface tokens for inline alerts */
+  errorSurfaceBackground?: string;
+  errorSurfaceBorder?: string;
+  errorSurfaceText?: string;
 }
 
 export const COLORS: ColorPalette = {
@@ -29,6 +42,7 @@ export const COLORS: ColorPalette = {
   background: '#f9fcff',
   border: '#e3f2ff',
   cardBackground: '#f5faff',
+  borderAlt: '#e6f4ff',
 
   // Status and feedback colors
   error: '#b91c1c',
@@ -38,6 +52,15 @@ export const COLORS: ColorPalette = {
   // Text colors
   text: '#262626',
   textMuted: '#8c8c8c',
+  textSubtle: '#595959',
+
+  // Accents and special surfaces
+  accent: '#1677ff',
+  inverted: '#111111',
+  invertedText: '#ffffff',
+  errorSurfaceBackground: '#2d1f1f',
+  errorSurfaceBorder: '#5a2f2f',
+  errorSurfaceText: '#fca5a5',
 };
 
 /** Common Style Objects */
@@ -50,6 +73,8 @@ export interface CommonStyles {
   section: CSSProperties;
   loadingText: CSSProperties;
   errorText: CSSProperties;
+  /** inline error card style */
+  alertError: CSSProperties;
 }
 
 export const COMMON_STYLES: CommonStyles = {
@@ -100,5 +125,12 @@ export const COMMON_STYLES: CommonStyles = {
   errorText: {
     color: COLORS.error,
     marginBottom: '12px',
+  },
+
+  alertError: {
+    background: COLORS.errorSurfaceBackground,
+    border: `1px solid ${COLORS.errorSurfaceBorder}`,
+    color: COLORS.errorSurfaceText,
+    borderRadius: '12px',
   },
 };
