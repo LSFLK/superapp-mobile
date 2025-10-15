@@ -43,7 +43,7 @@ enum ContainerKey {
 
 // UploadMicroApp is now fully typed in TypeScript
 
-export default function MicroAppManagement(): React.ReactElement {
+export default function MicroAppManagement(): React.ReactElement | null {
   // Authentication context for secure API calls
   const auth = useAuthContext() as AuthContextLike;
 
@@ -60,30 +60,21 @@ export default function MicroAppManagement(): React.ReactElement {
     try {
       const headers: Record<string, string> = { Accept: "application/json" };
       if (auth?.state?.isAuthenticated) {
-        if (typeof auth?.getAccessToken === "function") {
-          try {
-            const access = await auth.getAccessToken();
-            if (access) {
-              headers["authorization"] = `Bearer ${access}`;
-              // Include x-jwt-assertion only for local testing or when explicitly enabled.
-              const enableAssertion =
-                process.env.REACT_APP_INCLUDE_X_JWT_ASSERTION === "true" ||
-                (typeof window !== "undefined" &&
-                  /^(localhost|127\.0\.0\.1)$/i.test(window.location.hostname));
-              if (enableAssertion) {
+        
+            if (typeof auth.getAccessToken === "function") {
+              const access = await auth.getAccessToken();
+              if (access) {
+                headers["authorization"] = `Bearer ${access}`;
                 headers["x-jwt-assertion"] = access;
               }
+            } else {
+              console.warn(
+                "Authentication token acquisition failed:",
+                new Error("getAccessToken is not a function"),
+              );
             }
-          } catch (e) {
-            console.warn("Authentication token acquisition failed:", e);
-          }
-        } else {
-          console.warn(
-            "Authentication token acquisition failed:",
-            new Error("getAccessToken is not a function"),
-          );
+          
         }
-      }
 
       const endpoint = getEndpoint(API_KEYS.MICROAPPS_LIST);
       console.log("[MicroAppManagement] Fetching micro-apps from", endpoint);
