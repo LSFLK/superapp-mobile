@@ -146,7 +146,7 @@ export const themeSettings = (mode: PaletteMode) => {
           }),
     },
     typography: {
-      fontSize: 11,
+      fontSize: 14,
       fontFamily: [
         "Poppins",
         "Inter",
