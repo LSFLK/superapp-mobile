@@ -10,10 +10,9 @@ import React, { useRef, useState } from "react";
 import { useAuthContext } from "@asgardeo/auth-react";
 import { getEndpoint } from "../constants/api";
 
-type Props = {
+export type UploadMicroAppProps = {
   onUploaded?: () => void;
 };
-export type UploadMicroAppProps = Props;
 
 const MAX_UPLOAD_MB = Number(process.env.REACT_APP_MAX_UPLOAD_MB ?? "50");
 const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
@@ -65,7 +64,7 @@ function safeServerMessage(payload: unknown, fallback: string): string {
   return fallback;
 }
 
-const UploadMicroApp: React.FC<Props> = ({ onUploaded }: Props) => {
+const UploadMicroApp: React.FC<UploadMicroAppProps> = ({ onUploaded }) => {
   // Authentication context for secure API calls
   const auth = useAuthContext() as unknown as {
     state?: { isAuthenticated?: boolean };
