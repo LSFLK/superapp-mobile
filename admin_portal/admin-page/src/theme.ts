@@ -195,10 +195,10 @@ input:-webkit-autofill:active { -webkit-box-shadow: 0 0 0 30px ${c.grey[100]} in
               mode === "dark"
                 ? alpha(theme.palette.primary.dark, 0.9)
                 : alpha(theme.palette.primary.main, 0.12),
-            fontWeight: 1000,
+            fontWeight: 700,
           }),
           columnHeaderTitle: {
-            fontWeight: 1000,
+            fontWeight: 700,
           },
         },
       },
