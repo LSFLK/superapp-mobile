@@ -1,12 +1,39 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuthContext } from "@asgardeo/auth-react";
-import { extractGroupsFromClaims } from "../constants/auth";
+import { extractGroupsFromClaims } from "../utils/auth";
+
+// Minimal JWT payload shape we care about, with common registered claims
+// and known group/role claim variants used in this app.
+export interface JWTPayload {
+  // Registered claims
+  iss?: string;
+  sub?: string;
+  aud?: string | string[];
+  exp?: number;
+  nbf?: number;
+  iat?: number;
+  jti?: string;
+  // Common OIDC profile claims
+  scope?: string | string[];
+  email?: string;
+  name?: string;
+  given_name?: string;
+  family_name?: string;
+  // Group/role claims we look for when extracting access control
+  groups?: string[] | string;
+  roles?: string[] | string;
+  role?: string[] | string;
+  "http://wso2.org/claims/role"?: string[] | string;
+  wso2_role?: string[] | string;
+  // Allow any additional provider-specific claims
+  [claim: string]: unknown;
+}
 
 type AuthContextLike = {
   state?: {
     isAuthenticated?: boolean;
     accessToken?: string | null;
-    accessTokenPayload?: any;
+  accessTokenPayload?: JWTPayload | Record<string, unknown> | null;
   };
   getAccessToken?: () => Promise<string | null | undefined>;
   getIDToken?: () => Promise<string | null | undefined>;
@@ -24,13 +51,19 @@ export type AuthInfo = {
   auth: AuthContextLike;
 };
 
-function decodeJwtPayload(token: string): any | null {
+function decodeJwtPayload(token: string): JWTPayload | null {
   try {
     const parts = token.split(".");
     if (parts.length !== 3) return null;
-    const payload = JSON.parse(atob(parts[1]));
+  // JWTs are base64url encoded; normalize and pad before decoding.
+  const b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+  const padded = b64.padEnd(b64.length + ((4 - (b64.length % 4)) % 4), "=");
+  const json = atob(padded);
+  const payload: JWTPayload = JSON.parse(json);
     return payload;
-  } catch {
+  } catch (err) {
+    // Keep token details out of logs; just note the failure.
+    console.error("useAuthInfo.decodeJwtPayload: Failed to decode JWT payload", err);
     return null;
   }
 }
@@ -54,8 +87,8 @@ export function useAuthInfo(): AuthInfo {
           if (fromAccess.length > 0) return fromAccess;
         }
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      console.error("useAuthInfo.extractUserGroups: Access token processing failed", err);
     }
 
     // 2) Try ID token (decoded claims)
@@ -68,8 +101,8 @@ export function useAuthInfo(): AuthInfo {
           if (fromId.length > 0) return fromId;
         }
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      console.error("useAuthInfo.extractUserGroups: ID token processing failed", err);
     }
 
     // 3) Try basic user info endpoint
@@ -79,17 +112,17 @@ export function useAuthInfo(): AuthInfo {
         const fromUserInfo = extractGroupsFromClaims(basic);
         if (fromUserInfo.length > 0) return fromUserInfo;
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      console.error("useAuthInfo.extractUserGroups: Basic user info processing failed", err);
     }
 
     // 4) Try access token payload from state
     try {
-      const payload = auth?.state?.accessTokenPayload as any;
+  const payload = auth?.state?.accessTokenPayload as unknown;
       const fromState = extractGroupsFromClaims(payload);
       if (fromState.length > 0) return fromState;
-    } catch {
-      // ignore
+    } catch (err) {
+      console.error("useAuthInfo.extractUserGroups: Access token payload from state processing failed", err);
     }
 
     // Nothing found
@@ -109,6 +142,7 @@ export function useAuthInfo(): AuthInfo {
       const g = await extractUserGroups();
       setGroups(g);
     } catch (e) {
+  console.error("useAuthInfo.refresh: Failed to load user groups", e);
       setError("Failed to load user groups");
       setGroups([]);
     } finally {
@@ -131,6 +165,7 @@ export function useAuthInfo(): AuthInfo {
         const g = await extractUserGroups();
         if (!cancelled) setGroups(g);
       } catch (e) {
+  console.error("useAuthInfo.effect: Failed to load user groups", e);
         if (!cancelled) setError("Failed to load user groups");
       } finally {
         if (!cancelled) setLoading(false);

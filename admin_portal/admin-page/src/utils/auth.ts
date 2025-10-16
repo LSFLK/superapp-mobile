@@ -1,5 +1,5 @@
 /**
- * Auth constants and helpers
+ * Auth utilities
  *
  * Centralize extraction of user groups from various token/userinfo shapes.
  */
