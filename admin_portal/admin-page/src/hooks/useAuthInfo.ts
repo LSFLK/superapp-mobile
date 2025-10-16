@@ -51,15 +51,22 @@ export type AuthInfo = {
   auth: AuthContextLike;
 };
 
+// Utility function to decode base64url strings (used in JWTs)
+function base64UrlDecode(input: string): string {
+  // Replace non-url compatible chars with base64 standard chars
+  const b64 = input.replace(/-/g, "+").replace(/_/g, "/");
+  // Pad with '=' to make length a multiple of 4
+  const padded = b64.padEnd(b64.length + ((4 - (b64.length % 4)) % 4), "=");
+  // Decode base64 string
+  return atob(padded);
+}
 function decodeJwtPayload(token: string): JWTPayload | null {
   try {
-    const parts = token.split(".");
+    const parts = token.split('.');
     if (parts.length !== 3) return null;
-  // JWTs are base64url encoded; normalize and pad before decoding.
-  const b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-  const padded = b64.padEnd(b64.length + ((4 - (b64.length % 4)) % 4), "=");
-  const json = atob(padded);
-  const payload: JWTPayload = JSON.parse(json);
+    // Use the utility function to decode the payload
+    const json = base64UrlDecode(parts[1]);
+    const payload: JWTPayload = JSON.parse(json);
     return payload;
   } catch (err) {
     // Keep token details out of logs; just note the failure.
