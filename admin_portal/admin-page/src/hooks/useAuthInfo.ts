@@ -1,45 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuthContext } from "@asgardeo/auth-react";
 import { extractGroupsFromClaims } from "../utils/auth";
-
-// Minimal JWT payload shape we care about, with common registered claims
-// and known group/role claim variants used in this app.
-export interface JWTPayload {
-  // Registered claims
-  iss?: string;
-  sub?: string;
-  aud?: string | string[];
-  exp?: number;
-  nbf?: number;
-  iat?: number;
-  jti?: string;
-  // Common OIDC profile claims
-  scope?: string | string[];
-  email?: string;
-  name?: string;
-  given_name?: string;
-  family_name?: string;
-  // Group/role claims we look for when extracting access control
-  groups?: string[] | string;
-  roles?: string[] | string;
-  role?: string[] | string;
-  "http://wso2.org/claims/role"?: string[] | string;
-  wso2_role?: string[] | string;
-  // Allow any additional provider-specific claims
-  [claim: string]: unknown;
-}
-
-type AuthContextLike = {
-  state?: {
-    isAuthenticated?: boolean;
-    accessToken?: string | null;
-  accessTokenPayload?: JWTPayload | Record<string, unknown> | null;
-  };
-  getAccessToken?: () => Promise<string | null | undefined>;
-  getIDToken?: () => Promise<string | null | undefined>;
-  getDecodedIDToken?: () => any;
-  getBasicUserInfo?: () => Promise<any>;
-};
+import type { JWTPayload, AuthContextLike } from "../types/auth";
 
 export type AuthInfo = {
   isAuthenticated: boolean;
@@ -76,7 +38,10 @@ function decodeJwtPayload(token: string): JWTPayload | null {
 }
 
 export function useAuthInfo(): AuthInfo {
-  const auth = useAuthContext() as unknown as AuthContextLike;
+  // The auth SDK returns a rich, dynamic object; we assert it conforms to the
+  // minimal shape we declared above (AuthContextLike). This avoids scattered
+  // `as unknown as` usages and keeps typing local to this hook.
+  const auth = useAuthContext() as AuthContextLike;
   const isAuthenticated = !!auth?.state?.isAuthenticated;
 
   const [groups, setGroups] = useState<string[]>([]);
@@ -125,11 +90,14 @@ export function useAuthInfo(): AuthInfo {
 
     // 4) Try access token payload from state
     try {
-  const payload = auth?.state?.accessTokenPayload as unknown;
+      const payload = auth?.state?.accessTokenPayload;
       const fromState = extractGroupsFromClaims(payload);
       if (fromState.length > 0) return fromState;
     } catch (err) {
-      console.error("useAuthInfo.extractUserGroups: Access token payload from state processing failed", err);
+      console.error(
+        "useAuthInfo.extractUserGroups: Access token payload from state processing failed",
+        err,
+      );
     }
 
     // Nothing found

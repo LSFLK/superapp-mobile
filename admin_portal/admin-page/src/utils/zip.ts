@@ -47,13 +47,13 @@ export function safeServerMessage(payload: unknown, fallback: string): string {
     if (!payload) return fallback;
     if (typeof payload === "string") return payload.slice(0, 300);
     if (typeof payload === "object") {
-      const anyPayload = payload as Record<string, unknown>;
-      const m =
-        (anyPayload["message"] as unknown) ||
-        (anyPayload["error"] as unknown) ||
-        (anyPayload["detail"] as unknown) ||
-        (anyPayload["title"] as unknown);
-      return String(m ?? fallback).slice(0, 300);
+      const obj = payload as Record<string, unknown>;
+      const candidates = ["message", "error", "detail", "title"];
+      for (const c of candidates) {
+        const v = obj[c];
+        if (v != null) return String(v).slice(0, 300);
+      }
+      return fallback;
     }
   } catch {}
   return fallback;
