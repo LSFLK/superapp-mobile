@@ -27,17 +27,17 @@ type AuthContextLike = {
   getIDToken?: () => Promise<string>;
 };
 
-// Common container keys likely used by various backends for array payloads
-enum ContainerKey {
-  Items = "items",
-  Data = "data",
-  Content = "content",
-  Results = "results",
-  Records = "records",
-  List = "list",
-  MicroApps = "microApps",
-  Microapps = "microapps",
-}
+// Common container keys likely used by various backends for array payloads.
+// Use case-insensitive lookup to avoid duplicate variants like "microApps" vs "microapps".
+const CONTAINER_KEYS_LOWER = [
+  "items",
+  "data",
+  "content",
+  "results",
+  "records",
+  "list",
+  "microapps",
+] as const;
 
 // UploadMicroApp is now fully typed in TypeScript
 
@@ -59,16 +59,17 @@ export default function MicroAppManagement(): React.ReactElement | null {
       const headers: Record<string, string> = { Accept: "application/json" };
       if (auth?.state?.isAuthenticated) {
         // Use access token for both Authorization and x-jwt-assertion (invoker).
-        try {
-          const access = await auth.getAccessToken?.().catch(() => undefined);
-
-          if (access) {
-            headers["Authorization"] = `Bearer ${access}`;
-            headers["x-jwt-assertion"] = access;
+        if (typeof auth.getAccessToken === "function") {
+          try {
+            const access = await auth.getAccessToken();
+            if (access) {
+              headers["Authorization"] = `Bearer ${access}`;
+              headers["x-jwt-assertion"] = access;
+            }
+          } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e));
+            console.warn("Authentication token acquisition failed:", err);
           }
-        } catch (e) {
-          const err = e instanceof Error ? e : new Error(String(e));
-          console.warn("Authentication token acquisition failed:", err);
         }
       }
 
@@ -91,21 +92,30 @@ export default function MicroAppManagement(): React.ReactElement | null {
         throw new Error("Unexpected response format (non-JSON)");
       }
 
+      // Case-insensitive getter for object properties
+      const getCaseInsensitive = (
+        obj: Record<string, unknown>,
+        key: string,
+      ): unknown => {
+        const found = Object.keys(obj).find(
+          (k) => k.toLowerCase() === key.toLowerCase(),
+        );
+        return found ? obj[found] : undefined;
+      };
+
       const normalize = (d: unknown): MicroApp[] => {
         if (Array.isArray(d)) return d as MicroApp[];
         if (!d || typeof d !== "object") return [];
 
         const obj = d as Record<string, unknown>;
-        // Check common container keys
-        const candidates = Object.values(ContainerKey) as string[];
-        for (const key of candidates) {
-          const v = obj[key];
+        // Check common container keys (case-insensitive) including a single nested level
+        for (const key of CONTAINER_KEYS_LOWER) {
+          const v = getCaseInsensitive(obj, key);
           if (Array.isArray(v)) return v as MicroApp[];
           if (v && typeof v === "object") {
             const nested = v as Record<string, unknown>;
-            // Nested container like { data: { items: [...] } }
-            for (const k2 of candidates) {
-              const v2 = nested[k2];
+            for (const k2 of CONTAINER_KEYS_LOWER) {
+              const v2 = getCaseInsensitive(nested, k2);
               if (Array.isArray(v2)) return v2 as MicroApp[];
             }
           }
