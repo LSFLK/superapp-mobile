@@ -2,6 +2,9 @@ import React from "react";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 
+// Import App AFTER mocks are set up
+import App from "../../App";
+
 // Narrow type for the mocked auth context
 type MockAuth = {
   state: { isAuthenticated: boolean; username?: string; displayName?: string };
@@ -62,9 +65,6 @@ jest.mock("../../components/common/Loading", () => {
 // Stub UserProfile to avoid network/tokens in this integration test
 jest.mock("../../components/UserProfile", () => () => <div>User Profile</div>);
 
-// Import App AFTER mocks are set up
-import App from "../../App";
-
 // Global fetch mock
 beforeEach(() => {
   mockAuth = {
@@ -75,9 +75,9 @@ beforeEach(() => {
     },
     signIn: jest.fn<void, []>(),
     signOut: jest.fn<void, []>(),
-    getAccessToken: jest.fn<Promise<string>, []>().mockResolvedValue(
-      "token-abc",
-    ),
+    getAccessToken: jest
+      .fn<Promise<string>, []>()
+      .mockResolvedValue("token-abc"),
     getIDToken: jest.fn<Promise<string>, []>().mockResolvedValue("id-123"),
     getDecodedIDToken: jest.fn<any, []>(),
     getBasicUserInfo: jest.fn<any, []>(),

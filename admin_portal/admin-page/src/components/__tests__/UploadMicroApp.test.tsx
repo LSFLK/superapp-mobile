@@ -3,6 +3,9 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import UploadMicroApp from "../UploadMicroApp";
 import type ReactNamespace from "react";
+
+// Mock API endpoint resolver
+import { getEndpoint } from "../../constants/api";
 const UploadMicroAppTyped = UploadMicroApp as unknown as ReactNamespace.FC<{
   onUploaded?: () => void;
 }>;
@@ -17,9 +20,6 @@ let mockAuth: MockAuth;
 jest.mock("@asgardeo/auth-react", () => ({
   useAuthContext: () => mockAuth,
 }));
-
-// Mock API endpoint resolver
-import { getEndpoint } from "../../constants/api";
 jest.mock("../../constants/api", () => ({
   getEndpoint: jest.fn(),
 }));

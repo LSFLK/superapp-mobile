@@ -164,8 +164,6 @@ describe("MicroAppManagement integration (with real UploadMicroApp)", () => {
     await waitFor(() =>
       expect(screen.queryByText(/Upload Micro-App/)).not.toBeInTheDocument(),
     );
-    await waitFor(() =>
-      expect(screen.getByText("Newly Uploaded")).toBeInTheDocument(),
-    );
+    await screen.findByText("Newly Uploaded");
   });
 });

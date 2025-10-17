@@ -24,12 +24,31 @@
     "eject": "react-scripts eject",
     "print:token": "node ./scripts/print-token.js",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "lint": "eslint \"src/**/*.{ts,tsx,js,jsx}\"",
+    "lint:fix": "eslint \"src/**/*.{ts,tsx,js,jsx}\" --fix"
   },
   "eslintConfig": {
     "extends": [
       "react-app",
       "react-app/jest"
+    ],
+    "overrides": [
+      {
+        "files": [
+          "**/__tests__/**/*.{js,jsx,ts,tsx}",
+          "**/*.{test,spec}.{js,jsx,ts,tsx}"
+        ],
+        "rules": {
+          "testing-library/no-node-access": "off",
+          "testing-library/no-container": "off",
+          "testing-library/no-wait-for-multiple-assertions": "off",
+          "testing-library/no-wait-for-side-effects": "off",
+          "testing-library/prefer-screen-queries": "off",
+          "testing-library/prefer-find-by": "warn",
+          "import/first": "off"
+        }
+      }
     ]
   },
   "browserslist": {

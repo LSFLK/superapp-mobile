@@ -4,6 +4,9 @@ import "@testing-library/jest-dom";
 import UserProfile from "../UserProfile";
 import type ReactNamespace from "react";
 
+// Mock constants/api
+import { getEndpoint } from "../../constants/api";
+
 // Cast JS component to typed FC for prop support in TS tests
 const UserProfileTyped = UserProfile as unknown as ReactNamespace.FC<{
   state?: any;
@@ -21,9 +24,6 @@ let mockCtx: MockCtx;
 jest.mock("@asgardeo/auth-react", () => ({
   useAuthContext: () => mockCtx,
 }));
-
-// Mock constants/api
-import { getEndpoint } from "../../constants/api";
 jest.mock("../../constants/api", () => ({
   getEndpoint: jest.fn(),
 }));

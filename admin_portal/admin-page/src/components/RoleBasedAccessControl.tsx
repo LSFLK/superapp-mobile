@@ -13,14 +13,6 @@ type RoleBasedAccessControlProps = {
   requiredGroups?: string[];
 };
 
-const Title: React.FC<React.ComponentProps<typeof Typography>> = ({
-  children,
-  ...props
-}) => (
-  <Typography variant="h4" gutterBottom {...props}>
-    {children}
-  </Typography>
-);
 const Paragraph: React.FC<React.ComponentProps<typeof Typography>> = ({
   children,
   ...props
@@ -45,10 +37,9 @@ const RoleBasedAccessControl: React.FC<RoleBasedAccessControlProps> = ({
 
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
-  // Create a stable key for requiredGroups to avoid JSON.stringify in deps.
-  // Sort and lowercase so order/case changes don't retrigger unnecessarily.
-  const requiredGroupsKey = useMemo(() => {
-    return [...requiredGroups].map((g) => g.toLowerCase()).sort().join("|");
+  // Create a normalized, memoized array for stable deps.
+  const normalizedRequiredGroups = useMemo(() => {
+    return [...requiredGroups].map((g) => g.toLowerCase()).sort();
   }, [requiredGroups]);
 
   const hasRequiredAccess = (
@@ -63,11 +54,11 @@ const RoleBasedAccessControl: React.FC<RoleBasedAccessControlProps> = ({
   };
 
   useEffect(() => {
-    const groups = userGroups;
     const authorized =
-      isAuthenticated && hasRequiredAccess(groups, requiredGroups);
+      isAuthenticated &&
+      hasRequiredAccess(userGroups, normalizedRequiredGroups);
     setIsAuthorized(authorized);
-  }, [isAuthenticated, userGroups, requiredGroupsKey]);
+  }, [isAuthenticated, userGroups, normalizedRequiredGroups]);
 
   if (loading) {
     return (

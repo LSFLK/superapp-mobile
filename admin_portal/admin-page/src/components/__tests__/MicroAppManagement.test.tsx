@@ -11,6 +11,11 @@ import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 
+// Import after mocking
+import { useAuthContext } from "@asgardeo/auth-react";
+import { getEndpoint } from "../../constants/api";
+import MicroAppManagement from "../MicroAppManagement";
+
 // Mock dependencies with correct paths
 jest.mock("@asgardeo/auth-react", () => ({
   useAuthContext: jest.fn(),
@@ -66,11 +71,6 @@ jest.mock("../../constants/styles", () => ({
 jest.mock("../../constants/api", () => ({
   getEndpoint: jest.fn(() => "http://api.test/microapps"),
 }));
-
-// Import after mocking
-import { useAuthContext } from "@asgardeo/auth-react";
-import { getEndpoint } from "../../constants/api";
-import MicroAppManagement from "../MicroAppManagement";
 
 // Mock fetch globally
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -156,8 +156,7 @@ describe("MicroAppManagement Component (TS)", () => {
       expect(screen.queryByText(/v—/)).not.toBeInTheDocument();
       expect(screen.getAllByText("No description")).toHaveLength(2);
       expect(screen.getByText("App 2")).toBeInTheDocument();
-      expect(screen.getByText("?"))
-        .toBeInTheDocument();
+      expect(screen.getByText("?")).toBeInTheDocument();
     });
   });
 
