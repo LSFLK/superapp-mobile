@@ -247,8 +247,7 @@ export default function UserProfile({ state }: UserProfileProps) {
           )}
           {updatedAt && (
             <div>
-              <b style={{ color: COLORS.primary }}>Updated:</b>{" "}
-              {String(updatedAt)}
+              <b style={{ color: COLORS.primary }}>Updated:</b> {String(updatedAt)}
             </div>
           )}
 
