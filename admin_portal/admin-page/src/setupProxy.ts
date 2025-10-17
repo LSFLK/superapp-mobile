@@ -12,12 +12,23 @@ type AppLike = {
  */
 export default function setupProxy(app: AppLike): void {
   // Resolve proxy log level from env with validation
-  const allowedLogLevels = ["debug", "info", "warn", "error", "silent"] as const;
-  type LogLevel = typeof allowedLogLevels[number];
-  const normalizeLogLevel = (val: string | undefined, fallback: LogLevel): LogLevel => {
+  const allowedLogLevels = [
+    "debug",
+    "info",
+    "warn",
+    "error",
+    "silent",
+  ] as const;
+  type LogLevel = (typeof allowedLogLevels)[number];
+  const normalizeLogLevel = (
+    val: string | undefined,
+    fallback: LogLevel,
+  ): LogLevel => {
     if (!val) return fallback;
     const lc = val.toLowerCase();
-    return (allowedLogLevels as readonly string[]).includes(lc) ? (lc as LogLevel) : fallback;
+    return (allowedLogLevels as readonly string[]).includes(lc)
+      ? (lc as LogLevel)
+      : fallback;
   };
   // Global/default log level for proxies
   const defaultLogLevel: LogLevel = normalizeLogLevel(
@@ -90,7 +101,8 @@ export default function setupProxy(app: AppLike): void {
 
   // Allow an override specific to micro-apps proxy, falling back to default
   const microAppsLogLevel: LogLevel = normalizeLogLevel(
-    process.env.MICROAPPS_PROXY_LOG_LEVEL || process.env.REACT_APP_MICROAPPS_PROXY_LOG_LEVEL,
+    process.env.MICROAPPS_PROXY_LOG_LEVEL ||
+      process.env.REACT_APP_MICROAPPS_PROXY_LOG_LEVEL,
     defaultLogLevel,
   );
 

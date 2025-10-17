@@ -152,10 +152,12 @@ describe("MicroAppManagement Component (TS)", () => {
     });
     render(<MicroAppManagement />);
     await waitFor(() => {
-      expect(screen.getAllByText(/v—/)).toHaveLength(2);
+      // Version label should be hidden when version is missing
+      expect(screen.queryByText(/v—/)).not.toBeInTheDocument();
       expect(screen.getAllByText("No description")).toHaveLength(2);
       expect(screen.getByText("App 2")).toBeInTheDocument();
-      expect(screen.getByText("?")).toBeInTheDocument();
+      expect(screen.getByText("?"))
+        .toBeInTheDocument();
     });
   });
 
@@ -512,7 +514,8 @@ describe("MicroAppManagement Component (TS)", () => {
     await waitFor(() => {
       expect(screen.getByText("1")).toBeInTheDocument();
       expect(screen.getByText("App 2")).toBeInTheDocument();
-      expect(screen.getAllByText(/v—/)).toHaveLength(2);
+      // Version label should be hidden when version is missing
+      expect(screen.queryByText(/v—/)).not.toBeInTheDocument();
       expect(screen.getAllByText("No description")).toHaveLength(2);
     });
   });

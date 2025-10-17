@@ -42,11 +42,11 @@ export default function UserProfile({ state }: UserProfileProps) {
     let mounted = true;
     (async () => {
       try {
-          if (ctx?.getBasicUserInfo) {
-            const info = await ctx.getBasicUserInfo();
-            if (mounted) setBasicInfo(info ?? null);
-          }
-        } catch (e) {
+        if (ctx?.getBasicUserInfo) {
+          const info = await ctx.getBasicUserInfo();
+          if (mounted) setBasicInfo(info ?? null);
+        }
+      } catch (e) {
         console.error("Failed to fetch user info from Asgardeo:", e);
         if (mounted) setError("Could not fetch user details");
       } finally {
@@ -60,11 +60,15 @@ export default function UserProfile({ state }: UserProfileProps) {
 
   // Effect: Fetch Extended Profile from Backend Service
   useEffect(() => {
-  // Guarded extraction from possibly-unknown basicInfo
-  const basicObj = (basicInfo && typeof basicInfo === "object") ? (basicInfo as Record<string, unknown>) : null;
-  const email = basicObj?.email || state?.email || basicObj?.username || state?.username;
-  const emailStr = typeof email === "string" ? email : String(email || "");
-  if (!emailStr) return;
+    // Guarded extraction from possibly-unknown basicInfo
+    const basicObj =
+      basicInfo && typeof basicInfo === "object"
+        ? (basicInfo as Record<string, unknown>)
+        : null;
+    const email =
+      basicObj?.email || state?.email || basicObj?.username || state?.username;
+    const emailStr = typeof email === "string" ? email : String(email || "");
+    if (!emailStr) return;
 
     const base =
       getEndpoint("USERS_BASE") ||
@@ -79,7 +83,7 @@ export default function UserProfile({ state }: UserProfileProps) {
       setProfileLoading(true);
       setProfileError("");
       try {
-  const encoded = encodeURIComponent(emailStr);
+        const encoded = encodeURIComponent(emailStr);
         const endpoint = `${base}/users/${encoded}`.replace(
           /([^:])\/\//g,
           "$1/",
@@ -122,10 +126,10 @@ export default function UserProfile({ state }: UserProfileProps) {
           );
         }
 
-    let data: unknown;
+        let data: unknown;
         if (/json/i.test(contentType)) {
           try {
-      data = JSON.parse(bodyText || "null");
+            data = JSON.parse(bodyText || "null");
           } catch (e) {
             console.warn(
               "[UserProfile] JSON parse error; body starts with:",
@@ -144,7 +148,7 @@ export default function UserProfile({ state }: UserProfileProps) {
           );
         }
 
-  if (!abort) setProfile(data);
+        if (!abort) setProfile(data);
       } catch (e) {
         if (!abort) {
           const errorMessage =
@@ -162,18 +166,34 @@ export default function UserProfile({ state }: UserProfileProps) {
     };
   }, [basicInfo, state, ctx]);
 
-  const basic = (basicInfo && typeof basicInfo === "object") ? (basicInfo as Record<string, unknown>) : null;
-  const givenName = (typeof basic?.given_name === "string" && basic?.given_name) || state?.given_name || "";
-  const familyName = (typeof basic?.family_name === "string" && basic?.family_name) || state?.family_name || "";
+  const basic =
+    basicInfo && typeof basicInfo === "object"
+      ? (basicInfo as Record<string, unknown>)
+      : null;
+  const givenName =
+    (typeof basic?.given_name === "string" && basic?.given_name) ||
+    state?.given_name ||
+    "";
+  const familyName =
+    (typeof basic?.family_name === "string" && basic?.family_name) ||
+    state?.family_name ||
+    "";
   const locale = (typeof basic?.locale === "string" && basic?.locale) || "";
-  const updatedAt = (typeof basic?.updated_at === "string" && basic?.updated_at) || "";
+  const updatedAt =
+    (typeof basic?.updated_at === "string" && basic?.updated_at) || "";
   const picture = (typeof basic?.picture === "string" && basic?.picture) || "";
 
-  const prof = profile && typeof profile === "object" ? (profile as Record<string, unknown>) : null;
-  const firstName = typeof prof?.first_name === "string" ? prof.first_name : null;
+  const prof =
+    profile && typeof profile === "object"
+      ? (profile as Record<string, unknown>)
+      : null;
+  const firstName =
+    typeof prof?.first_name === "string" ? prof.first_name : null;
   const lastName = typeof prof?.last_name === "string" ? prof.last_name : null;
-  const employeeId = prof?.employee_id != null ? String(prof.employee_id) : null;
-  const department = typeof prof?.department === "string" ? prof.department : null;
+  const employeeId =
+    prof?.employee_id != null ? String(prof.employee_id) : null;
+  const department =
+    typeof prof?.department === "string" ? prof.department : null;
 
   return (
     <Card
@@ -232,28 +252,24 @@ export default function UserProfile({ state }: UserProfileProps) {
             </div>
           )}
 
-      {firstName && (
+          {firstName && (
             <div>
-              <b style={{ color: COLORS.primary }}>First name:</b>{" "}
-        {firstName}
+              <b style={{ color: COLORS.primary }}>First name:</b> {firstName}
             </div>
           )}
-      {lastName && (
+          {lastName && (
             <div>
-              <b style={{ color: COLORS.primary }}>Last name:</b>{" "}
-        {lastName}
+              <b style={{ color: COLORS.primary }}>Last name:</b> {lastName}
             </div>
           )}
-      {employeeId && (
+          {employeeId && (
             <div>
-              <b style={{ color: COLORS.primary }}>Employee ID:</b>{" "}
-        {employeeId}
+              <b style={{ color: COLORS.primary }}>Employee ID:</b> {employeeId}
             </div>
           )}
-      {department && (
+          {department && (
             <div>
-              <b style={{ color: COLORS.primary }}>Department:</b>{" "}
-        {department}
+              <b style={{ color: COLORS.primary }}>Department:</b> {department}
             </div>
           )}
         </div>

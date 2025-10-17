@@ -8,7 +8,6 @@ import { Card, CardContent, Typography } from "@mui/material";
 import useAuthInfo from "../hooks/useAuthInfo";
 import AccessDenied from "./common/AccessDenied";
 
-
 type RoleBasedAccessControlProps = {
   children?: React.ReactNode;
   requiredGroups?: string[];

@@ -24,7 +24,7 @@ function base64UrlDecode(input: string): string {
 }
 function decodeJwtPayload(token: string): JWTPayload | null {
   try {
-    const parts = token.split('.');
+    const parts = token.split(".");
     if (parts.length !== 3) return null;
     // Use the utility function to decode the payload
     const json = base64UrlDecode(parts[1]);
@@ -32,7 +32,10 @@ function decodeJwtPayload(token: string): JWTPayload | null {
     return payload;
   } catch (err) {
     // Keep token details out of logs; just note the failure.
-    console.error("useAuthInfo.decodeJwtPayload: Failed to decode JWT payload", err);
+    console.error(
+      "useAuthInfo.decodeJwtPayload: Failed to decode JWT payload",
+      err,
+    );
     return null;
   }
 }
@@ -60,7 +63,10 @@ export function useAuthInfo(): AuthInfo {
         }
       }
     } catch (err) {
-      console.error("useAuthInfo.extractUserGroups: Access token processing failed", err);
+      console.error(
+        "useAuthInfo.extractUserGroups: Access token processing failed",
+        err,
+      );
     }
 
     // 2) Try ID token (decoded claims)
@@ -74,7 +80,10 @@ export function useAuthInfo(): AuthInfo {
         }
       }
     } catch (err) {
-      console.error("useAuthInfo.extractUserGroups: ID token processing failed", err);
+      console.error(
+        "useAuthInfo.extractUserGroups: ID token processing failed",
+        err,
+      );
     }
 
     // 3) Try basic user info endpoint
@@ -85,7 +94,10 @@ export function useAuthInfo(): AuthInfo {
         if (fromUserInfo.length > 0) return fromUserInfo;
       }
     } catch (err) {
-      console.error("useAuthInfo.extractUserGroups: Basic user info processing failed", err);
+      console.error(
+        "useAuthInfo.extractUserGroups: Basic user info processing failed",
+        err,
+      );
     }
 
     // 4) Try access token payload from state
@@ -117,7 +129,7 @@ export function useAuthInfo(): AuthInfo {
       const g = await extractUserGroups();
       setGroups(g);
     } catch (e) {
-  console.error("useAuthInfo.refresh: Failed to load user groups", e);
+      console.error("useAuthInfo.refresh: Failed to load user groups", e);
       setError("Failed to load user groups");
       setGroups([]);
     } finally {
@@ -140,7 +152,7 @@ export function useAuthInfo(): AuthInfo {
         const g = await extractUserGroups();
         if (!cancelled) setGroups(g);
       } catch (e) {
-  console.error("useAuthInfo.effect: Failed to load user groups", e);
+        console.error("useAuthInfo.effect: Failed to load user groups", e);
         if (!cancelled) setError("Failed to load user groups");
       } finally {
         if (!cancelled) setLoading(false);
