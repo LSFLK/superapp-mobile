@@ -1,5 +1,5 @@
 /**
- * Reusable Card Component (TypeScript)
+ * Reusable Card Component
  *
  * A standardized container component that provides consistent styling for
  * content sections throughout the admin portal. Implements the design system's

@@ -1,5 +1,5 @@
 /**
- * API Configuration and Endpoint Management (TypeScript)
+ * API Configuration and Endpoint Management
  */
 
 // Base API URL for the SuperApp Backend (env override supported)

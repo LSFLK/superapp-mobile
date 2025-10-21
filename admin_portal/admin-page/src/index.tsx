@@ -1,5 +1,5 @@
 /**
- * Main entry point for the Admin Portal React application (TypeScript)
+ * Main entry point for the Admin Portal React application
  */
 
 import React from "react";

@@ -24,7 +24,7 @@ function base64UrlDecode(input: string): string {
 }
 function decodeJwtPayload(
   token: string,
-  source: "access" | "id" | "unknown" = "unknown",
+  source: "access" | "id" = "access",
 ): JWTPayload | null {
   try {
     const parts = token.split(".");
@@ -45,8 +45,8 @@ function decodeJwtPayload(
 
 export function useAuthInfo(): AuthInfo {
   // The auth SDK returns a rich, dynamic object; we assert it conforms to the
-  // minimal shape we declared above (AuthContextLike). This avoids scattered
-  // `as unknown as` usages and keeps typing local to this hook.
+  // minimal shape we declared above (AuthContextLike). This keeps typing local
+  // to this hook and avoids noisy casts elsewhere.
   const auth = useAuthContext() as AuthContextLike;
   const isAuthenticated = !!auth?.state?.isAuthenticated;
 
@@ -72,11 +72,11 @@ export function useAuthInfo(): AuthInfo {
       );
     }
 
-    // 2) Try ID token (decoded claims)
+  // 2) Try ID token (decoded claims)
     try {
       const idToken = await auth?.getIDToken?.();
       if (idToken) {
-        const decoded = auth?.getDecodedIDToken?.();
+    const decoded = await Promise.resolve(auth?.getDecodedIDToken?.());
         if (decoded) {
           const fromId = extractGroupsFromClaims(decoded);
           if (fromId.length > 0) return fromId;

@@ -1,5 +1,5 @@
 /*
-Unit tests for MicroAppManagement (TypeScript)
+Unit tests for MicroAppManagement
   - Initial rendering, loading states, data display
   - Error handling for network and HTTP errors
   - Upload mode toggle and state preservation

@@ -1,5 +1,5 @@
 /**
- * MicroAppManagement Component (TypeScript)
+ * MicroAppManagement Component
  */
 import React, { useEffect, useState, useCallback } from "react";
 import { useAuthContext } from "@asgardeo/auth-react";
@@ -39,7 +39,7 @@ const CONTAINER_KEYS_LOWER = [
   "microapps",
 ] as const;
 
-// UploadMicroApp is now fully typed in TypeScript
+// UploadMicroApp is now fully typed
 
 export default function MicroAppManagement(): React.ReactElement | null {
   // Authentication context for secure API calls
@@ -82,9 +82,19 @@ export default function MicroAppManagement(): React.ReactElement | null {
       }
 
       // Attempt robust JSON parsing and normalization
-      let data: unknown = null;
+      type MicroAppsContainer = {
+        items?: MicroApp[];
+        data?: MicroApp[] | Record<string, unknown>;
+        content?: MicroApp[];
+        results?: MicroApp[];
+        records?: MicroApp[];
+        list?: MicroApp[];
+        microapps?: MicroApp[];
+        [k: string]: unknown;
+      };
+      let data: MicroApp[] | MicroAppsContainer | null = null;
       try {
-        data = await res.json();
+        data = (await res.json()) as MicroApp[] | MicroAppsContainer;
       } catch (err) {
         console.error("[MicroAppManagement] Non-JSON response from endpoint", {
           endpoint,
@@ -94,26 +104,26 @@ export default function MicroAppManagement(): React.ReactElement | null {
 
       // Case-insensitive getter for object properties
       const getCaseInsensitive = (
-        obj: Record<string, unknown>,
+        obj: Record<string, any>,
         key: string,
-      ): unknown => {
+      ): any => {
         const found = Object.keys(obj).find(
           (k) => k.toLowerCase() === key.toLowerCase(),
         );
         return found ? obj[found] : undefined;
       };
 
-      const normalize = (d: unknown): MicroApp[] => {
-        if (Array.isArray(d)) return d as MicroApp[];
+      const normalize = (d: MicroApp[] | MicroAppsContainer | null): MicroApp[] => {
+        if (Array.isArray(d)) return d;
         if (!d || typeof d !== "object") return [];
 
-        const obj = d as Record<string, unknown>;
+  const obj = d as Record<string, any>;
         // Check common container keys (case-insensitive) including a single nested level
         for (const key of CONTAINER_KEYS_LOWER) {
           const v = getCaseInsensitive(obj, key);
           if (Array.isArray(v)) return v as MicroApp[];
           if (v && typeof v === "object") {
-            const nested = v as Record<string, unknown>;
+            const nested = v as Record<string, any>;
             for (const k2 of CONTAINER_KEYS_LOWER) {
               const v2 = getCaseInsensitive(nested, k2);
               if (Array.isArray(v2)) return v2 as MicroApp[];

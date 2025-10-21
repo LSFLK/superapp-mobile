@@ -1,5 +1,5 @@
 /**
- * Admin Portal Style Constants (TypeScript)
+ * Admin Portal Style Constants
  *
  * Centralized styling constants for consistent theming, colors, and component styling.
  */

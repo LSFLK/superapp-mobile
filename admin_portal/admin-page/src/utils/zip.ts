@@ -42,12 +42,12 @@ export async function validateZipFile(
   return { ok: true };
 }
 
-export function safeServerMessage(payload: unknown, fallback: string): string {
+export function safeServerMessage(payload: any, fallback: string): string {
   try {
     if (!payload) return fallback;
     if (typeof payload === "string") return payload.slice(0, 300);
     if (typeof payload === "object") {
-      const obj = payload as Record<string, unknown>;
+  const obj = payload as Record<string, any>;
       const candidates = ["message", "error", "detail", "title"];
       for (const c of candidates) {
         const v = obj[c];

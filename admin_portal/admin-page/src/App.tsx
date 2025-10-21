@@ -1,5 +1,5 @@
 /**
- * Admin Portal Main Application Component (TypeScript)
+ * Admin Portal Main Application Component
  */
 
 import React, { useEffect, useState } from "react";
