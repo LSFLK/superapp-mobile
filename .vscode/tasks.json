@@ -1,0 +1,13 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "typecheck-and-tests",
+			"type": "shell",
+			"command": "npm test --silent --workspaces=false --prefix admin_portal/admin-page -- --watchAll=false",
+			"args": [],
+			"isBackground": false,
+			"group": "build"
+		}
+	]
+}

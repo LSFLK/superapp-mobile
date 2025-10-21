@@ -34,8 +34,14 @@ const AccessDenied: React.FC<AccessDeniedProps> = ({
     <div style={{ ...COMMON_STYLES.pageCentered, padding: "20px" }}>
       <Card sx={{ maxWidth: 600, textAlign: "center", p: 2 }}>
         <CardContent>
-          <ErrorOutlineIcon sx={{ fontSize: 48, color: "#ff4d4f", mb: 2 }} />
-          <Typography variant="h4" gutterBottom sx={{ color: "#ff4d4f" }}>
+          <ErrorOutlineIcon
+            sx={{ fontSize: 48, color: (theme) => theme.palette.error.main, mb: 2 }}
+          />
+          <Typography
+            variant="h4"
+            gutterBottom
+            sx={{ color: (theme) => theme.palette.error.main }}
+          >
             {title}
           </Typography>
           <Alert severity="error" sx={{ mb: 2, textAlign: "left" }}>
