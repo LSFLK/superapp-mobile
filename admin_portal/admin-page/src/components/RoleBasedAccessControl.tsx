@@ -5,6 +5,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useAuthContext } from "@asgardeo/auth-react";
 import type { AuthContextLike } from "../types/auth";
 import { Card, CardContent, Typography } from "@mui/material";
+import { COMMON_STYLES } from "../constants/styles";
 import useAuthInfo from "../hooks/useAuthInfo";
 import AccessDenied from "./common/AccessDenied";
 
@@ -62,15 +63,7 @@ const RoleBasedAccessControl: React.FC<RoleBasedAccessControlProps> = ({
 
   if (loading) {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: "100vh",
-          backgroundColor: "#f5f5f5",
-        }}
-      >
+      <div style={COMMON_STYLES.pageCentered}>
         <Card sx={{ textAlign: "center", maxWidth: 400 }}>
           <CardContent>
             <Paragraph style={{ marginTop: 16 }}>

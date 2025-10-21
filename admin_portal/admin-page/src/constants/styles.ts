@@ -75,6 +75,8 @@ export interface CommonStyles {
   errorText: CSSProperties;
   /** inline error card style */
   alertError: CSSProperties;
+  /** full-page centered container */
+  pageCentered: CSSProperties;
 }
 
 export const COMMON_STYLES: CommonStyles = {
@@ -132,5 +134,13 @@ export const COMMON_STYLES: CommonStyles = {
     border: `1px solid ${COLORS.errorSurfaceBorder}`,
     color: COLORS.errorSurfaceText,
     borderRadius: "12px",
+  },
+
+  pageCentered: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    minHeight: "100vh",
+    backgroundColor: "#f5f5f5",
   },
 };

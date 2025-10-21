@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import LoginIcon from "@mui/icons-material/Login";
+import { COMMON_STYLES } from "../../constants/styles";
 
 export type AccessDeniedProps = {
   requiredGroups: string[];
@@ -30,16 +31,7 @@ const AccessDenied: React.FC<AccessDeniedProps> = ({
   message = "Unauthorized Access: You are not authorized to access this application. Please contact your administrator if you believe this is an error.",
 }) => {
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: "100vh",
-        backgroundColor: "#f5f5f5",
-        padding: "20px",
-      }}
-    >
+    <div style={{ ...COMMON_STYLES.pageCentered, padding: "20px" }}>
       <Card sx={{ maxWidth: 600, textAlign: "center", p: 2 }}>
         <CardContent>
           <ErrorOutlineIcon sx={{ fontSize: 48, color: "#ff4d4f", mb: 2 }} />
