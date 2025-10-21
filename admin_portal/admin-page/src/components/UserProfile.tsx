@@ -7,13 +7,10 @@
 
 import React, { useEffect, useState } from "react";
 import { useAuthContext } from "@asgardeo/auth-react";
-import type { AuthContextLike } from "../types/auth";
 import Loading from "./common/Loading";
 import Card from "./common/Card";
 import { COLORS } from "../constants/styles";
 import { getEndpoint } from "../constants/api";
-
-type AuthContext = AuthContextLike;
 
 type ExternalAuthState = {
   email?: string;
