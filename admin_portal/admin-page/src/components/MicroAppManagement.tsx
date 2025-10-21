@@ -3,6 +3,7 @@
  */
 import React, { useEffect, useState, useCallback } from "react";
 import { useAuthContext } from "@asgardeo/auth-react";
+import type { AuthContextInterface } from "@asgardeo/auth-react";
 import UploadMicroApp from "./UploadMicroApp";
 import Button from "./common/Button";
 import Loading from "./common/Loading";
@@ -21,12 +22,6 @@ type MicroApp = {
   description?: string;
 };
 
-type AuthContextLike = {
-  state?: { isAuthenticated?: boolean };
-  getAccessToken?: () => Promise<string>;
-  getIDToken?: () => Promise<string>;
-};
-
 // Common container keys likely used by various backends for array payloads.
 // Use case-insensitive lookup to avoid duplicate variants like "microApps" vs "microapps".
 const CONTAINER_KEYS_LOWER = [
@@ -43,7 +38,7 @@ const CONTAINER_KEYS_LOWER = [
 
 export default function MicroAppManagement(): React.ReactElement | null {
   // Authentication context for secure API calls
-  const auth = useAuthContext() as AuthContextLike;
+  const auth: AuthContextInterface = useAuthContext();
 
   // Component state management
   const [showUpload, setShowUpload] = useState<boolean>(false);
