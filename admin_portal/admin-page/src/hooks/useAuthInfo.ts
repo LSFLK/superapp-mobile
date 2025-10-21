@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuthContext } from "@asgardeo/auth-react";
+import type { AuthContextInterface } from "@asgardeo/auth-react";
 import { extractGroupsFromClaims } from "../utils/auth";
-import type { JWTPayload, AuthContextLike } from "../types/auth";
+import type { JWTPayload } from "../types/auth";
 
 export type AuthInfo = {
   isAuthenticated: boolean;
@@ -10,7 +11,7 @@ export type AuthInfo = {
   error: string | null;
   refresh: () => Promise<void>;
   // Expose the raw auth context only if consumers need signOut, etc.
-  auth: AuthContextLike;
+  auth: AuthContextInterface;
 };
 
 // Utility function to decode base64url strings (used in JWTs)
@@ -44,10 +45,8 @@ function decodeJwtPayload(
 }
 
 export function useAuthInfo(): AuthInfo {
-  // The auth SDK returns a rich, dynamic object; we assert it conforms to the
-  // minimal shape we declared above (AuthContextLike). This keeps typing local
-  // to this hook and avoids noisy casts elsewhere.
-  const auth = useAuthContext() as AuthContextLike;
+  // Use the official Asgardeo auth context interface for strong typing
+  const auth: AuthContextInterface = useAuthContext();
   const isAuthenticated = !!auth?.state?.isAuthenticated;
 
   const [groups, setGroups] = useState<string[]>([]);
@@ -99,18 +98,6 @@ export function useAuthInfo(): AuthInfo {
     } catch (err) {
       console.error(
         "useAuthInfo.extractUserGroups: Basic user info processing failed",
-        err,
-      );
-    }
-
-    // 4) Try access token payload from state
-    try {
-      const payload = auth?.state?.accessTokenPayload;
-      const fromState = extractGroupsFromClaims(payload);
-      if (fromState.length > 0) return fromState;
-    } catch (err) {
-      console.error(
-        "useAuthInfo.extractUserGroups: Access token payload from state processing failed",
         err,
       );
     }

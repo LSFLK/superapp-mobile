@@ -20,22 +20,4 @@ export interface JWTPayload {
   wso2_role?: string[] | string;
   [claim: string]: unknown;
 }
-
-export type AuthContextLike = {
-  state?: {
-    isAuthenticated?: boolean;
-    accessToken?: string | null;
-    accessTokenPayload?: JWTPayload | Record<string, unknown> | null;
-  };
-  getAccessToken?: () => Promise<string | null | undefined>;
-  getIDToken?: () => Promise<string | null | undefined>;
-  getDecodedIDToken?: () =>
-    | Promise<JWTPayload | Record<string, unknown> | null | undefined>
-    | JWTPayload
-    | Record<string, unknown>
-    | null
-    | undefined;
-  getBasicUserInfo?: () => Promise<Record<string, unknown> | null | undefined>;
-  // Sign-out implementations vary across SDKs; allow a flexible signature.
-  signOut?: (...args: any[]) => any;
-};
+// Note: Prefer official types from @asgardeo/auth-react for auth context shapes.
