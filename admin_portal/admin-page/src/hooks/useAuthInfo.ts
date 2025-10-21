@@ -72,11 +72,11 @@ export function useAuthInfo(): AuthInfo {
       );
     }
 
-  // 2) Try ID token (decoded claims)
+    // 2) Try ID token (decoded claims)
     try {
       const idToken = await auth?.getIDToken?.();
       if (idToken) {
-    const decoded = await Promise.resolve(auth?.getDecodedIDToken?.());
+        const decoded = await Promise.resolve(auth?.getDecodedIDToken?.());
         if (decoded) {
           const fromId = extractGroupsFromClaims(decoded);
           if (fromId.length > 0) return fromId;

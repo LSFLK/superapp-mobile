@@ -65,8 +65,11 @@ export default function UserProfile({ state }: UserProfileProps) {
 
   // Effect: Fetch Extended Profile from Backend Service
   useEffect(() => {
-  // Guarded extraction from possibly-null basicInfo
-  const basicObj = basicInfo && typeof basicInfo === "object" ? (basicInfo as Record<string, any>) : null;
+    // Guarded extraction from possibly-null basicInfo
+    const basicObj =
+      basicInfo && typeof basicInfo === "object"
+        ? (basicInfo as Record<string, any>)
+        : null;
     const email =
       basicObj?.email || state?.email || basicObj?.username || state?.username;
     const emailStr = typeof email === "string" ? email : String(email || "");
@@ -128,10 +131,10 @@ export default function UserProfile({ state }: UserProfileProps) {
           );
         }
 
-    let data: ProfileData | null = null;
+        let data: ProfileData | null = null;
         if (/json/i.test(contentType)) {
           try {
-      data = JSON.parse(bodyText || "null");
+            data = JSON.parse(bodyText || "null");
           } catch (e) {
             console.warn(
               "[UserProfile] JSON parse error; body starts with:",
@@ -168,7 +171,10 @@ export default function UserProfile({ state }: UserProfileProps) {
     };
   }, [basicInfo, state, ctx]);
 
-  const basic = basicInfo && typeof basicInfo === "object" ? (basicInfo as Record<string, any>) : null;
+  const basic =
+    basicInfo && typeof basicInfo === "object"
+      ? (basicInfo as Record<string, any>)
+      : null;
   const givenName =
     (typeof basic?.given_name === "string" && basic?.given_name) ||
     state?.given_name ||
@@ -182,7 +188,10 @@ export default function UserProfile({ state }: UserProfileProps) {
     (typeof basic?.updated_at === "string" && basic?.updated_at) || "";
   const picture = (typeof basic?.picture === "string" && basic?.picture) || "";
 
-  const prof = profile && typeof profile === "object" ? (profile as Record<string, any>) : null;
+  const prof =
+    profile && typeof profile === "object"
+      ? (profile as Record<string, any>)
+      : null;
   const firstName =
     typeof prof?.first_name === "string" ? prof.first_name : null;
   const lastName = typeof prof?.last_name === "string" ? prof.last_name : null;

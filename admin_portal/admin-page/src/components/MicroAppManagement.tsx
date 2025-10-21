@@ -113,11 +113,13 @@ export default function MicroAppManagement(): React.ReactElement | null {
         return found ? obj[found] : undefined;
       };
 
-      const normalize = (d: MicroApp[] | MicroAppsContainer | null): MicroApp[] => {
+      const normalize = (
+        d: MicroApp[] | MicroAppsContainer | null,
+      ): MicroApp[] => {
         if (Array.isArray(d)) return d;
         if (!d || typeof d !== "object") return [];
 
-  const obj = d as Record<string, any>;
+        const obj = d as Record<string, any>;
         // Check common container keys (case-insensitive) including a single nested level
         for (const key of CONTAINER_KEYS_LOWER) {
           const v = getCaseInsensitive(obj, key);

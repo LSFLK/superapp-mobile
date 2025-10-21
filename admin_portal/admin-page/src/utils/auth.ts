@@ -17,7 +17,17 @@ export type GroupClaimKey = (typeof GROUP_CLAIM_KEYS)[number];
 /**
  * Normalize a value that could be a string or array-like into a string array.
  */
-export function toStringArray(value: string | number | boolean | string[] | number[] | boolean[] | null | undefined): string[] {
+export function toStringArray(
+  value:
+    | string
+    | number
+    | boolean
+    | string[]
+    | number[]
+    | boolean[]
+    | null
+    | undefined,
+): string[] {
   if (Array.isArray(value)) {
     return value.map((v) => String(v)).filter(Boolean);
   }
@@ -28,7 +38,9 @@ export function toStringArray(value: string | number | boolean | string[] | numb
 /**
  * Extract user groups from a claims-like object using a set of known keys.
  */
-export function extractGroupsFromClaims(claims: Record<string, any> | null | undefined): string[] {
+export function extractGroupsFromClaims(
+  claims: Record<string, any> | null | undefined,
+): string[] {
   if (!claims || typeof claims !== "object") return [];
   const obj = claims as Record<string, any>;
 

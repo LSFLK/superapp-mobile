@@ -35,7 +35,11 @@ const AccessDenied: React.FC<AccessDeniedProps> = ({
       <Card sx={{ maxWidth: 600, textAlign: "center", p: 2 }}>
         <CardContent>
           <ErrorOutlineIcon
-            sx={{ fontSize: 48, color: (theme) => theme.palette.error.main, mb: 2 }}
+            sx={{
+              fontSize: 48,
+              color: (theme) => theme.palette.error.main,
+              mb: 2,
+            }}
           />
           <Typography
             variant="h4"

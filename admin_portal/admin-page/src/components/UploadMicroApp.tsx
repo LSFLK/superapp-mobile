@@ -130,7 +130,11 @@ const UploadMicroApp: React.FC<UploadMicroAppProps> = ({ onUploaded }) => {
       });
 
       const ct = res.headers.get("Content-Type") || "";
-      type UploadResponse = { message?: string; error?: string; [k: string]: unknown } | null;
+      type UploadResponse = {
+        message?: string;
+        error?: string;
+        [k: string]: unknown;
+      } | null;
       let payload: UploadResponse = null;
       if (ct.includes("application/json")) {
         payload = (await res.json().catch(() => null)) as UploadResponse;
@@ -149,7 +153,9 @@ const UploadMicroApp: React.FC<UploadMicroAppProps> = ({ onUploaded }) => {
 
       setIsError(false);
       setIsWarning(false);
-  setMessage((payload && payload.message) || "Micro-app uploaded successfully");
+      setMessage(
+        (payload && payload.message) || "Micro-app uploaded successfully",
+      );
       setShowModal(true);
       // Optional: clear form
       setZipFile(null);

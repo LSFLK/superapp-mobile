@@ -47,7 +47,7 @@ export function safeServerMessage(payload: any, fallback: string): string {
     if (!payload) return fallback;
     if (typeof payload === "string") return payload.slice(0, 300);
     if (typeof payload === "object") {
-  const obj = payload as Record<string, any>;
+      const obj = payload as Record<string, any>;
       const candidates = ["message", "error", "detail", "title"];
       for (const c of candidates) {
         const v = obj[c];
