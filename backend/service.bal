@@ -15,7 +15,6 @@
 // under the License.
 import superapp_mobile_service.authorization;
 import superapp_mobile_service.database;
-import superapp_mobile_service.entity;
 
 import ballerina/http;
 import ballerina/log;
@@ -24,7 +23,6 @@ configurable int maxHeaderSize = 16384; // 16KB header size for WSO2 Choreo supp
 configurable string[] restrictedAppsForNonLk = ?;
 configurable string lkLocation = "Sri Lanka";
 configurable string mobileAppReviewerEmail = ?; // App store reviewer email
-configurable string defaultMicroAppsGroup = ?; // Default micro apps group name
 
 @display {
     label: "SuperApp Mobile Service",
@@ -61,7 +59,7 @@ service http:InterceptableService / on new http:Listener(9090, config = {request
     #
     # + ctx - Request context
     # + return - User information object or an error
-    resource function get user\-info(http:RequestContext ctx) returns entity:Employee|http:InternalServerError? {
+    resource function get user\-info(http:RequestContext ctx) returns database:User|http:InternalServerError {
         authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
         if userInfo is error {
             return {
@@ -71,7 +69,7 @@ service http:InterceptableService / on new http:Listener(9090, config = {request
             };
         }
 
-        entity:Employee|error? loggedInUser = getUserInfo(userInfo.email);
+        database:User|error loggedInUser = getUserInfo(userInfo.email);
         if loggedInUser is error {
             string customError = "Error occurred while retrieving user data!";
             log:printError(customError, loggedInUser);
@@ -80,11 +78,6 @@ service http:InterceptableService / on new http:Listener(9090, config = {request
                     message: customError
                 }
             };
-        }
-
-        if loggedInUser is () {
-            log:printWarn("User not found!", email = userInfo.email);
-            return;
         }
 
         error? cacheError = userInfoCache.put(userInfo.email, loggedInUser);
@@ -109,7 +102,7 @@ service http:InterceptableService / on new http:Listener(9090, config = {request
             };
         }
 
-        database:MicroApp[]|error allMicroApps = database:getMicroApps(userInfo.groups ?: []);
+        database:MicroApp[]|error allMicroApps = database:getMicroApps(userInfo.groups);
         if allMicroApps is error {
             string customError = "Error occurred while retrieving Micro Apps!";
             log:printError(customError, err = allMicroApps.message());
@@ -125,7 +118,7 @@ service http:InterceptableService / on new http:Listener(9090, config = {request
             return allMicroApps;
         }
 
-        entity:Employee|error? loggedInUser = getUserInfo(userInfo.email);
+        database:User|error? loggedInUser = getUserInfo(userInfo.email);
         if loggedInUser is error {
             string customError = "Error occurred while retrieving user data!";
             log:printError(customError, loggedInUser);
@@ -138,7 +131,7 @@ service http:InterceptableService / on new http:Listener(9090, config = {request
 
         database:MicroApp[] filteredMicroApps = allMicroApps;
 
-        if loggedInUser is entity:Employee && loggedInUser.location != lkLocation {
+        if loggedInUser is database:User && loggedInUser.location != lkLocation {
             filteredMicroApps = allMicroApps.filter(microapp => restrictedAppsForNonLk.indexOf(microapp.appId) is ());
         }
 
@@ -162,7 +155,7 @@ service http:InterceptableService / on new http:Listener(9090, config = {request
             };
         }
 
-        database:MicroApp|error? microApp = database:getMicroAppById(appId, userInfo.groups ?: []);
+        database:MicroApp|error? microApp = database:getMicroAppById(appId, userInfo.groups);
 
         if microApp is error {
             string customError = "Error occurred while retrieving the Micro App for the given app ID!";
@@ -287,23 +280,5 @@ service http:InterceptableService / on new http:Listener(9090, config = {request
         }
 
         return http:CREATED;
-    }
-
-    # Fetch default microapps.
-    #
-    # + return - Content records or an error
-    resource function get default\-microapps () returns database:MicroApp[]|http:InternalServerError {
-        database:MicroApp[]|error defaultMicroApps = database:getMicroApps([defaultMicroAppsGroup]);
-        if defaultMicroApps is error  {
-            string customError = "Error occurred while retrieving default micro apps!";
-            log:printError(customError, defaultMicroApps);
-            return {
-                body: {
-                    message: customError
-                }
-            };
-
-        }
-        return defaultMicroApps;
     }
 }

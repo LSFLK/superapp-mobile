@@ -161,3 +161,16 @@ isolated function updateAppConfigsByEmailQuery(string email, string configKey, s
             config_value = ${configValue},
             active = ${isActive}
 `;
+
+public isolated function getUserInfoByEmailQuery(string email) returns sql:ParameterizedQuery => `
+    SELECT
+        email as workEmail,
+        firstName,
+        lastName,
+        userThumbnail,
+        location
+    FROM
+        users_
+    WHERE
+        email = ${email}
+`;

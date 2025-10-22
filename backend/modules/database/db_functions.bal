@@ -127,10 +127,15 @@ public isolated function updateAppConfigsByEmail(string email, AppConfig appConf
     returns ExecutionSuccessResult|error {
 
     sql:ParameterizedQuery query = updateAppConfigsByEmailQuery(
-        email,
-        appConfig.configKey,
-        appConfig.configValue.toJsonString(),
-        appConfig.isActive);
+            email,
+            appConfig.configKey,
+            appConfig.configValue.toJsonString(),
+            appConfig.isActive);
     sql:ExecutionResult result = check databaseClient->execute(query);
     return result.cloneWithType(ExecutionSuccessResult);
+}
+
+public isolated function getUserInfoByEmail(string email) returns User|error {
+    User|error userInfo = check databaseClient->queryRow(getUserInfoByEmailQuery(email));
+    return userInfo;
 }

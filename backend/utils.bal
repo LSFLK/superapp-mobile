@@ -13,20 +13,21 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
-import superapp_mobile_service.entity;
+import superapp_mobile_service.database;
 
 import ballerina/cache;
 import ballerina/log;
 
 final cache:Cache userInfoCache = new (capacity = 100, evictionFactor = 0.2);
 
-# Retrieves basic employee information for a given email.
+# Retrieves basic user information for a given email.
 #
 # + email - Email address of the user
-# + return - entity:Employee record if available, or error? if an error occurs or the user is not found
-public isolated function getUserInfo(string email) returns entity:Employee|error? {
+# + return - database:User record if available, or error? if an error occurs or the user is not found
+public isolated function getUserInfo(string email) returns database:User|error {
+
     if userInfoCache.hasKey(email) {
-        entity:Employee|error loggedInUser = userInfoCache.get(email).ensureType();
+        database:User|error loggedInUser = userInfoCache.get(email).ensureType();
         if loggedInUser is error {
             log:printWarn(string `Error occurred while retrieving user data: ${email}!`, loggedInUser);
         } else {
@@ -34,5 +35,5 @@ public isolated function getUserInfo(string email) returns entity:Employee|error
         }
     }
 
-    return entity:fetchEmployeesBasicInfo(email);
+    return database:getUserInfoByEmail(email);
 }

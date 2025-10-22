@@ -113,6 +113,20 @@ public type Version record {|
     string downloadUrl;
 |};
 
+# Record type to model basic user information.
+public type User record {
+    # Email of the user
+    string workEmail;
+    # First name of the user
+    string firstName;
+    # Last name of the user
+    string lastName;
+    # Thumbnail of the user
+    string? userThumbnail;
+    # Location of the user
+    string? location;
+};
+
 # Record type to model configurations for the users of the SuperApp.
 public type AppConfig record {|
     # User email

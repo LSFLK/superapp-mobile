@@ -10,20 +10,6 @@ maxOpenConnections=
 maxConnectionLifeTime=
 minIdleConnections=
 
-[superapp_mobile_service.entity]
-hrEntityBaseUrl = ""
-    [superapp_mobile_service.entity.oauth2Config]
-    tokenUrl = "",
-    clientId = "",
-    clientSecret = ""
-
-[superapp_mobile_service.entity.retryConfig]
-count=
-interval=
-backOffFactor=
-maxWaitInterval=
-
 [superapp_mobile_service]
-Lklocation = ""
-mobileAppReviewerEmail = ""
-appsToRemoveNonLk = [""]
+mobileAppReviewerEmail =""
+restrictedAppsForNonLk =[""]
