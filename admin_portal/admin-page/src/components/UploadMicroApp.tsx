@@ -27,6 +27,9 @@ const UploadMicroApp: React.FC<UploadMicroAppProps> = ({ onUploaded }) => {
   const [version, setVersion] = useState("");
   const [appId, setAppId] = useState("");
   const [iconUrlPath, setIconUrlPath] = useState("");
+  const [bannerImageUrl, setBannerImageUrl] = useState("");
+  const [promoText, setPromoText] = useState("");
+  const [releaseNotes, setReleaseNotes] = useState("");
   const [description, setDescription] = useState("");
   const [zipFile, setZipFile] = useState<File | null>(null);
 
@@ -83,34 +86,49 @@ const UploadMicroApp: React.FC<UploadMicroAppProps> = ({ onUploaded }) => {
     setIsWarning(false);
     setMessage("");
     try {
-      const form = new FormData();
-      form.append("name", name.trim());
-      form.append("version", version.trim());
-      form.append("appId", appId.trim());
-      form.append("description", description.trim());
-      if (iconUrlPath.trim()) form.append("iconUrlPath", iconUrlPath.trim());
-      form.append("zipFile", file);
+      // 1. Upload ZIP file to get downloadUrl (simulate or use your own upload logic)
+      // For now, we'll use a placeholder URL. In production, you should upload the file and get the URL.
+      // TODO: Replace this with actual upload logic if needed.
+      const downloadUrl = "https://example.com/downloads/" + encodeURIComponent(file.name);
 
-      // Build auth / invoker headers
-      const headers: Record<string, string> = {};
+      // 2. Build the microApp payload as per the API spec
+      const microAppPayload = {
+        name: name.trim(),
+        description: description.trim(),
+        promoText: promoText.trim() || "Initial Release",
+        appId: appId.trim(),
+        iconUrl: iconUrlPath.trim() || "https://example.com/icon.png",
+        bannerImageUrl: bannerImageUrl.trim() || "https://example.com/banner.png",
+        isMandatory: 0,
+        versions: [
+          {
+            version: version.trim(),
+            build: 1,
+            releaseNotes: releaseNotes.trim() || "First release",
+            iconUrl: iconUrlPath.trim() || "https://example.com/icon.png",
+            downloadUrl,
+          },
+        ],
+        roles: [],
+      };
+
+      // 3. Build auth headers
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
       try {
         if (auth?.state?.isAuthenticated) {
-          const accessToken = await auth
-            .getAccessToken?.()
-            .catch(() => undefined);
+          const accessToken = await auth.getAccessToken?.().catch(() => undefined);
           if (accessToken) {
             headers["Authorization"] = `Bearer ${accessToken}`;
-            headers["x-jwt-assertion"] = accessToken; // make same as Bearer
+            headers["x-jwt-assertion"] = accessToken;
           }
         }
       } catch (e) {
-        // Non-fatal: continue without tokens (backend may reject)
         console.warn("Auth acquisition failed for micro-app upload", e);
       }
 
       const uploadUrl = getEndpoint("MICROAPPS_UPLOAD");
-      console.log("[UploadMicroApp] Upload endpoint =>", uploadUrl);
-      // Optionally suppress x-jwt-assertion if remote gateway rejects it
       if (
         process.env.REACT_APP_MICROAPPS_SUPPRESS_ASSERTION === "true" &&
         headers["x-jwt-assertion"]
@@ -123,10 +141,11 @@ const UploadMicroApp: React.FC<UploadMicroAppProps> = ({ onUploaded }) => {
         );
       }
 
+      // 4. POST the JSON payload
       const res = await fetch(uploadUrl, {
         method: "POST",
-        headers, // let browser set multipart boundary
-        body: form,
+        headers,
+        body: JSON.stringify(microAppPayload),
       });
 
       const ct = res.headers.get("Content-Type") || "";
@@ -153,20 +172,14 @@ const UploadMicroApp: React.FC<UploadMicroAppProps> = ({ onUploaded }) => {
 
       setIsError(false);
       setIsWarning(false);
-      setMessage(
-        (payload && payload.message) || "Micro-app uploaded successfully",
-      );
+      setMessage((payload && payload.message) || "Micro-app uploaded successfully");
       setShowModal(true);
-      // Optional: clear form
       setZipFile(null);
       setConfirmFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
-      // Notify parent to refresh list / close view
       try {
         onUploaded && onUploaded();
-      } catch (_) {
-        /* no-op */
-      }
+      } catch (_) {}
     } catch (err) {
       console.error(err);
       setIsError(true);
@@ -303,6 +316,40 @@ const UploadMicroApp: React.FC<UploadMicroAppProps> = ({ onUploaded }) => {
               }}
             />
           </label>
+          <label style={{ display: "grid", gap: 6 }}>
+            <span style={{ color: "var(--muted)", fontSize: 12 }}>
+              Banner Image URL
+            </span>
+            <input
+              type="text"
+              value={bannerImageUrl}
+              onChange={(e) => setBannerImageUrl(e.target.value)}
+              placeholder="optional"
+              style={{
+                padding: 10,
+                borderRadius: 10,
+                border: "1px solid var(--border)",
+                color: "#000",
+              }}
+            />
+          </label>
+          <label style={{ display: "grid", gap: 6 }}>
+            <span style={{ color: "var(--muted)", fontSize: 12 }}>
+              Promo Text
+            </span>
+            <input
+              type="text"
+              value={promoText}
+              onChange={(e) => setPromoText(e.target.value)}
+              placeholder="optional"
+              style={{
+                padding: 10,
+                borderRadius: 10,
+                border: "1px solid var(--border)",
+                color: "#000",
+              }}
+            />
+          </label>
         </div>
         <div style={{ marginTop: 12 }}>
           <label style={{ display: "grid", gap: 6 }}>
@@ -328,6 +375,24 @@ const UploadMicroApp: React.FC<UploadMicroAppProps> = ({ onUploaded }) => {
             {!description.trim() && (
               <small style={{ color: "#dc2626" }}>Required</small>
             )}
+          </label>
+          <label style={{ display: "grid", gap: 6, marginTop: 8 }}>
+            <span style={{ color: "var(--muted)", fontSize: 12 }}>
+              Release Notes
+            </span>
+            <textarea
+              value={releaseNotes}
+              onChange={(e) => setReleaseNotes(e.target.value)}
+              placeholder="Release notes for this version"
+              rows={2}
+              style={{
+                padding: 10,
+                borderRadius: 10,
+                border: "1px solid var(--border)",
+                resize: "vertical",
+                color: "#000",
+              }}
+            />
           </label>
         </div>
       </div>

@@ -27,9 +27,7 @@ export default function UserProfile({ state }: UserProfileProps) {
   const ctx = useAuthContext();
 
   // State management for user data from different sources
-  type JSONPrimitive = string | number | boolean | null;
-  type JSONValue = JSONPrimitive | { [k: string]: JSONValue } | JSONValue[];
-  type BasicInfo = { [k: string]: JSONValue } | null;
+  type BasicInfo = Record<string, any> | null;
   const [basicInfo, setBasicInfo] = useState<BasicInfo>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
