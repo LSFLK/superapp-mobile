@@ -24,6 +24,8 @@ configurable int maxHeaderSize = 16384; // 16KB header size for WSO2 Choreo supp
 configurable string[] restrictedAppsForNonLk = ?;
 configurable string lkLocation = "Sri Lanka";
 configurable string mobileAppReviewerEmail = ?; // App store reviewer email
+configurable string[] allowedOrigins = ["*"]; // Allowed origins for CORS (comma-separated in production, or "*" for dev)
+configurable boolean corsAllowCredentials = false; // Enable CORS credentials
 
 @display {
     label: "SuperApp Mobile Service",
@@ -67,6 +69,15 @@ service /\.well\-known on httpListener {
     }
 }
 
+@http:ServiceConfig {
+    cors: {
+        allowOrigins: allowedOrigins,
+        allowCredentials: corsAllowCredentials,
+        allowHeaders: ["Authorization", "Content-Type", "x-jwt-assertion"],
+        allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        maxAge: 3600
+    }
+}
 service http:InterceptableService / on httpListener {
 
     # + return - authorization:JwtInterceptor, ErrorInterceptor
