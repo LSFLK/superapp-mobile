@@ -46,7 +46,28 @@ service class ErrorInterceptor {
     }
 }
 
-service http:InterceptableService / on new http:Listener(9090, config = {requestLimits: {maxHeaderSize}}) {
+listener http:Listener httpListener = new http:Listener(9090, config = {requestLimits: {maxHeaderSize}});
+
+service /\.well\-known on httpListener {
+
+    # Serves the JSON Web Key Set (JWKS) for token verification (public endpoint, no authentication)
+    #
+    # + return - JWKS response or error
+    resource function get jwks() returns token_exchange:JsonWebKeySet|http:InternalServerError {
+        token_exchange:JsonWebKeySet|error jwks = token_exchange:getJWKS();
+        if jwks is error {
+            string customError = "Failed to read JWKS";
+            log:printError(customError, jwks);
+            return <http:InternalServerError>{
+                body: {message: customError}
+            };
+        }
+        
+        return jwks;
+    }
+}
+
+service http:InterceptableService / on httpListener {
 
     # + return - authorization:JwtInterceptor, ErrorInterceptor
     public function createInterceptors() returns http:Interceptor[] =>
