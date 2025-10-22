@@ -50,6 +50,15 @@ service class ErrorInterceptor {
 
 listener http:Listener httpListener = new http:Listener(9090, config = {requestLimits: {maxHeaderSize}});
 
+@http:ServiceConfig {
+    cors: {
+        allowOrigins: allowedOrigins,
+        allowCredentials: corsAllowCredentials,
+        allowHeaders: ["Content-Type"],
+        allowMethods: ["GET", "OPTIONS"],
+        maxAge: 3600
+    }
+}
 service /\.well\-known on httpListener {
 
     # Serves the JSON Web Key Set (JWKS) for token verification (public endpoint, no authentication)
