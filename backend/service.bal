@@ -15,6 +15,7 @@
 // under the License.
 import superapp_mobile_service.authorization;
 import superapp_mobile_service.database;
+import superapp_mobile_service.token_exchange;
 
 import ballerina/http;
 import ballerina/log;
@@ -382,5 +383,36 @@ service http:InterceptableService / on new http:Listener(9090, config = {request
         }
 
         return http:CREATED;
+    }
+
+    # Request a JWT for authorization.
+    #
+    # + ctx - Request context
+    # + request - Token request payload
+    # + return - `TokenResponse` with the generated JWT token on success, or errors on failure
+    resource function post tokens(http:RequestContext ctx, token_exchange:TokenRequest request)
+        returns token_exchange:TokenResponse|http:InternalServerError|http:BadRequest {
+
+        authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
+        if userInfo is error {
+            return <http:InternalServerError>{
+                body: {message: ERR_MSG_USER_HEADER_NOT_FOUND}
+            };
+        }
+
+        string|error token = token_exchange:issueJWT(userInfo.email, request.clientId);
+        if token is error {
+            string customError = "Error occurred while generating JWT token";
+            log:printError(customError, token);
+            return <http:InternalServerError>{
+                body: {message: customError}
+            };
+        }
+
+        decimal expiresAt = token_exchange:getTokenTTL();
+        return <token_exchange:TokenResponse>{
+            token: token, 
+            expiresAt: expiresAt
+        };
     }
 }
