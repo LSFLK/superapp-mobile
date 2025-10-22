@@ -96,6 +96,79 @@ public isolated function getMicroAppById(string appId, string[] groups) returns 
     return microApp;
 }
 
+# Inserts or updates a MicroApp and its role and versions into the database.
+#
+# + microApp - MicroApp record to insert/update
+# + createdBy - User who performs the operation
+# + return - ExecutionSuccessResult on success or error
+public isolated function upsertMicroApp(MicroApp microApp, string createdBy) returns ExecutionSuccessResult|error {
+    sql:ExecutionResult result = check databaseClient->execute(upsertMicroAppQuery(microApp, createdBy));
+    if microApp.roles.length() > 0 {
+        foreach MicroAppRole appRole in microApp.roles {
+            _ = check databaseClient->execute(upsertMicroAppRoleQuery(microApp.appId, appRole, createdBy));
+        }
+    }
+
+    if microApp.versions.length() > 0 {
+        foreach MicroAppVersion version in microApp.versions {
+            _ = check databaseClient->execute(upsertMicroAppVersionQuery(microApp.appId, version, createdBy));
+        }
+    }
+
+    return result.cloneWithType(ExecutionSuccessResult);
+}
+
+# Inserts or updates a single MicroApp version into the database.
+#
+# + appId - MicroApp ID to which this version belongs
+# + version - MicroAppVersion record to insert/update
+# + createdBy - User who performs the operation
+# + return - ExecutionSuccessResult on success or error
+public isolated function upsertMicroAppVersion(string appId, MicroAppVersion version, string createdBy) 
+    returns ExecutionSuccessResult|error {
+        
+    sql:ExecutionResult result = check databaseClient->execute(upsertMicroAppVersionQuery(appId, version, createdBy));
+    if result.affectedRowCount == 0 {
+        return error("Failed to add micro app version.");
+    }
+
+    return result.cloneWithType(ExecutionSuccessResult);
+}
+
+# Inserts or updates a role mapping for a MicroApp.
+#
+# + appId - MicroApp ID to which this role mapping belongs
+# + appRole - MicroAppRole record containing the role name
+# + createdBy - User who performs the operation
+# + return - ExecutionSuccessResult on success or error
+public isolated function upsertMicroAppRole(string appId, MicroAppRole appRole, string createdBy) 
+    returns ExecutionSuccessResult|error {
+
+    sql:ExecutionResult result = check databaseClient->execute(upsertMicroAppRoleQuery(appId, appRole, createdBy));
+    if result.affectedRowCount == 0 {
+        return error("Failed to add micro app role mapping.");
+    }
+
+    return result.cloneWithType(ExecutionSuccessResult);
+}
+
+# Deletes (soft delete) a MicroApp by setting active = 0.
+# Also cascades the soft delete to related versions and role mappings.
+#
+# + appId - MicroApp ID to delete
+# + updatedBy - User who performs the deletion
+# + return - ExecutionSuccessResult on success or error
+public isolated function deleteMicroApp(string appId, string updatedBy) returns ExecutionSuccessResult|error {
+    sql:ExecutionResult result = check databaseClient->execute(deleteMicroAppQuery(appId, updatedBy));
+    if result.affectedRowCount == 0 {
+        return error("No matching micro app found to delete.");
+    }
+
+    _ = check databaseClient->execute(deleteMicroAppVersionQuery(appId, updatedBy));
+    _ = check databaseClient->execute(deleteMicroAppRoleQuery(appId, updatedBy));
+    return result.cloneWithType(ExecutionSuccessResult);
+}
+
 # Get all the versions of the SuperApp for a given platform.
 #
 # + platform - Platform ios|android

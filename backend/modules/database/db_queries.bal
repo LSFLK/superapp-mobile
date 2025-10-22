@@ -92,6 +92,162 @@ isolated function getMicroAppByAppIdQuery(string appId) returns sql:Parameterize
         active = 1
 `;
 
+# Query to insert a new micro app into `micro_app` table.
+#
+# + microApp - The `MicroApp` record to be inserted
+# + createdBy - User who performs the insertion (used for created_by/updated_by)
+# + return - Generated query to insert the micro app
+public isolated function upsertMicroAppQuery(MicroApp microApp, string createdBy) returns sql:ParameterizedQuery => `
+    INSERT INTO micro_app (
+        name,
+        description,
+        promo_text,
+        micro_app_id,
+        icon_url,
+        banner_image_url,
+        mandatory,
+        created_by,
+        updated_by,
+        created_at,
+        updated_at,
+        active
+    ) VALUES (
+        ${microApp.name},
+        ${microApp.description},
+        ${microApp.promoText},
+        ${microApp.appId},
+        ${microApp.iconUrl},
+        ${microApp.bannerImageUrl},
+        ${microApp.isMandatory},
+        ${createdBy},
+        ${createdBy},
+        CURRENT_TIMESTAMP,
+        CURRENT_TIMESTAMP,
+        1
+    )
+    ON DUPLICATE KEY UPDATE
+        name = ${microApp.name},
+        description = ${microApp.description},
+        promo_text = ${microApp.promoText},
+        icon_url = ${microApp.iconUrl},
+        banner_image_url = ${microApp.bannerImageUrl},
+        mandatory = ${microApp.isMandatory},
+        updated_by = ${createdBy},
+        updated_at = CURRENT_TIMESTAMP,
+        active = 1
+`;
+
+# Query to insert a micro app version into `micro_app_version` table.
+#
+# + appId - MicroApp id
+# + version - `MicroAppVersion` record containing version, build and URLs
+# + createdBy - User who performs the insertion (used for created_by/updated_by)
+# + return - Generated query to insert micro app version
+public isolated function upsertMicroAppVersionQuery(string appId, MicroAppVersion version, string createdBy)
+    returns sql:ParameterizedQuery => `
+    INSERT INTO micro_app_version (
+        version,
+        build,
+        release_notes,
+        icon_url,
+        download_url,
+        micro_app_id,
+        created_by,
+        updated_by,
+        created_at,
+        updated_at,
+        active
+    ) VALUES (
+        ${version.version},
+        ${version.build},
+        ${version.releaseNotes},
+        ${version.iconUrl},
+        ${version.downloadUrl},
+        ${appId},
+        ${createdBy},
+        ${createdBy},
+        CURRENT_TIMESTAMP,
+        CURRENT_TIMESTAMP,
+        1
+    )
+    ON DUPLICATE KEY UPDATE
+        release_notes = ${version.releaseNotes},
+        icon_url = ${version.iconUrl},
+        updated_by = ${createdBy},
+        updated_at = CURRENT_TIMESTAMP,
+        active = 1
+`;
+
+# Query to insert a role mapping into `micro_app_role` table.
+#
+# + appId - MicroApp id
+# + appRole - MicroAppRole record containing the role name
+# + createdBy - User who performs the insertion (used for created_by/updated_by)
+# + return - Generated query to insert micro app role mapping
+public isolated function upsertMicroAppRoleQuery(string appId, MicroAppRole appRole, string createdBy)
+    returns sql:ParameterizedQuery => `
+    INSERT INTO micro_app_role (
+        micro_app_id,
+        role,
+        active,
+        created_by,
+        updated_by,
+        created_at,
+        updated_at
+    ) VALUES (
+        ${appId},
+        ${appRole.role},
+        1,
+        ${createdBy},
+        ${createdBy},
+        CURRENT_TIMESTAMP,
+        CURRENT_TIMESTAMP
+    )
+    ON DUPLICATE KEY UPDATE
+        active = 1,
+        updated_by = ${createdBy},
+        updated_at = CURRENT_TIMESTAMP
+`;
+
+# Query to delete (soft delete) a micro app by setting active = 0.
+#
+# + appId - The micro app ID to be deleted
+# + updatedBy - User who performs the deletion (used for updated_by)
+# + return - Generated query to soft delete the micro app from the `micro_app` table
+public isolated function deleteMicroAppQuery(string appId, string updatedBy) returns sql:ParameterizedQuery =>
+    `UPDATE micro_app SET 
+        active = 0, 
+        updated_at = CURRENT_TIMESTAMP, 
+        updated_by = ${updatedBy} 
+    WHERE micro_app_id = ${appId}
+`;
+
+# Query to soft delete all versions of a micro app by setting active = 0.
+#
+# + appId - The micro app ID whose versions should be deleted
+# + updatedBy - User who performs the deletion (used for updated_by)
+# + return - Generated query to soft delete all versions from the `micro_app_version` table
+public isolated function deleteMicroAppVersionQuery(string appId, string updatedBy) returns sql:ParameterizedQuery =>
+    `UPDATE micro_app_version SET 
+        active = 0, 
+        updated_at = CURRENT_TIMESTAMP, 
+        updated_by = ${updatedBy} 
+    WHERE micro_app_id = ${appId}
+`;
+
+# Query to soft delete all role mappings of a micro app by setting active = 0.
+#
+# + appId - The micro app ID whose role mappings should be deleted
+# + updatedBy - User who performs the deletion (used for updated_by)
+# + return - Generated query to soft delete all role mappings from the `micro_app_role` table
+public isolated function deleteMicroAppRoleQuery(string appId, string updatedBy) returns sql:ParameterizedQuery =>
+    `UPDATE micro_app_role SET 
+        active = 0, 
+        updated_at = CURRENT_TIMESTAMP, 
+        updated_by = ${updatedBy} 
+    WHERE micro_app_id = ${appId}
+`;
+
 # Query to get Super App versions by platform
 #
 # + platform - Platform (ios or android)

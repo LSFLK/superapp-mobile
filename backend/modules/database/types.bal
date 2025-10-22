@@ -13,6 +13,7 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
+import ballerina/constraint;
 import ballerina/sql;
 import ballerinax/mysql;
 
@@ -66,6 +67,7 @@ public type MicroApp record {|
     string promoText;
     # Unique id for the microapp, example : com.wso2.supperapp.leaveapp
     @sql:Column {name: "micro_app_id"}
+    @constraint:String {minLength: 1}
     string appId;
     # Display icon, in png format: 128x128
     @sql:Column {name: "icon_url"}
@@ -78,13 +80,24 @@ public type MicroApp record {|
     int isMandatory;
     # List of versions available for the microapp
     MicroAppVersion[] versions = [];
+    # List of roles/groups that have access to the microapp
+    MicroAppRole[] roles = [];
+|};
+
+# Record type to represent a role/group mapping for a MicroApp.
+public type MicroAppRole record {|
+    # Role/group name that has access to the microapp
+    @constraint:String {minLength: 1}
+    string role;
 |};
 
 # Record type to represent each MicroApp versions.
 public type MicroAppVersion record {|
     # Version
+    @constraint:String {minLength: 1}
     string version;
     # Unique build number
+    @constraint:Int {minValue: 1}
     int build;
     # Release notes
     @sql:Column {name: "release_notes"}
