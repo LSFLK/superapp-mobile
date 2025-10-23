@@ -148,8 +148,8 @@ const unzipFile = async (dispatch: AppDispatch, appId: string) => {
     if (!indexPath) throw new Error("Index file not found");
 
     const microAppConfig = await getMicroAppConfig(extractedDir);
-    if (!microAppConfig.clientId) throw new Error("Client id not found");
-
+    // if (!microAppConfig.clientId) throw new Error("Client id not found");
+    if (!microAppConfig.clientId) console.warn("[appStoreService] Client id not found");
     const formattedUri = encodeURI(
       indexPath.startsWith("file://") ? indexPath : `file://${indexPath}`
     );

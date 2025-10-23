@@ -13,18 +13,6 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
-
-import {
-  View,
-  Alert,
-  Text,
-  TouchableOpacity,
-  useColorScheme,
-  StyleSheet,
-} from "react-native";
-import { useEffect, useRef, useState } from "react";
-import { WebView, WebViewMessageEvent } from "react-native-webview";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import NotFound from "@/components/NotFound";
 import Scanner from "@/components/Scanner";
 import { Colors } from "@/constants/Colors";
@@ -51,7 +39,7 @@ import { injectedJavaScript, TOPIC } from "@/utils/bridge";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Google from "expo-auth-session/providers/google";
 import { documentDirectory } from "expo-file-system";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect, useRef, useState } from "react";
 import {
