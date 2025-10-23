@@ -13,73 +13,116 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
+import { BRIDGE_REGISTRY, getRequestMethod, getResolveMethod, getRejectMethod, getHelperMethod } from './bridgeRegistry';
 
-// Bridge event topics used for communication between the main app and micro apps.
-export const TOPIC = {
-  TOKEN: "token",
-  QR_REQUEST: "qr_request",
-  SAVE_LOCAL_DATA: "save_local_data",
-  GET_LOCAL_DATA: "get_local_data",
-  ALERT: "alert",
-  CONFIRM_ALERT: "confirm_alert",
-  TOTP: "totp",
-  GOOGLE_LOGIN: "google_login",
-  UPLOAD_TO_GOOGLE_DRIVE: "upload_to_google_drive",
-  RESTORE_GOOGLE_DRIVE_BACKUP: "restore_google_drive_backup",
-  GOOGLE_USER_INFO: "google_user_info",
-  CHECK_GOOGLE_AUTH_STATE: "check_google_auth_state",
-  CLOSE_WEBVIEW_FROM_MICROAPP: "close_webview",
-  NATIVE_LOG: "native_log",
+/**
+ * This module auto-generates JavaScript code that gets injected into WebViews
+ */
 
+export const generateInjectedJavaScript = () => {
+  const methods: string[] = [];
+  const globalHelpers: string[] = [];
+
+  // Generate methods for each bridge function
+  BRIDGE_REGISTRY.forEach(bridgeFunction => {
+    const { topic } = bridgeFunction;
+
+    const requestMethod = getRequestMethod(topic);
+    const resolveMethod = getResolveMethod(topic);
+    const rejectMethod = getRejectMethod(topic);
+    const helperMethod = getHelperMethod(topic);
+
+    /**
+     * Generate request method - returns a promise that resolves/rejects based on native response
+     * This creates window.nativebridge.someMethod(data) that posts messages to React Native
+     * and returns a promise that will be resolved when native responds
+     * 
+     * BACKWARD COMPATIBILITY: Also supports old callback-based pattern
+     */
+    methods.push(`
+    ${requestMethod}: (...args) => {
+      const data = args[0];
+      const requestId = Date.now() + '_' + Math.random().toString(36).slice(2, 11);
+      
+      // Store promise resolvers if needed (for new Promise-based usage)
+      if (!window.nativebridge._pendingPromises) {
+        window.nativebridge._pendingPromises = {};
+      }
+      
+      // Post message to React Native with request ID
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        topic: '${topic}',
+        data: data,
+        requestId: requestId
+      }));
+      
+      // Return a promise for new Promise-based usage
+      return new Promise((resolve, reject) => {
+        window.nativebridge._pendingPromises[requestId] = { resolve, reject };
+      });
+    },`);
+
+    /**
+     * Generate resolve method - resolves the corresponding promise
+     */
+    methods.push(`
+    ${resolveMethod}: (data, requestId) => {
+      if (window.nativebridge._pendingPromises && window.nativebridge._pendingPromises[requestId]) {
+        window.nativebridge._pendingPromises[requestId].resolve(data);
+        delete window.nativebridge._pendingPromises[requestId];
+      }
+    },`);
+
+    /**
+     * Generate reject method - rejects the corresponding promise
+     */
+    methods.push(`
+    ${rejectMethod}: (error, requestId) => {
+      if (window.nativebridge._pendingPromises && window.nativebridge._pendingPromises[requestId]) {
+        window.nativebridge._pendingPromises[requestId].reject(error);
+        delete window.nativebridge._pendingPromises[requestId];
+      }
+    },`);
+
+    /**
+     * Generate helper methods for data persistence across page reloads
+     * Creates global variables and getter methods for storing resolved data
+     */
+
+    // Create a generic global variable for this topic
+    const globalVarName = `native${topic.split('_').map(word =>
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join('')}`;
+
+    globalHelpers.push(`window.${globalVarName} = null;`);
+
+    // Create the helper getter method
+    methods.push(`
+    ${helperMethod}: () => {
+      return window.${globalVarName};
+    },`);
+
+    /**
+     * Store data globally
+     * This allows web apps to access resolved data even after page navigation
+     */
+    const resolveIndex = methods.findIndex(m => m.includes(resolveMethod));
+    if (resolveIndex !== -1) {
+      methods[resolveIndex] = `
+    ${resolveMethod}: (data, requestId) => {
+      window.${globalVarName} = data;
+      if (window.nativebridge._pendingPromises && window.nativebridge._pendingPromises[requestId]) {
+        window.nativebridge._pendingPromises[requestId].resolve(data);
+        delete window.nativebridge._pendingPromises[requestId];
+      }
+    },`;
+    }
+  });
+
+  return `
+  ${globalHelpers.join('\n')}
+  window.nativebridge = {${methods.join('')}
+  };`;
 };
 
-// JavaScript code injected into the WebView to enable communication between
-// the micro app and the React Native app via the native bridge.
-export const injectedJavaScript = `window.nativebridge = {
-    requestToken: () => {
-      window.ReactNativeWebView.postMessage(JSON.stringify({
-        topic: 'token'
-      }));
-    },
-    requestQr: () => {
-      window.ReactNativeWebView.postMessage(JSON.stringify({
-        topic: 'qr_request'
-      }));
-    },
-    requestAlert: (title, message, buttonText) => {
-      window.ReactNativeWebView.postMessage(JSON.stringify({ 
-        topic: "alert", 
-        data: { title, message, buttonText } 
-      }));
-    },
-    requestConfirmAlert: (title, message, confirmButtonText, cancelButtonText) => {
-      window.ReactNativeWebView.postMessage(JSON.stringify({ 
-        topic: "confirm_alert", 
-        data: { title, message, confirmButtonText, cancelButtonText } 
-      }));
-    },
-    requestSaveLocalData: (key, value) => window.ReactNativeWebView.postMessage(JSON.stringify({ topic: "save_local_data", data: { key, value } })),
-    resolveSaveLocalData: () => console.log("Local data saved successfully"),
-    rejectSaveLocalData: (err) => console.error("Save Local Data failed:", err),
-    requestGetLocalData: (key) => window.ReactNativeWebView.postMessage(JSON.stringify({ topic: "get_local_data", data: { key } })),
-    resolveGetLocalData: (data) => console.log("Local data received:", data),
-    rejectGetLocalData: (err) => console.error("Get Local Data failed:", err),
-    requestTotpQrMigrationData: () => window.ReactNativeWebView.postMessage(JSON.stringify({ topic: "totp" })),
-    resolveTotpQrMigrationData: (data) => console.log("TOTP QR Migration Data:", data),
-    rejectTotpQrMigrationData: (err) => console.error("TOTP Data retrieval failed:", err),
-    requestGoogleLogin: () => window.ReactNativeWebView.postMessage(JSON.stringify({ topic: "google_login" })),
-    resolveGoogleLogin: (data) => console.log("Google login data received:", data),
-    rejectGoogleLogin: (err) => console.error("Google login failed:", err),
-    requestUploadToGoogleDrive: (data) => window.ReactNativeWebView.postMessage(JSON.stringify({ topic: "upload_to_google_drive", data })),
-    resolveUploadToGoogleDrive: () => console.log("Google Drive upload successful"),
-    rejectUploadToGoogleDrive: (err) => console.error("Google Drive upload failed:", err),
-    requestRestoreGoogleDriveBackup: () => window.ReactNativeWebView.postMessage(JSON.stringify({ topic: "restore_google_drive_backup" })),
-    resolveRestoreGoogleDriveBackup: (data) => console.log("Google Drive backup restored:", data),
-    rejectRestoreGoogleDriveBackup: (err) => console.error("Google Drive restore failed:", err),
-    requestGoogleAuthState: () => window.ReactNativeWebView.postMessage(JSON.stringify({ topic: "check_google_auth_state" })),
-    resolveGoogleAuthState: (data) => console.log("Google Auth State:", data),
-    rejectGoogleAuthState: (err) => console.error("Google Auth State check failed:", err),
-    requestGoogleUserInfo: () => window.ReactNativeWebView.postMessage(JSON.stringify({ topic: "google_user_info" })),
-    resolveGoogleUserInfo: (data) => console.log("Google User Info:", data),
-    rejectGoogleUserInfo: (err) => console.error("Google User Info retrieval failed:", err)
-  };`;
+export const injectedJavaScript = generateInjectedJavaScript();
