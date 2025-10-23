@@ -456,7 +456,7 @@ const MicroApp = () => {
           title: shouldShowHeader ? appName : "",
           headerShown: shouldShowHeader,
           headerRight: () =>
-            isDeveloper &&
+            isDeveloper ? (
             shouldShowHeader && (
               <TouchableOpacity
                 onPressIn={() => {
@@ -511,7 +511,7 @@ const MicroApp = () => {
               >
                 <Text style={styles.headerText}>App URL</Text>
               </TouchableOpacity>
-            ),
+            )) : null,
         }}
       />
       <View style={styles.container}>
