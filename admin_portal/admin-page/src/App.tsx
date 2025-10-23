@@ -6,6 +6,7 @@ import React, { useEffect, useState } from "react";
 import { useAuthContext } from "@asgardeo/auth-react";
 import { Box, Container, Paper, Button as MuiButton } from "@mui/material";
 import UserProfile from "./components/UserProfile";
+import { getEndpoint } from "./constants/api";
 import MicroAppManagement from "./components/MicroAppManagement";
 import MenuBar from "./components/MenuBar";
 // import RoleBasedAccessControl from "./components/RoleBasedAccessControl";
@@ -41,10 +42,55 @@ export default function App(): React.ReactElement {
     ""
   ).split(" ")[0];
 
+
   // Navigation state for switching between admin sections
-  const [activeKey, setActiveKey] = useState<"microapp" | "profile">(
-    "microapp",
-  );
+  const [activeKey, setActiveKey] = useState<"microapp" | "profile">("microapp");
+
+  // User profile state
+  const [profile, setProfile] = useState<null | {
+    workEmail: string;
+    firstName: string;
+    lastName: string;
+    userThumbnail: string;
+    location: string;
+  }>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileError, setProfileError] = useState("");
+
+  // Fetch user profile from backend
+  useEffect(() => {
+    if (!isAuthenticated || !state?.username) return;
+    setProfileLoading(true);
+    setProfileError("");
+    const fetchProfile = async () => {
+      try {
+  const base = getEndpoint("USERS_BASE") || "/api/users";
+  const email = state.username || "";
+  const endpoint = `${String(base)}/${encodeURIComponent(String(email))}`;
+        const headers: Record<string, string> = {};
+        if (ctx?.getAccessToken) {
+          const access = await ctx.getAccessToken();
+          if (access) headers["Authorization"] = `Bearer ${access}`;
+          if (access) headers["x-jwt-assertion"] = access;
+        }
+        const res = await fetch(endpoint, { headers });
+        if (!res.ok) throw new Error("Failed to fetch user profile");
+        const data = await res.json();
+        setProfile({
+          workEmail: data.workEmail || data.email || email,
+          firstName: data.firstName || data.given_name || data.givenName || "",
+          lastName: data.lastName || data.family_name || data.familyName || "",
+          userThumbnail: data.userThumbnail || data.picture || "",
+          location: data.location || "",
+        });
+      } catch (e: any) {
+        setProfileError(e.message || "Failed to load profile");
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+    fetchProfile();
+  }, [isAuthenticated, state?.username, ctx]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -94,7 +140,19 @@ export default function App(): React.ReactElement {
                 )}
                 {activeKey === "profile" && (
                   <section className="card">
-                    <UserProfile state={state as any} />
+                    {profileLoading ? (
+                      <div style={{ padding: 32, textAlign: "center" }}>Loading profile…</div>
+                    ) : profileError ? (
+                      <div style={{ color: "red", padding: 32, textAlign: "center" }}>{profileError}</div>
+                    ) : profile ? (
+                      <UserProfile
+                        workEmail={profile.workEmail}
+                        firstName={profile.firstName}
+                        lastName={profile.lastName}
+                        userThumbnail={profile.userThumbnail}
+                        location={profile.location}
+                      />
+                    ) : null}
                   </section>
                 )}
               </main>

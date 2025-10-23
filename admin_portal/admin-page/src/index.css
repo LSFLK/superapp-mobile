@@ -28,6 +28,7 @@
 /* Ensure consistent sizing to prevent full-width Drawer due to resets */
 html {
   box-sizing: border-box;
+  font-size: 16px;
 }
 *,
 *::before,
@@ -48,8 +49,53 @@ body {
     "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: var(--bg);
   color: var(--text);
-  background: #ffffff;
+}
+
+img, video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.card {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Responsive breakpoints */
+@media (max-width: 900px) {
+  .MuiDrawer-paper {
+    width: 160px !important;
+  }
+  .card {
+    padding: 12px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  html {
+    font-size: 15px;
+  }
+  .MuiDrawer-paper {
+    width: 100vw !important;
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    height: 56px !important;
+    flex-direction: row !important;
+    display: flex !important;
+    align-items: center !important;
+    z-index: 1200;
+  }
+  .card {
+    padding: 8px !important;
+    border-radius: 10px !important;
+  }
+  .greeting {
+    font-size: 1.1rem !important;
+  }
 }
 
 /* Layout */

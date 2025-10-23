@@ -30,6 +30,7 @@ export default function MenuBar({
   activeKey,
   placement = "left",
 }: MenuBarProps) {
+
   const items: Array<{
     key: string;
     icon: React.ReactNode;
@@ -58,41 +59,90 @@ export default function MenuBar({
       anchor={placement}
       open
       sx={{
-        width: drawerWidth,
+        width: { xs: '100vw', sm: drawerWidth },
         flexShrink: 0,
-        "& .MuiDrawer-paper": {
-          width: drawerWidth,
-          boxSizing: "border-box",
+        '& .MuiDrawer-paper': {
+          width: { xs: '100vw', sm: drawerWidth },
+          boxSizing: 'border-box',
+          position: { xs: 'fixed', sm: 'sticky' },
+          height: { xs: 56, sm: '100vh' },
+          flexDirection: { xs: 'row', sm: 'column' },
+          display: 'flex',
+          alignItems: { xs: 'center', sm: 'stretch' },
+          justifyContent: { xs: 'flex-start', sm: 'flex-start' },
+          padding: 0,
         },
       }}
       PaperProps={{
-        sx: { position: "sticky", height: "100vh" },
-        "data-testid": "sider" as any,
+        sx: { position: { xs: 'fixed', sm: 'sticky' }, height: { xs: 56, sm: '100vh' } },
+        'data-testid': 'sider' as any,
       }}
     >
-      <Toolbar />
-      <Box sx={{ p: 2 }}>
-        <Typography variant="h6" component="h1" sx={{ m: 0 }}>
+      <Toolbar sx={{ display: { xs: 'none', sm: 'block' } }} />
+      <Box
+        sx={{
+          pt: { xs: 0, sm: -10 },
+          pb: { xs: 0, sm: 2 },
+          px: { xs: 1, sm: 2 },
+          display: 'flex',
+          flexDirection: { xs: 'row', sm: 'column' },
+          alignItems: 'center',
+          width: { xs: 'auto', sm: '100%' },
+          minWidth: 0,
+        }}
+      >
+        <img
+          src={process.env.PUBLIC_URL + '/download.jpeg'}
+          alt="Download"
+          style={{
+            width: 40,
+            height: 40,
+            marginBottom: 0,
+            marginTop: 0,
+            borderRadius: 8,
+            display: 'block',
+          }}
+        />
+        <Typography
+          variant="h6"
+          component="h1"
+          sx={{
+            m: 0,
+            ml: { xs: 2, sm: 0 },
+            fontSize: { xs: '1.1rem', sm: '1.25rem' },
+            display: { xs: 'inline', sm: 'block' },
+            whiteSpace: { xs: 'nowrap', sm: 'normal' },
+          }}
+        >
           Admin Portal
         </Typography>
       </Box>
-      <List data-testid="menu">
+      <List data-testid="menu" sx={{ display: 'flex', flexDirection: { xs: 'row', sm: 'column' }, width: '100%' }}>
         {items.map((item) => {
           const selected = activeKey === item.key;
           return (
             <ListItemButton
               key={item.key}
               selected={selected}
-              className={selected ? "selected" : ""}
+              className={selected ? 'selected' : ''}
               onClick={() => onClick(item.key)}
               role="menuitem"
               data-testid={`menu-item-${item.key}`}
+              sx={{
+                flex: { xs: 1, sm: 'unset' },
+                justifyContent: { xs: 'center', sm: 'flex-start' },
+                minWidth: 0,
+                px: { xs: 1, sm: 2 },
+                py: { xs: 0.5, sm: 1 },
+                fontSize: { xs: '0.95rem', sm: '1rem' },
+              }}
             >
-              <ListItemIcon sx={{ minWidth: 36 }}>{item.icon}</ListItemIcon>
+              <ListItemIcon sx={{ minWidth: 28, justifyContent: 'center' }}>{item.icon}</ListItemIcon>
               <ListItemText
                 primary={item.label}
                 primaryTypographyProps={{
-                  color: item.danger ? "error" : undefined,
+                  color: item.danger ? 'error' : undefined,
+                  sx: { display: { xs: 'none', sm: 'block' } },
                 }}
               />
             </ListItemButton>

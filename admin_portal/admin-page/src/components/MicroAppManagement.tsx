@@ -5,6 +5,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useAuthContext } from "@asgardeo/auth-react";
 import type { AuthContextInterface } from "@asgardeo/auth-react";
 import UploadMicroApp from "./UploadMicroApp";
+import EditMicroApp from "./EditMicroApp";
 import Button from "./common/Button";
 import Loading from "./common/Loading";
 import Card from "./common/Card";
@@ -17,6 +18,7 @@ import { API_KEYS } from "../constants/apiKeys";
 type MicroApp = {
   micro_app_id?: string;
   app_id?: string;
+  appId?: string; // for camelCase backend responses
   name?: string;
   version?: string;
   description?: string;
@@ -42,9 +44,13 @@ export default function MicroAppManagement(): React.ReactElement | null {
 
   // Component state management
   const [showUpload, setShowUpload] = useState<boolean>(false);
+  const [editApp, setEditApp] = useState<any | null>(null); // Use correct type if available
   const [microApps, setMicroApps] = useState<MicroApp[]>([]);
   const [loadingList, setLoadingList] = useState<boolean>(false);
   const [listError, setListError] = useState<string>("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string>("");
+
 
   const fetchMicroApps = useCallback(async () => {
     setLoadingList(true);
@@ -58,7 +64,7 @@ export default function MicroAppManagement(): React.ReactElement | null {
           try {
             const access = await auth.getAccessToken();
             if (access) {
-              headers["Authorization"] = `Bearer ${access}`;
+              //headers["Authorization"] = `Bearer ${access}`;
               headers["x-jwt-assertion"] = access;
             }
           } catch (e) {
@@ -97,6 +103,9 @@ export default function MicroAppManagement(): React.ReactElement | null {
         throw new Error("Unexpected response format (non-JSON)");
       }
 
+      // Debug: log raw data
+      console.log("[MicroAppManagement] Raw response data:", data);
+
       // Case-insensitive getter for object properties
       const getCaseInsensitive = (
         obj: Record<string, any>,
@@ -131,10 +140,9 @@ export default function MicroAppManagement(): React.ReactElement | null {
       };
 
       const normalized = normalize(data);
-      console.log(
-        "[MicroAppManagement] Received micro-apps count:",
-        normalized.length,
-      );
+      // Debug: log normalized array
+      console.log("[MicroAppManagement] Normalized micro-apps array:", normalized);
+      console.log("[MicroAppManagement] Received micro-apps count:", normalized.length);
       setMicroApps(normalized);
     } catch (e) {
       const errorMessage =
@@ -146,6 +154,43 @@ export default function MicroAppManagement(): React.ReactElement | null {
     }
   }, [auth]);
 
+  // Delete micro-app by ID (must be after fetchMicroApps for dependency order)
+  const handleDelete = useCallback(async (appId?: string) => {
+    console.log("handleDelete called with appId:", appId);
+    if (!appId) return;
+    setDeletingId(appId);
+    setDeleteError("");
+    try {
+      const headers: Record<string, string> = { Accept: "application/json" };
+      if (auth?.state?.isAuthenticated && typeof auth.getAccessToken === "function") {
+        try {
+          const access = await auth.getAccessToken();
+          if (access) headers["x-jwt-assertion"] = access;
+        } catch (e) {
+          // ignore, handled below
+        }
+      }
+      let endpoint = getEndpoint(API_KEYS.MICROAPPS_DELETE);
+      if (!endpoint.endsWith("/")) endpoint += "/";
+      endpoint += encodeURIComponent(appId);
+      console.log("Sending DELETE to endpoint:", endpoint, headers);
+      const res = await fetch(endpoint, { method: "DELETE", headers });
+      if (!res.ok) {
+        let msg = `Failed to delete micro-app (${res.status})`;
+        try {
+          const data = await res.json();
+          if (data?.message) msg = data.message;
+        } catch {}
+        throw new Error(msg);
+      }
+      await fetchMicroApps();
+    } catch (e) {
+      setDeleteError(e instanceof Error ? e.message : "Delete failed");
+    } finally {
+      setDeletingId(null);
+    }
+  }, [auth, fetchMicroApps]);
+
   useEffect(() => {
     fetchMicroApps();
   }, [fetchMicroApps]);
@@ -155,24 +200,24 @@ export default function MicroAppManagement(): React.ReactElement | null {
       {!showUpload && (
         <div
           style={{
-            display: "flex",
-            flexWrap: "wrap",
+            display: 'flex',
+            flexWrap: 'wrap',
             gap: 8,
-            justifyContent: "space-between",
-            alignItems: "center",
+            justifyContent: 'space-between',
+            alignItems: 'center',
             marginBottom: 12,
+            flexDirection: 'row',
           }}
         >
-          <h2 style={{ margin: 0, color: COLORS.primary }}>
+          <h2 style={{ margin: 0, color: COLORS.primary, fontSize: '1.3rem', flex: '1 1 180px', minWidth: 120 }}>
             Available Micro Apps
           </h2>
-          <div style={{ display: "flex", gap: 0, marginTop: 0 }}>
+          <div style={{ display: 'flex', gap: 8, marginTop: 0, flex: '0 0 auto' }}>
             <Button onClick={fetchMicroApps} disabled={loadingList}>
-              {loadingList ? "Refreshing…" : "Refresh"}
+              {loadingList ? 'Refreshing…' : 'Refresh'}
             </Button>
-
             <Button onClick={() => setShowUpload((s) => !s)}>
-              {showUpload ? "Close Upload" : "Add new"}
+              {showUpload ? 'Close Upload' : 'Add new'}
             </Button>
           </div>
         </div>
@@ -221,9 +266,10 @@ export default function MicroAppManagement(): React.ReactElement | null {
       {!showUpload && (
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
             gap: 12,
+            width: '100%',
           }}
         >
           {loadingList && microApps.length === 0 && (
@@ -244,49 +290,52 @@ export default function MicroAppManagement(): React.ReactElement | null {
 
           {microApps.map((app) => (
             <Card
-              key={app.micro_app_id || app.app_id || Math.random().toString(36)}
+              key={app.micro_app_id || app.app_id || app.appId || Math.random().toString(36)}
               style={{
                 padding: 16,
                 background: COLORS.cardBackground,
                 border: `1px solid ${COLORS.borderAlt || COLORS.border}`,
-                cursor: "default",
-                display: "flex",
-                flexDirection: "column",
+                cursor: 'default',
+                display: 'flex',
+                flexDirection: 'column',
                 gap: 8,
                 borderRadius: 14,
-                boxShadow: "0 3px 8px -2px rgba(0,58,103,0.15)",
+                boxShadow: '0 3px 8px -2px rgba(0,58,103,0.15)',
+                minWidth: 0,
+                maxWidth: '100%',
+                wordBreak: 'break-word',
               }}
             >
-              <div style={{ display: "flex", gap: 12 }}>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
                 <div
                   style={{
                     width: 48,
                     height: 48,
-                    background: COLORS.borderAlt || "#e6f4ff",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
+                    background: COLORS.borderAlt || '#e6f4ff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     fontWeight: 600,
                     borderRadius: 8,
-                    color: COLORS.accent || "#1677ff",
+                    color: COLORS.accent || '#1677ff',
+                    fontSize: '1.2rem',
                   }}
                 >
-                  {(app.name ? app.name : "?").slice(0, 2).toUpperCase()}
+                  {(app.name ? app.name : '?').slice(0, 2).toUpperCase()}
                 </div>
-
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, color: COLORS.text }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, color: COLORS.text, fontSize: '1.05rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {(() => {
-                      if (typeof app.name === "string" && app.name.length > 1) {
+                      if (typeof app.name === 'string' && app.name.length > 1) {
                         return app.name;
                       }
                       if (!app.name) {
-                        return app.micro_app_id || app.app_id || "";
+                        return app.micro_app_id || app.app_id || '';
                       }
                       return app.micro_app_id || app.app_id || app.name;
                     })()}
                   </div>
-                  {typeof app.version === "string" && app.version.trim() ? (
+                  {typeof app.version === 'string' && app.version.trim() ? (
                     <div style={{ color: COLORS.textMuted, fontSize: 12 }}>
                       v{app.version}
                     </div>
@@ -303,8 +352,70 @@ export default function MicroAppManagement(): React.ReactElement | null {
               >
                 {app.description || "No description"}
               </div>
+
+              {/* Edit & Delete Buttons under card text */}
+              <div style={{ display: "flex", gap: 8, marginTop: 10, justifyContent: "flex-end" }}>
+                <Button
+                  style={{ padding: "2px 14px", fontSize: 13, minWidth: 0 }}
+                  onClick={() => {
+                    setEditApp(app);
+                  }}
+                >
+                  Edit
+                </Button>
+                <Button
+                  style={{ padding: "2px 14px", fontSize: 13, minWidth: 0, background: COLORS.errorSurfaceBackground, color: COLORS.errorSurfaceText, border: `1px solid ${COLORS.errorSurfaceBorder}` }}
+                  disabled={deletingId === (app.micro_app_id || app.app_id)}
+                  onClick={() => {
+                    const id = app.micro_app_id || app.app_id || app.appId;
+                    console.log("Delete button clicked for app:", app);
+                    console.log("Delete button clicked for id:", id);
+                    if (!id) return;
+                    if (window.confirm(`Are you sure you want to delete micro-app: ${app.name || id}?`)) {
+                      handleDelete(id);
+                    }
+                  }}
+                >
+                  {deletingId === (app.micro_app_id || app.app_id) ? "Deleting…" : "Delete"}
+                </Button>
+      {/* Show delete error if any */}
+      {deleteError && !showUpload && (
+        <Card
+          style={{
+            ...(COMMON_STYLES?.alertError || {
+              background: COLORS.errorSurfaceBackground || "#2d1f1f",
+              border: `1px solid ${COLORS.errorSurfaceBorder || "#5a2f2f"}`,
+              color: COLORS.errorSurfaceText || "#fca5a5",
+              borderRadius: 12,
+            }),
+            padding: 12,
+            marginBottom: 16,
+          }}
+        >
+          {deleteError}
+        </Card>
+      )}
+              </div>
             </Card>
           ))}
+        </div>
+      )}
+      {editApp && (
+        <div className="modal-backdrop" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.2)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 4px 24px rgba(0,0,0,0.12)', maxWidth: 800, width: '100%', padding: 24, position: 'relative' }}>
+            <EditMicroApp
+              appData={editApp}
+              onClose={() => setEditApp(null)}
+              onSave={(data) => {
+                // Persist roles and other changes in modal state
+                setEditApp((prev: any) => ({ ...prev, ...data }));
+                // Optionally, call API here
+                setEditApp(null);
+                fetchMicroApps();
+              }}
+              onRolesChange={(roles) => setEditApp((prev: any) => ({ ...prev, roles }))}
+            />
+          </div>
         </div>
       )}
     </div>
