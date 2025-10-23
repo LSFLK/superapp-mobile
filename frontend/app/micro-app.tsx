@@ -69,7 +69,7 @@ const MicroApp = () => {
   const [webUri, setWebUri] = useState<string>(DEVELOPER_APP_DEFAULT_URL);
   const colorScheme = useColorScheme();
   const styles = createStyles(colorScheme ?? "light");
-  const isDeveloper: boolean = true || appId.includes("developer");
+  const isDeveloper: boolean = appId.includes("developer");
   const isTotp: boolean = appId.includes("totp");
   const insets = useSafeAreaInsets();
   const shouldShowHeader: boolean = displayMode !== FULL_SCREEN_VIEWING_MODE;
