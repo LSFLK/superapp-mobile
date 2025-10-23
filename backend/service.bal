@@ -144,7 +144,7 @@ service http:InterceptableService / on httpListener {
             };
         }
 
-        database:MicroApp[]|error allMicroApps = database:getMicroApps(userInfo.groups);
+        database:MicroApp[]|error allMicroApps = database:getMicroApps(userInfo.groups ?: []);
         if allMicroApps is error {
             string customError = "Error occurred while retrieving Micro Apps!";
             log:printError(customError, err = allMicroApps.message());
@@ -197,7 +197,7 @@ service http:InterceptableService / on httpListener {
             };
         }
 
-        database:MicroApp|error? microApp = database:getMicroAppById(appId, userInfo.groups);
+        database:MicroApp|error? microApp = database:getMicroAppById(appId, userInfo.groups ?: []);
 
         if microApp is error {
             string customError = "Error occurred while retrieving the Micro App for the given app ID!";
