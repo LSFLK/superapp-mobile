@@ -293,6 +293,9 @@ version = "2.5.0"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
 ]
+modules = [
+	{org = "ballerina", packageName = "time", moduleName = "time"}
+]
 
 [[package]]
 org = "ballerina"
@@ -364,6 +367,7 @@ dependencies = [
 	{org = "ballerina", name = "jwt"},
 	{org = "ballerina", name = "log"},
 	{org = "ballerina", name = "sql"},
+	{org = "ballerina", name = "time"},
 	{org = "ballerina", name = "uuid"},
 	{org = "ballerinai", name = "observe"},
 	{org = "ballerinax", name = "mysql"},
@@ -373,6 +377,7 @@ modules = [
 	{org = "wso2", packageName = "superapp_mobile_service", moduleName = "superapp_mobile_service"},
 	{org = "wso2", packageName = "superapp_mobile_service", moduleName = "superapp_mobile_service.authorization"},
 	{org = "wso2", packageName = "superapp_mobile_service", moduleName = "superapp_mobile_service.database"},
+	{org = "wso2", packageName = "superapp_mobile_service", moduleName = "superapp_mobile_service.file"},
 	{org = "wso2", packageName = "superapp_mobile_service", moduleName = "superapp_mobile_service.token_exchange"}
 ]
 

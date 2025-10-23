@@ -16,6 +16,7 @@
 import superapp_mobile_service.authorization;
 import superapp_mobile_service.database;
 import superapp_mobile_service.token_exchange;
+import superapp_mobile_service.file;
 
 import ballerina/http;
 import ballerina/log;
@@ -91,10 +92,44 @@ service http:InterceptableService / on httpListener {
 
     # + return - authorization:JwtInterceptor, ErrorInterceptor
     public function createInterceptors() returns http:Interceptor[] =>
-        [new authorization:JwtInterceptor(), new ErrorInterceptor()];
+        [new ErrorInterceptor()];
 
     function init() returns error? {
         log:printInfo("Super app mobile backend started.");
+    }
+
+    # Upload file directly in request body
+    # Headers: Content-Type, X-File-Name
+    #
+    # + request - HTTP request with binary body
+    # + fileName - File name (optional, can use X-File-Name header)
+    # + return - Upload response with file URL or error
+    resource function post upload(http:Request request, string fileName = "unknown") returns file:FileUploadResponse|error {
+        string name = fileName;
+        string contentType = request.getContentType();
+        byte[] content = check request.getBinaryPayload();
+        file:FileData fileData = {
+            content: content,
+            fileName: name,
+            contentType: contentType
+        };
+        file:AzureBlobService fileService = file:getFileService();
+        file:FileUploadResponse response = check fileService.uploadFile(fileData);
+        return response;
+    }
+
+    # Delete a file from Azure Blob Storage
+    #
+    # + fileName - Name of the file to delete (path parameter)
+    # + return - Success message or error
+    resource function delete files/[string fileName]() returns json|error {
+        file:AzureBlobService fileService = file:getFileService();
+        boolean success = check fileService.deleteFile(fileName);
+        if success {
+            return {message: "File deleted successfully"};
+        } else {
+            return error("Failed to delete file");
+        }
     }
 
     # Fetch user information of the logged in users.
