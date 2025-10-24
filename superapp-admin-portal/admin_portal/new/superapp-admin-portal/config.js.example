@@ -1,0 +1,23 @@
+/**
+ * External Configuration File
+ * 
+ * This file is loaded before the React app starts and can override
+ * environment variables. This is useful for Choreo deployments where
+ * configuration is injected at runtime.
+ * 
+ * To use this file:
+ * 1. Copy this to public/config.js
+ * 2. Configure your values
+ * 3. The app will use these instead of .env values
+ */
+
+window.configs = {
+  // Asgardeo Configuration
+  ASGARDEO_CLIENT_ID: 'your-client-id',
+  ASGARDEO_BASE_URL: 'https://api.asgardeo.io/t/your-org',
+  SIGN_IN_REDIRECT_URL: 'https://your-app-url.com',
+  SIGN_OUT_REDIRECT_URL: 'https://your-app-url.com',
+  
+  // API Configuration
+  API_BASE_URL: 'https://your-backend-api.com',
+};
