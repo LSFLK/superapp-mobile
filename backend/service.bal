@@ -92,7 +92,7 @@ service http:InterceptableService / on httpListener {
 
     # + return - authorization:JwtInterceptor, ErrorInterceptor
     public function createInterceptors() returns http:Interceptor[] =>
-        [new ErrorInterceptor()];
+        [new authorization:JwtInterceptor(), new ErrorInterceptor()];
 
     function init() returns error? {
         log:printInfo("Super app mobile backend started.");
