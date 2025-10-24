@@ -9,11 +9,15 @@ import { useState } from 'react';
 import { useAuthContext } from '@asgardeo/auth-react';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { useNotification } from '../context';
+import { useTheme } from '../context';
 
 export default function Header() {
   const { state, signOut } = useAuthContext();
   const { showNotification } = useNotification();
+  const { mode, toggleTheme } = useTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const username = state.username || 'User';
@@ -65,6 +69,14 @@ export default function Header() {
           <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
             {displayName}
           </Typography>
+
+          <IconButton 
+            onClick={toggleTheme} 
+            size="small" 
+            sx={{ color: 'text.primary' }}
+          >
+            {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+          </IconButton>
           
           <IconButton
             onClick={handleMenuOpen}
