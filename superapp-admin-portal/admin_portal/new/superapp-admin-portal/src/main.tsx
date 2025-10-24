@@ -4,15 +4,18 @@ import { AuthProvider } from '@asgardeo/auth-react'
 import { ThemeProvider, CssBaseline } from '@mui/material'
 import { authConfig } from './config/authConfig'
 import { createAppTheme } from './theme'
+import { NotificationProvider } from './context'
 import App from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider theme={createAppTheme('light')}>
       <CssBaseline />
-      <AuthProvider config={authConfig}>
-        <App />
-      </AuthProvider>
+      <NotificationProvider>
+        <AuthProvider config={authConfig}>
+          <App />
+        </AuthProvider>
+      </NotificationProvider>
     </ThemeProvider>
   </StrictMode>,
 )

@@ -9,9 +9,11 @@ import { useState } from 'react';
 import { useAuthContext } from '@asgardeo/auth-react';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
+import { useNotification } from '../context';
 
 export default function Header() {
   const { state, signOut } = useAuthContext();
+  const { showNotification } = useNotification();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const username = state.username || 'User';
@@ -28,7 +30,11 @@ export default function Header() {
 
   const handleLogout = async () => {
     handleMenuClose();
-    await signOut();
+    showNotification('Signing out...', 'info');
+    // Small delay to show the notification before redirect
+    setTimeout(async () => {
+      await signOut();
+    }, 500);
   };
 
   return (
