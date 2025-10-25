@@ -30,6 +30,19 @@ export const microAppsService = {
   },
 
   /**
+   * Add a new version to an existing micro app
+   */
+  async addVersion(appId: string, version: {
+    version: string;
+    build: number;
+    releaseNotes: string;
+    iconUrl: string;
+    downloadUrl: string;
+  }): Promise<void> {
+    return apiService.post<void>(`/micro-apps/${appId}/versions`, version);
+  },
+
+  /**
    * Delete a micro app
    */
   async delete(appId: string): Promise<void> {
