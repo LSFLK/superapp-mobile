@@ -6,6 +6,7 @@ import {
   DialogActions,
   Button,
 } from '@mui/material';
+import { useEffect, useState } from 'react';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -28,6 +29,17 @@ const ConfirmDialog = ({
   cancelText = 'Cancel',
   confirmColor = 'primary',
 }: ConfirmDialogProps) => {
+  // Keep the last non-empty message to prevent flickering during close animation
+  const [displayMessage, setDisplayMessage] = useState(message);
+  const [displayTitle, setDisplayTitle] = useState(title);
+
+  useEffect(() => {
+    if (open && message) {
+      setDisplayMessage(message);
+      setDisplayTitle(title);
+    }
+  }, [open, message, title]);
+
   return (
     <Dialog
       open={open}
@@ -35,10 +47,10 @@ const ConfirmDialog = ({
       aria-labelledby="confirm-dialog-title"
       aria-describedby="confirm-dialog-description"
     >
-      <DialogTitle id="confirm-dialog-title">{title}</DialogTitle>
+      <DialogTitle id="confirm-dialog-title">{displayTitle}</DialogTitle>
       <DialogContent>
         <DialogContentText id="confirm-dialog-description">
-          {message}
+          {displayMessage}
         </DialogContentText>
       </DialogContent>
       <DialogActions>

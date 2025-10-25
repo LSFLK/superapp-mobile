@@ -55,11 +55,10 @@ class ApiService {
         ...(options.headers as Record<string, string>),
       };
 
-      // Add token as x-jwt-assertion header (required by backend)
+      // Add token as x-jwt-assertion header for development
       headers['x-jwt-assertion'] = token;
-
-      console.log(`API Request: ${options.method || 'GET'} ${endpoint}`);
-      console.log('Token :', token);
+      // for production
+      headers['Authorization'] = `Bearer ${token}`;
       
       const response = await fetch(`${this.baseUrl}${endpoint}`, {
         ...options,
@@ -74,9 +73,9 @@ class ApiService {
         throw new Error(error.message || 'Request failed');
       }
 
-      // Handle empty responses (204 No Content or empty body)
+      // Handle empty responses (204 No Content, 201 Created, or empty body)
       const contentType = response.headers.get('content-type');
-      if (response.status === 204 || !contentType?.includes('application/json')) {
+      if (response.status === 204 || response.status === 201 || !contentType?.includes('application/json')) {
         return undefined as T;
       }
 

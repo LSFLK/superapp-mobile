@@ -122,23 +122,12 @@ const MicroApps = () => {
   };
 
   const handleDeleteCancel = () => {
-    setDeleteDialog((prev) => ({ ...prev, open: false }));
-    // Clear the state after animation completes
-    setTimeout(() => {
-      setDeleteDialog({ open: false, appId: '', appName: '' });
-    }, 300);
+    setDeleteDialog({ open: false, appId: '', appName: '' });
   };
 
   const handleDeleteConfirm = async () => {
     const { appId } = deleteDialog;
-    
-    // Close dialog first for better UX
-    setDeleteDialog((prev) => ({ ...prev, open: false }));
-    
-    // Clear state after animation
-    setTimeout(() => {
-      setDeleteDialog({ open: false, appId: '', appName: '' });
-    }, 300);
+    setDeleteDialog({ open: false, appId: '', appName: '' });
 
     try {
       await microAppsService.delete(appId);
@@ -221,7 +210,8 @@ const MicroApps = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              margin: '0 auto 3',
+              margin: '0 auto',
+              mb: 3,
               boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
             }}
           >
@@ -230,7 +220,15 @@ const MicroApps = () => {
           <Typography variant="h5" fontWeight={600} gutterBottom sx={{ color: 'text.primary', mb: 1 }}>
             No Micro Apps Yet
           </Typography>
-          <Typography variant="body1" color="text.secondary" mb={4} sx={{ maxWidth: 500, margin: '0 auto 3' }}>
+          <Typography 
+            variant="body1" 
+            color="text.secondary" 
+            sx={{ 
+              maxWidth: 500, 
+              mx: 'auto',
+              mb: 4,
+            }}
+          >
             Start building your ecosystem by adding your first micro application. It only takes a few clicks!
           </Typography>
           <Button
