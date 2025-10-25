@@ -25,6 +25,7 @@ import AddIcon from '@mui/icons-material/Add';
 import type { MicroApp } from '../types/microapp.types';
 import { microAppsService, apiService } from '../services';
 import { useNotification } from '../context';
+import { validateZipFile } from '../utils';
 
 interface AddMicroAppDialogProps {
   open: boolean;
@@ -221,8 +222,18 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
     }
   };
 
-  const handleFileSelect = (file: File | null, type: 'icon' | 'banner' | 'zip') => {
+  const handleFileSelect = async (file: File | null, type: 'icon' | 'banner' | 'zip') => {
     if (file) {
+      // Validate ZIP files before accepting them
+      if (type === 'zip') {
+        const validation = await validateZipFile(file);
+        
+        if (!validation.valid) {
+          showNotification(validation.error || 'Invalid ZIP file', 'error');
+          return;
+        }
+      }
+      
       setPendingFiles((prev) => ({ ...prev, [type]: file }));
       showNotification(`${type === 'icon' ? 'Icon' : type === 'banner' ? 'Banner' : 'App package'} selected. Click Next to upload.`, 'info');
     } else {

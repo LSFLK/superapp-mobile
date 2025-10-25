@@ -18,6 +18,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import type { MicroApp } from '../types/microapp.types';
 import { microAppsService, apiService } from '../services';
 import { useNotification } from '../context';
+import { validateZipFile } from '../utils';
 
 interface AddVersionDialogProps {
   open: boolean;
@@ -32,9 +33,16 @@ const AddVersionDialog = ({ open, onClose, onSuccess, microApp }: AddVersionDial
   const [pendingFile, setPendingFile] = useState<File | undefined>();
   const { showNotification } = useNotification();
 
+  // Calculate next available build number
+  const getNextBuildNumber = () => {
+    if (!microApp.versions || microApp.versions.length === 0) return 1;
+    const maxBuild = Math.max(...microApp.versions.map(v => v.build));
+    return maxBuild + 1;
+  };
+
   const [formData, setFormData] = useState({
     version: '',
-    build: 1,
+    build: getNextBuildNumber(),
     releaseNotes: '',
     downloadUrl: '',
   });
@@ -44,7 +52,7 @@ const AddVersionDialog = ({ open, onClose, onSuccess, microApp }: AddVersionDial
   const handleClose = () => {
     setFormData({
       version: '',
-      build: 1,
+      build: getNextBuildNumber(),
       releaseNotes: '',
       downloadUrl: '',
     });
@@ -54,32 +62,22 @@ const AddVersionDialog = ({ open, onClose, onSuccess, microApp }: AddVersionDial
     onClose();
   };
 
-  const handleFileSelect = (file: File | null) => {
+  const handleFileSelect = async (file: File | null) => {
     if (file) {
+      // Validate the ZIP file
+      const validation = await validateZipFile(file);
+      
+      if (!validation.valid) {
+        showNotification(validation.error || 'Invalid file', 'error');
+        setPendingFile(undefined);
+        return;
+      }
+      
       setPendingFile(file);
       showNotification(`Package selected: ${file.name}`, 'info');
     } else {
       setPendingFile(undefined);
       setFormData((prev) => ({ ...prev, downloadUrl: '' }));
-    }
-  };
-
-  const uploadFile = async (file: File) => {
-    try {
-      setUploadProgress(0);
-      
-      const result = await apiService.uploadFile(file);
-      
-      setUploadProgress(100);
-      setFormData((prev) => ({ ...prev, downloadUrl: result.url }));
-
-      setTimeout(() => {
-        setUploadProgress(undefined);
-      }, 1000);
-    } catch (error) {
-      console.error('Upload error:', error);
-      setUploadProgress(undefined);
-      throw error;
     }
   };
 
@@ -89,6 +87,12 @@ const AddVersionDialog = ({ open, onClose, onSuccess, microApp }: AddVersionDial
     if (!formData.version.trim()) newErrors.version = 'Version is required';
     if (!formData.releaseNotes.trim()) newErrors.releaseNotes = 'Release notes are required';
     if (!formData.downloadUrl && !pendingFile) newErrors.downloadUrl = 'App package (ZIP) is required';
+
+    // Check if build number already exists (build is the unique identifier)
+    const buildExists = microApp.versions?.some(v => v.build === formData.build);
+    if (buildExists) {
+      newErrors.build = `Build ${formData.build} already exists. Please use a different build number.`;
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -100,29 +104,27 @@ const AddVersionDialog = ({ open, onClose, onSuccess, microApp }: AddVersionDial
     try {
       setLoading(true);
 
+      let finalDownloadUrl = formData.downloadUrl;
+
       // Upload file if pending
       if (pendingFile) {
         showNotification('Uploading app package...', 'info');
-        await uploadFile(pendingFile);
+        const result = await apiService.uploadFile(pendingFile);
+        finalDownloadUrl = result.url;
         setPendingFile(undefined);
         showNotification('Package uploaded successfully!', 'success');
       }
 
-      // Add new version
+      // Add new version using the dedicated endpoint
       const newVersion = {
         version: formData.version,
         build: formData.build,
         releaseNotes: formData.releaseNotes,
         iconUrl: microApp.iconUrl,
-        downloadUrl: formData.downloadUrl,
+        downloadUrl: finalDownloadUrl,
       };
-
-      const updatedMicroApp: MicroApp = {
-        ...microApp,
-        versions: [...(microApp.versions || []), newVersion],
-      };
-
-      await microAppsService.upsert(updatedMicroApp);
+      
+      await microAppsService.addVersion(microApp.appId, newVersion);
       showNotification('New version added successfully', 'success');
       handleClose();
       onSuccess();
