@@ -5,3 +5,4 @@ export { default as Loading } from './Loading';
 export { default as ConfirmDialog } from './ConfirmDialog';
 export { default as EditMicroAppDialog } from './EditMicroAppDialog';
 export { default as AddVersionDialog } from './AddVersionDialog';
+export { default as CreateUserDialog } from './CreateUserDialog';

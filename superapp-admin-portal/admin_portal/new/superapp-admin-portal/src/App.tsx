@@ -10,6 +10,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Layout, Dashboard, Loading } from './components';
 import Login from './pages/Login';
 import MicroApps from './pages/MicroApps';
+import Users from './pages/Users';
 import ComingSoon from './pages/ComingSoon';
 import { useNotification } from './context';
 import { apiService } from './services';
@@ -61,7 +62,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/microapps" element={<MicroApps />} />
-          <Route path="/users" element={<ComingSoon />} />
+          <Route path="/users" element={<Users />} />
           <Route path="/analytics" element={<ComingSoon />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

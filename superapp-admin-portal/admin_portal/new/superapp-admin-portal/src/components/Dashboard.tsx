@@ -27,7 +27,7 @@ export default function Dashboard() {
     },
     {
       title: 'Users',
-      description: 'Manage user access and permissions',
+      description: 'Add and manage users (single or bulk)',
       icon: PeopleIcon,
       path: '/users',
       color: '#2e7d32',
