@@ -118,7 +118,7 @@ export default function Header() {
           >
             {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
           </IconButton>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, backgroundColor: 'divider', borderRadius: 3, padding: '1px 6px' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, border: 1, borderColor: 'divider', borderRadius: 3, padding: '1px 6px' }}>
             <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
               {displayName}
             </Typography>

@@ -28,7 +28,7 @@ export default function Login() {
                     bgcolor: '#f5f5f5',
                 }}
             >
-                <Container maxWidth="sm">
+                <Container maxWidth="xs">
                     <Paper
                         elevation={0}
                         sx={{
@@ -37,6 +37,8 @@ export default function Login() {
                             border: 1,
                             borderColor: 'divider',
                             borderRadius: 2,
+                            // shadow
+                            boxShadow: '0px 40px 50px rgba(9, 95, 180, 0.1)',
                         }}
                     >
                         <img
@@ -49,11 +51,11 @@ export default function Login() {
                             }}
                         />
                         <Typography
-                            variant="h4"
+                            variant="h2"
                             gutterBottom
-                            sx={{ fontWeight: 600, color: 'primary.main' }}
+                            sx={{ fontWeight: 200, color: 'primary.main' }}
                         >
-                            SuperApp Admin
+                            SuperApp Admin Portal
                         </Typography>
 
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
