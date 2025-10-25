@@ -27,7 +27,7 @@ configurable string lkLocation = "Sri Lanka";
 configurable string mobileAppReviewerEmail = ?; // App store reviewer email
 configurable string[] allowedOrigins = ["*"]; // Allowed origins for CORS (comma-separated in production, or "*" for dev)
 configurable boolean corsAllowCredentials = false; // Enable CORS credentials
-
+configurable boolean useDBforUserInfo = false; // Whether to fetch user info from DB or not
 @display {
     label: "SuperApp Mobile Service",
     id: "wso2-open-operations/superapp-mobile-service"
@@ -459,6 +459,111 @@ service http:InterceptableService / on httpListener {
         }
 
         return http:CREATED;
+    }
+
+    # Create or update user information in the database (single or bulk).
+    #
+    # + ctx - Request context
+    # + payload - User or BulkUserRequest containing users to create/update
+    # + return - `http:Created` on success or errors on failure
+    resource function post users(http:RequestContext ctx, database:User|database:BulkUserRequest payload) 
+        returns http:Created|http:InternalServerError|http:BadRequest {
+
+        authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
+        if userInfo is error {
+            return <http:InternalServerError>{
+                body: {message: ERR_MSG_USER_HEADER_NOT_FOUND}
+            };
+        }
+
+        database:ExecutionSuccessResult|error result;
+        
+        if payload is database:BulkUserRequest {
+            // Handle bulk user creation
+            result = database:createBulkUsers(payload.users);
+        } else if payload is database:User {
+            // Handle single user creation
+            result = database:createUserInfo(
+                payload.workEmail,
+                payload.firstName,
+                payload.lastName,
+                payload.userThumbnail ?: "",
+                payload.location ?: ""
+            );
+        } else {
+            return <http:BadRequest>{
+                body: {message: "Invalid payload format"}
+            };
+        }
+        
+        if result is error {
+            string customError = "Error occurred while creating/updating user information!";
+            log:printError(customError, result);
+            return <http:InternalServerError>{
+                body: {message: customError}
+            };
+        }
+        return http:CREATED;
+    }
+    # Get all users.
+    #
+    # + ctx - Request context
+    # + return - Array of users or errors on failure
+    resource function get users(http:RequestContext ctx) 
+        returns database:User[]|http:InternalServerError {
+
+        authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
+        if userInfo is error {
+            return <http:InternalServerError>{
+                body: {message: ERR_MSG_USER_HEADER_NOT_FOUND}
+            };
+        }
+
+        database:User[]|error users = database:getAllUsers();
+        
+        if users is error {
+            string customError = "Error occurred while fetching users!";
+            log:printError(customError, users);
+            return <http:InternalServerError>{
+                body: {message: customError}
+            };
+        }
+        
+        return users;
+    }
+
+    # Delete a user.
+    #
+    # + ctx - Request context
+    # + email - User's email address to delete
+    # + return - `http:NoContent` on success or errors on failure
+    resource function delete users/[string email](http:RequestContext ctx) 
+        returns http:NoContent|http:InternalServerError|http:NotFound {
+
+        authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
+        if userInfo is error {
+            return <http:InternalServerError>{
+                body: {message: ERR_MSG_USER_HEADER_NOT_FOUND}
+            };
+        }
+
+        database:ExecutionSuccessResult|error result = database:deleteUser(email);
+        
+        if result is error {
+            string errorMsg = result.message();
+            if errorMsg.includes("not found") {
+                return <http:NotFound>{
+                    body: {message: "User not found"}
+                };
+            }
+            string customError = "Error occurred while deleting user!";
+            log:printError(customError, result);
+            return <http:InternalServerError>{
+                body: {message: customError}
+            };
+        }
+        
+        return http:NO_CONTENT;
     }
 
     # Request a JWT for authorization.

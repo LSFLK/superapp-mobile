@@ -212,3 +212,80 @@ public isolated function getUserInfoByEmail(string email) returns User|error {
     User|error userInfo = check databaseClient->queryRow(getUserInfoByEmailQuery(email));
     return userInfo;
 }
+
+# Create or update user information in the database.
+#
+# + email - User's email address
+# + firstName - User's first name
+# + lastName - User's last name
+# + userThumbnail - URL to user's profile picture
+# + location - User's location
+# + return - ExecutionSuccessResult on success or error
+public isolated function createUserInfo(string email, string firstName, string lastName, 
+    string userThumbnail, string location) returns ExecutionSuccessResult|error {
+    
+    sql:ExecutionResult result = check databaseClient->execute(
+        createUserInfoQuery(email, firstName, lastName, userThumbnail, location)
+    );
+    
+    if result.affectedRowCount == 0 {
+        return error("Failed to create or update user information.");
+    }
+
+    return result.cloneWithType(ExecutionSuccessResult);
+}
+
+# Create or update multiple users in the database.
+#
+# + users - Array of users to create/update
+# + return - ExecutionSuccessResult on success or error
+public isolated function createBulkUsers(User[] users) returns ExecutionSuccessResult|error {
+    int successCount = 0;
+    int errorCount = 0;
+    
+    foreach User user in users {
+        ExecutionSuccessResult|error result = createUserInfo(
+            user.workEmail,
+            user.firstName,
+            user.lastName,
+            user.userThumbnail ?: "",
+            user.location ?: ""
+        );
+        
+        if result is error {
+            errorCount += 1;
+        } else {
+            successCount += 1;
+        }
+    }
+    
+    if errorCount > 0 {
+        return error(string `Bulk user creation completed with errors: ${successCount} succeeded, ${errorCount} failed`);
+    }
+    
+    return {affectedRowCount: successCount, lastInsertId: ()};
+}
+
+# Get all users from the database.
+#
+# + return - Array of User records or error
+public isolated function getAllUsers() returns User[]|error {
+    stream<User, sql:Error?> userStream = databaseClient->query(getAllUsersQuery());
+    User[] users = check from User user in userStream select user;
+    check userStream.close();
+    return users;
+}
+
+# Delete a user from the database.
+#
+# + email - User's email address
+# + return - ExecutionSuccessResult on success or error
+public isolated function deleteUser(string email) returns ExecutionSuccessResult|error {
+    sql:ExecutionResult result = check databaseClient->execute(deleteUserQuery(email));
+    
+    if result.affectedRowCount == 0 {
+        return error("User not found or already deleted.");
+    }
+    
+    return result.cloneWithType(ExecutionSuccessResult);
+}

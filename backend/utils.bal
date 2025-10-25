@@ -34,6 +34,9 @@ public isolated function getUserInfo(string email) returns database:User|error {
             return loggedInUser;
         }
     }
-
-    return database:getUserInfoByEmail(email);
+    if useDBforUserInfo {
+        return database:getUserInfoByEmail(email);
+    }
+    return error("Fetching user info from DB is disabled. Use alternative logic.");
+    // return entity:fetchEmployeesBasicInfo(email);
 }

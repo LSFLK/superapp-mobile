@@ -330,3 +330,58 @@ public isolated function getUserInfoByEmailQuery(string email) returns sql:Param
     WHERE
         email = ${email}
 `;
+
+# Query to create/insert a new user into `users_` table.
+#
+# + email - User email
+# + firstName - User's first name
+# + lastName - User's last name
+# + userThumbnail - URL to user's profile picture
+# + location - User's location
+# + return - Generated query to insert a new user
+public isolated function createUserInfoQuery(string email, string firstName, string lastName, 
+    string userThumbnail, string location) returns sql:ParameterizedQuery => `
+    INSERT INTO users_ (
+        email,
+        firstName,
+        lastName,
+        userThumbnail,
+        location
+    ) VALUES (
+        ${email},
+        ${firstName},
+        ${lastName},
+        ${userThumbnail},
+        ${location}
+    )
+    ON DUPLICATE KEY UPDATE
+        firstName = ${firstName},
+        lastName = ${lastName},
+        userThumbnail = ${userThumbnail},
+        location = ${location}
+`;
+
+# Query to delete a user from `users_` table.
+#
+# + email - User's email address
+# + return - Generated query to delete a user
+public isolated function deleteUserQuery(string email) returns sql:ParameterizedQuery => `
+    DELETE FROM users_
+    WHERE email = ${email}
+`;
+
+# Query to get all users from `users_` table.
+#
+# + return - Generated query to get all users
+public isolated function getAllUsersQuery() returns sql:ParameterizedQuery => `
+    SELECT
+        email as workEmail,
+        firstName,
+        lastName,
+        userThumbnail,
+        location
+    FROM
+        users_
+    ORDER BY
+        firstName, lastName
+`;
