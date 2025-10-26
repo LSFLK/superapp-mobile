@@ -17,6 +17,8 @@ import ballerina/constraint;
 import ballerina/sql;
 import ballerinax/mysql;
 
+import superapp_mobile_service.shared_records;
+
 # [Configurable] Superapp mobile database configs.
 type DatabaseConfig record {|
     # Database hostname
@@ -126,18 +128,8 @@ public type Version record {|
     string downloadUrl;
 |};
 
-# Record type to model basic user information.
 public type User record {
-    # Email of the user
-    string workEmail;
-    # First name of the user
-    string firstName;
-    # Last name of the user
-    string lastName;
-    # Thumbnail of the user
-    string? userThumbnail;
-    # Location of the user
-    string? location;
+    *shared_records:User;
 };
 
 # Record type for bulk user creation request.

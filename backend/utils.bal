@@ -13,8 +13,6 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
-import superapp_mobile_service.database;
-
 import ballerina/cache;
 import ballerina/log;
 
@@ -24,19 +22,15 @@ final cache:Cache userInfoCache = new (capacity = 100, evictionFactor = 0.2);
 #
 # + email - Email address of the user
 # + return - database:User record if available, or error? if an error occurs or the user is not found
-public isolated function getUserInfo(string email) returns database:User|error {
+public function getUserInfo(string email) returns User|error? {
 
     if userInfoCache.hasKey(email) {
-        database:User|error loggedInUser = userInfoCache.get(email).ensureType();
+        User|error loggedInUser = userInfoCache.get(email).ensureType();
         if loggedInUser is error {
             log:printWarn(string `Error occurred while retrieving user data: ${email}!`, loggedInUser);
         } else {
             return loggedInUser;
         }
     }
-    if useDBforUserInfo {
-        return database:getUserInfoByEmail(email);
-    }
-    return error("Fetching user info from DB is disabled. Use alternative logic.");
-    // return entity:fetchEmployeesBasicInfo(email);
+    return userInfoService.getUserInfoByEmail(email);
 }

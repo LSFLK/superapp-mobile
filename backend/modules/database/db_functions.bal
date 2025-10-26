@@ -208,8 +208,8 @@ public isolated function updateAppConfigsByEmail(string email, AppConfig appConf
     return result.cloneWithType(ExecutionSuccessResult);
 }
 
-public isolated function getUserInfoByEmail(string email) returns User|error {
-    User|error userInfo = check databaseClient->queryRow(getUserInfoByEmailQuery(email));
+public isolated function getUserInfoByEmail(string email) returns User|error? {
+    User|error? userInfo = check databaseClient->queryRow(getUserInfoByEmailQuery(email));
     return userInfo;
 }
 
@@ -222,29 +222,27 @@ public isolated function getUserInfoByEmail(string email) returns User|error {
 # + location - User's location
 # + return - ExecutionSuccessResult on success or error
 public isolated function createUserInfo(string email, string firstName, string lastName, 
-    string userThumbnail, string location) returns ExecutionSuccessResult|error {
+    string? userThumbnail, string? location) returns error? {
     
     sql:ExecutionResult result = check databaseClient->execute(
-        createUserInfoQuery(email, firstName, lastName, userThumbnail, location)
+        createUserInfoQuery(email, firstName, lastName, userThumbnail?:"", location?:"")
     );
     
     if result.affectedRowCount == 0 {
         return error("Failed to create or update user information.");
     }
-
-    return result.cloneWithType(ExecutionSuccessResult);
 }
 
 # Create or update multiple users in the database.
 #
 # + users - Array of users to create/update
 # + return - ExecutionSuccessResult on success or error
-public isolated function createBulkUsers(User[] users) returns ExecutionSuccessResult|error {
+public isolated function createBulkUsers(User[] users) returns error? {
     int successCount = 0;
     int errorCount = 0;
     
     foreach User user in users {
-        ExecutionSuccessResult|error result = createUserInfo(
+        error? result = createUserInfo(
             user.workEmail,
             user.firstName,
             user.lastName,
@@ -262,8 +260,6 @@ public isolated function createBulkUsers(User[] users) returns ExecutionSuccessR
     if errorCount > 0 {
         return error(string `Bulk user creation completed with errors: ${successCount} succeeded, ${errorCount} failed`);
     }
-    
-    return {affectedRowCount: successCount, lastInsertId: ()};
 }
 
 # Get all users from the database.
@@ -280,12 +276,10 @@ public isolated function getAllUsers() returns User[]|error {
 #
 # + email - User's email address
 # + return - ExecutionSuccessResult on success or error
-public isolated function deleteUser(string email) returns ExecutionSuccessResult|error {
+public isolated function deleteUser(string email) returns error? {
     sql:ExecutionResult result = check databaseClient->execute(deleteUserQuery(email));
     
     if result.affectedRowCount == 0 {
         return error("User not found or already deleted.");
     }
-    
-    return result.cloneWithType(ExecutionSuccessResult);
 }

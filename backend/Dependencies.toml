@@ -378,6 +378,7 @@ modules = [
 	{org = "wso2", packageName = "superapp_mobile_service", moduleName = "superapp_mobile_service.authorization"},
 	{org = "wso2", packageName = "superapp_mobile_service", moduleName = "superapp_mobile_service.database"},
 	{org = "wso2", packageName = "superapp_mobile_service", moduleName = "superapp_mobile_service.file"},
+	{org = "wso2", packageName = "superapp_mobile_service", moduleName = "superapp_mobile_service.shared_records"},
 	{org = "wso2", packageName = "superapp_mobile_service", moduleName = "superapp_mobile_service.token_exchange"}
 ]
 

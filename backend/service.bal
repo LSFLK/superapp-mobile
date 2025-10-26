@@ -27,7 +27,10 @@ configurable string lkLocation = "Sri Lanka";
 configurable string mobileAppReviewerEmail = ?; // App store reviewer email
 configurable string[] allowedOrigins = ["*"]; // Allowed origins for CORS (comma-separated in production, or "*" for dev)
 configurable boolean corsAllowCredentials = false; // Enable CORS credentials
-configurable boolean useDBforUserInfo = false; // Whether to fetch user info from DB or not
+configurable string userInfoServiceType = "database";
+
+final UserInfoService userInfoService = check createUserInfoService(userInfoServiceType);
+
 @display {
     label: "SuperApp Mobile Service",
     id: "wso2-open-operations/superapp-mobile-service"
@@ -136,25 +139,30 @@ service http:InterceptableService / on httpListener {
     #
     # + ctx - Request context
     # + return - User information object or an error
-    resource function get user\-info(http:RequestContext ctx) returns database:User|http:InternalServerError {
+    resource function get user\-info(http:RequestContext ctx) returns User|http:InternalServerError|http:NotFound {
         authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
         if userInfo is error {
-            return {
+            return <http:InternalServerError>{
                 body: {
                     message: ERR_MSG_USER_HEADER_NOT_FOUND
                 }
             };
         }
 
-        database:User|error loggedInUser = getUserInfo(userInfo.email);
+        User|error? loggedInUser = getUserInfo(userInfo.email);
         if loggedInUser is error {
             string customError = "Error occurred while retrieving user data!";
             log:printError(customError, loggedInUser);
-            return {
+            return <http:InternalServerError>{
                 body: {
                     message: customError
                 }
             };
+        }
+
+        if loggedInUser is () {
+            log:printWarn("User not found!", email = userInfo.email);
+            return http:NOT_FOUND;
         }
 
         error? cacheError = userInfoCache.put(userInfo.email, loggedInUser);
@@ -466,7 +474,7 @@ service http:InterceptableService / on httpListener {
     # + ctx - Request context
     # + payload - User or BulkUserRequest containing users to create/update
     # + return - `http:Created` on success or errors on failure
-    resource function post users(http:RequestContext ctx, database:User|database:BulkUserRequest payload) 
+    resource function post users(http:RequestContext ctx, User|User[] payload) 
         returns http:Created|http:InternalServerError|http:BadRequest {
 
         authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
@@ -476,24 +484,11 @@ service http:InterceptableService / on httpListener {
             };
         }
 
-        database:ExecutionSuccessResult|error result;
-        
-        if payload is database:BulkUserRequest {
-            // Handle bulk user creation
-            result = database:createBulkUsers(payload.users);
-        } else if payload is database:User {
-            // Handle single user creation
-            result = database:createUserInfo(
-                payload.workEmail,
-                payload.firstName,
-                payload.lastName,
-                payload.userThumbnail ?: "",
-                payload.location ?: ""
-            );
+        error? result;
+        if payload is User[] {
+            result = userInfoService.saveUsers(payload);
         } else {
-            return <http:BadRequest>{
-                body: {message: "Invalid payload format"}
-            };
+            result = userInfoService.saveUser(payload);
         }
         
         if result is error {
@@ -505,12 +500,12 @@ service http:InterceptableService / on httpListener {
         }
         return http:CREATED;
     }
-    # Get all users.
+    # Get all users.  NOTE: NEED TO OPTIMIZE FOR LARGE USER BASE
     #
     # + ctx - Request context
     # + return - Array of users or errors on failure
     resource function get users(http:RequestContext ctx) 
-        returns database:User[]|http:InternalServerError {
+        returns User[]|http:InternalServerError|http:NoContent {
 
         authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
         if userInfo is error {
@@ -519,7 +514,11 @@ service http:InterceptableService / on httpListener {
             };
         }
 
-        database:User[]|error users = database:getAllUsers();
+        User[]|error? users = userInfoService.getAllUsers();
+
+        if users is () {
+            return http:NO_CONTENT;
+        }
         
         if users is error {
             string customError = "Error occurred while fetching users!";
@@ -547,7 +546,7 @@ service http:InterceptableService / on httpListener {
             };
         }
 
-        database:ExecutionSuccessResult|error result = database:deleteUser(email);
+        error? result = userInfoService.deleteUserByEmail(email);
         
         if result is error {
             string errorMsg = result.message();
@@ -562,7 +561,10 @@ service http:InterceptableService / on httpListener {
                 body: {message: customError}
             };
         }
-        
+        error? cacheError = userInfoCache.invalidate(email);
+        if cacheError is error {
+            log:printError("Error in invalidating the user cache!", cacheError);
+        }
         return http:NO_CONTENT;
     }
 

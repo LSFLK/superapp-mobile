@@ -13,10 +13,6 @@ export interface User {
   location?: string;
 }
 
-export interface BulkUserRequest {
-  users: User[];
-}
-
 class UsersService {
   private readonly BASE_PATH = '/users';
 
@@ -38,8 +34,7 @@ class UsersService {
    * Create or update multiple users in bulk
    */
   async createBulkUsers(users: User[]): Promise<void> {
-    const payload: BulkUserRequest = { users };
-    return apiService.post(this.BASE_PATH, payload);
+    return apiService.post(this.BASE_PATH, users);
   }
 
   /**
