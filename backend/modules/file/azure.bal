@@ -8,22 +8,18 @@ public type AzureBlobConfig record {|
     string defaultContainerName;
 |};
 
-configurable AzureBlobConfig azureBlobConfig = ?;
-final AzureBlobService fileService = check new AzureBlobService(azureBlobConfig);
-
-// Get the initialized file service client
-public function getFileService() returns AzureBlobService {
-    return fileService;
-}
+public configurable AzureBlobConfig azureBlobConfig = ?;
 
 // Azure Blob Storage service implementation
-public class AzureBlobService {
+public isolated distinct class AzureBlobServiceImpl {
+    *FileService;
+    
     private final string storageAccountName;
     private final string sasToken;
     private final string defaultContainerName;
     private final http:Client httpClient;
     
-    public function init(AzureBlobConfig config) returns error? {
+    public isolated function init(AzureBlobConfig config) returns error? {
         self.storageAccountName = config.storageAccountName;
         self.sasToken = config.sasToken;
         self.defaultContainerName = config.defaultContainerName;
@@ -36,7 +32,7 @@ public class AzureBlobService {
         });
     }
     
-    public function uploadFile(FileData fileData, string? containerName = ()) returns FileUploadResponse|error {
+    public isolated function uploadFile(FileData fileData, string? containerName = ()) returns FileUploadResponse|error {
         string container = containerName ?: self.defaultContainerName;
         string fileName = fileData.fileName;
         
@@ -76,7 +72,7 @@ public class AzureBlobService {
     }
     
     // Upload multiple files to Azure Blob Storage
-    public function uploadFiles(FileData[] files, string? containerName = ()) returns FileUploadResponse[]|error {
+    public isolated function uploadFiles(FileData[] files, string? containerName = ()) returns FileUploadResponse[]|error {
         FileUploadResponse[] responses = [];
         
         foreach FileData fileData in files {
@@ -91,7 +87,7 @@ public class AzureBlobService {
     }
     
     // Delete a file from Azure Blob Storage
-    public function deleteFile(string fileName, string? containerName = ()) returns boolean|error {
+    public isolated function deleteFile(string fileName, string? containerName = ()) returns boolean|error {
         string container = containerName ?: self.defaultContainerName;
         string blobPath = string `/${container}/${fileName}`;
         string sasQuery = self.sasToken.startsWith("?") ? self.sasToken : string `?${self.sasToken}`;

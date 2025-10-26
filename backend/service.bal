@@ -27,9 +27,11 @@ configurable string lkLocation = "Sri Lanka";
 configurable string mobileAppReviewerEmail = ?; // App store reviewer email
 configurable string[] allowedOrigins = ["*"]; // Allowed origins for CORS (comma-separated in production, or "*" for dev)
 configurable boolean corsAllowCredentials = false; // Enable CORS credentials
-configurable string userInfoServiceType = "database";
+configurable string userInfoServiceType = "database"; // default to database
+configurable string fileServiceType = "azure-blob"; // default to azure-blob
 
 final UserInfoService userInfoService = check createUserInfoService(userInfoServiceType);
+final file:FileService fileService = check file:createFileService(fileServiceType);
 
 @display {
     label: "SuperApp Mobile Service",
@@ -116,7 +118,6 @@ service http:InterceptableService / on httpListener {
             fileName: name,
             contentType: contentType
         };
-        file:AzureBlobService fileService = file:getFileService();
         file:FileUploadResponse response = check fileService.uploadFile(fileData);
         return response;
     }
@@ -126,7 +127,6 @@ service http:InterceptableService / on httpListener {
     # + fileName - Name of the file to delete (path parameter)
     # + return - Success message or error
     resource function delete files/[string fileName]() returns json|error {
-        file:AzureBlobService fileService = file:getFileService();
         boolean success = check fileService.deleteFile(fileName);
         if success {
             return {message: "File deleted successfully"};

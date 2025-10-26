@@ -1,15 +1,24 @@
 [superapp_mobile_service.database.databaseConfig]
-host=""
-user=""
-password=""
-database=""
-port=
+host = ""
+user = ""
+password = ""
+database = ""
+port =
 
 [superapp_mobile_service.database.databaseConfig.connectionPool]
-maxOpenConnections=
-maxConnectionLifeTime=
-minIdleConnections=
+maxOpenConnections =
+maxConnectionLifeTime =
+minIdleConnections =
+
+[superapp_mobile_service.file.azureBlobConfig]
+storageAccountName = ""
+sasToken = ""
+defaultContainerName = ""
 
 [superapp_mobile_service]
-mobileAppReviewerEmail =""
-restrictedAppsForNonLk =[""]
+mobileAppReviewerEmail = ""
+restrictedAppsForNonLk = [""]
+allowedOrigins = [""]
+corsAllowCredentials = true
+userInfoServiceType = "database"
+fileServiceType = "azure-blob"
