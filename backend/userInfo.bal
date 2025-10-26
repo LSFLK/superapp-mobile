@@ -20,7 +20,7 @@ isolated distinct class DatabaseAsUserInfoService {
     }
 
     public isolated function saveUser(User user) returns error? {
-        return database:createUserInfo(user.workEmail, user.firstName, user.lastName, user.userThumbnail, user.location);
+        return database:createUserInfo(user);
     }
 
     public isolated function saveUsers(User[] users) returns error? {

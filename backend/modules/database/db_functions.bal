@@ -215,17 +215,12 @@ public isolated function getUserInfoByEmail(string email) returns User|error? {
 
 # Create or update user information in the database.
 #
-# + email - User's email address
-# + firstName - User's first name
-# + lastName - User's last name
-# + userThumbnail - URL to user's profile picture
-# + location - User's location
+# + user - User record to create/update
 # + return - ExecutionSuccessResult on success or error
-public isolated function createUserInfo(string email, string firstName, string lastName, 
-    string? userThumbnail, string? location) returns error? {
+public isolated function createUserInfo(User user) returns error? {
     
     sql:ExecutionResult result = check databaseClient->execute(
-        createUserInfoQuery(email, firstName, lastName, userThumbnail?:"", location?:"")
+        createUserInfoQuery(user.workEmail, user.firstName, user.lastName, user.userThumbnail?:"", user.location?:"")
     );
     
     if result.affectedRowCount == 0 {
@@ -242,13 +237,7 @@ public isolated function createBulkUsers(User[] users) returns error? {
     int errorCount = 0;
     
     foreach User user in users {
-        error? result = createUserInfo(
-            user.workEmail,
-            user.firstName,
-            user.lastName,
-            user.userThumbnail ?: "",
-            user.location ?: ""
-        );
+        error? result = createUserInfo(user);
         
         if result is error {
             errorCount += 1;
