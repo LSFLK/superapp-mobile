@@ -8,11 +8,18 @@ class ApiService {
   private baseUrl: string;
   private getAccessToken: (() => Promise<string>) | null = null;
   private signOut: (() => Promise<void>) | null = null;
+  private tokenGetterReady: Promise<void>;
+  private resolveTokenGetter: (() => void) | null = null;
 
   constructor() {
     // Use /api proxy in development, or configured URL in production
     const isDevelopment = import.meta.env.DEV;
     this.baseUrl = isDevelopment ? '/api' : (window.configs?.API_BASE_URL || 'http://localhost:9090');
+    
+    // Create a promise that resolves when token getter is set
+    this.tokenGetterReady = new Promise((resolve) => {
+      this.resolveTokenGetter = resolve;
+    });
   }
 
   /**
@@ -20,6 +27,10 @@ class ApiService {
    */
   setTokenGetter(getter: () => Promise<string>) {
     this.getAccessToken = getter;
+    // Resolve the promise to signal token getter is ready
+    if (this.resolveTokenGetter) {
+      this.resolveTokenGetter();
+    }
   }
 
   /**
@@ -32,6 +43,18 @@ class ApiService {
   }
 
   /**
+   * Reset the service (e.g., on logout)
+   */
+  reset() {
+    this.getAccessToken = null;
+    this.signOut = null;
+    // Create a new promise for the next login
+    this.tokenGetterReady = new Promise((resolve) => {
+      this.resolveTokenGetter = resolve;
+    });
+  }
+
+  /**
    * Make an authenticated API request
    */
   private async request<T>(
@@ -39,15 +62,15 @@ class ApiService {
     options: RequestInit = {}
   ): Promise<T> {
     try {
+      // Wait for token getter to be initialized
+      await this.tokenGetterReady;
+
       // Get the access token from Asgardeo
       const token = this.getAccessToken ? await this.getAccessToken() : null;
 
       if (!token) {
-        // Sign out user if no token is available
-        if (this.signOut) {
-          await this.signOut();
-        }
-        throw new Error('Session expired. Please sign in again.');
+        console.error('No access token available');
+        throw new Error('No access token available. Please try again.');
       }
 
       const headers: Record<string, string> = {

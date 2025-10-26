@@ -5,7 +5,7 @@
  */
 
 import { useAuthContext } from '@asgardeo/auth-react';
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Layout, Dashboard, Loading } from './components';
 import Login from './pages/Login';
@@ -20,41 +20,60 @@ function App() {
   const { showNotification } = useNotification();
   const hasShownLoginNotification = useRef(false);
 
-  // Wrap getAccessToken to ensure stable reference
-  const _getAccessToken = useCallback(async () => {
-    try {
-      const token = await getAccessToken();
-      return token || '';
-    } catch (error) {
-      console.error('Error getting access token in App:', error);
-      return '';
-    }
-  }, [getAccessToken]);
-
-  // Wrap signOut to ensure stable reference  
-  const stableSignOut = useCallback(async () => {
-    await signOut();
-  }, [signOut]);
 
   // Initialize API service with token getter and sign out function
   useEffect(() => {
     if (state.isAuthenticated) {
       console.log('Setting up API service with auth functions');
-      apiService.setTokenGetter(_getAccessToken);
-      apiService.setSignOut(stableSignOut);
+      
+      // Create stable wrappers inside effect to avoid unnecessary re-renders
+      const tokenGetter = async () => {
+        try {
+          const token = await getAccessToken();
+          return token || '';
+        } catch (error) {
+          console.error('Error getting access token:', error);
+          return '';
+        }
+      };
+
+      const signOutHandler = async () => {
+        await signOut();
+      };
+
+      apiService.setTokenGetter(tokenGetter);
+      apiService.setSignOut(signOutHandler);
+
+      // Cleanup: Reset the service when user logs out
+      return () => {
+        console.log('Cleaning up API service auth functions');
+        apiService.reset();
+      };
     }
-  }, [state.isAuthenticated, _getAccessToken, stableSignOut]);
+  }, [state.isAuthenticated, getAccessToken, signOut]);
 
   // Show notification when user logs in
   useEffect(() => {
     if (state.isAuthenticated && !hasShownLoginNotification.current) {
       showNotification('Successfully signed in', 'success');
       hasShownLoginNotification.current = true;
+    } else if (!state.isAuthenticated) {
+      // Reset notification flag when user logs out
+      hasShownLoginNotification.current = false;
     }
   }, [state.isAuthenticated, showNotification]);
 
-  if (state.isLoading) return <Loading />;
-  if (!state.isAuthenticated) return <Login />;
+  // Show loading spinner while checking authentication status
+  if (state.isLoading) {
+    console.log('Authentication loading...');
+    return <Loading />;
+  }
+  
+  // Show login page if not authenticated
+  if (!state.isAuthenticated) {
+    console.log('User not authenticated, showing login page');
+    return <Login />;
+  }
 
   return (
     <BrowserRouter>

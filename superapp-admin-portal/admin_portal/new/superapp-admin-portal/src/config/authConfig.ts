@@ -32,6 +32,8 @@ export const authConfig: AuthClientConfig<any> = {
   clientID: getConfig('ASGARDEO_CLIENT_ID'),
   baseUrl: getConfig('ASGARDEO_BASE_URL'),
   scope: ['openid', 'profile', 'email', 'groups'],
+  storage: 'sessionStorage', // Use sessionStorage to persist auth state across page refreshes
+  enablePKCE: true, // Enable PKCE for better security
 };
 
 /**
