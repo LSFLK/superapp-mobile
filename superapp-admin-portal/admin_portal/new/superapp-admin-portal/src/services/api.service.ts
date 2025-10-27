@@ -5,7 +5,7 @@
  */
 
 class ApiService {
-  private baseUrl: string;
+  private baseUrl: string | undefined;
   private getAccessToken: (() => Promise<string>) | null = null;
   private signOut: (() => Promise<void>) | null = null;
   private tokenGetterReady: Promise<void>;
@@ -14,7 +14,11 @@ class ApiService {
   constructor() {
     // Use /api proxy in development, or configured URL in production
     const isDevelopment = import.meta.env.DEV;
-    this.baseUrl = isDevelopment ? '/api' : (window.configs?.API_BASE_URL || 'http://localhost:9090');
+    this.baseUrl = isDevelopment ? '/api' : window.configs?.API_BASE_URL;
+
+    if (!this.baseUrl) {
+      throw new Error('API_BASE_URL is not configured. Please check public/config.js');
+    }
     
     // Create a promise that resolves when token getter is set
     this.tokenGetterReady = new Promise((resolve) => {
@@ -163,10 +167,8 @@ class ApiService {
         token = null;
       }
       
-      console.log('Token retrieved:', token ? `${token.substring(0, 20)}...` : 'null/empty');
 
       if (!token || token.trim() === '') {
-        console.error('No valid token available for upload');
         if (this.signOut) {
           await this.signOut();
         }
