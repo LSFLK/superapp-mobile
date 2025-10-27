@@ -55,7 +55,7 @@ service http:InterceptableService / on httpListener {
         [new ErrorInterceptor(), new authorization:JwtInterceptor()];
 
     function init() {
-        log:printInfo("Token Exchange Service started at http://localhost:9090/");
+        log:printInfo("Token Exchange Service started at port 9090");
     }
 
     # Request a JWT for authorization.
