@@ -17,6 +17,7 @@ import superapp_mobile_service.authorization;
 import superapp_mobile_service.database;
 import superapp_mobile_service.token_exchange;
 import superapp_mobile_service.file_service;
+import superapp_mobile_service.user_service;
 
 import ballerina/http;
 import ballerina/log;
@@ -27,10 +28,10 @@ configurable string lkLocation = "Sri Lanka";
 configurable string mobileAppReviewerEmail = ?; // App store reviewer email
 configurable string[] allowedOrigins = ["*"]; // Allowed origins for CORS (comma-separated in production, or "*" for dev)
 configurable boolean corsAllowCredentials = false; // Enable CORS credentials
-configurable string userInfoServiceType = "database"; // default to database
-configurable string fileServiceType = "azure-blob"; // default to azure-blob
+configurable string userInfoServiceType = user_service:DATABASE_USER_INFO_SERVICE; // default to database
+configurable string fileServiceType = file_service:AZURE_BLOB_SERVICE; // default to azure-blob
 
-final UserInfoService userInfoService = check createUserInfoService(userInfoServiceType);
+final user_service:UserInfoService userInfoService = check user_service:createUserInfoService(userInfoServiceType);
 final file_service:FileService fileService = check file_service:createFileService(fileServiceType);
 
 @display {
@@ -103,36 +104,60 @@ service http:InterceptableService / on httpListener {
         log:printInfo("Super app mobile backend started.");
     }
 
-    # Upload file_service directly in request body
-    # Headers: Content-Type, X-File-Name
+    # Upload file directly in request body
+    # Headers: Content-Type
     #
     # + request - HTTP request with binary body
-    # + fileName - File name (optional, can use X-File-Name header)
-    # + return - Upload response with file_service URL or error
-    resource function post upload(http:Request request, string fileName = "unknown") returns file_service:FileUploadResponse|error {
-        string name = fileName;
+    # + fileName - File name as a query parameter
+    # + return - Upload response with file URL or error
+    resource function post files(http:Request request, string fileName) 
+        returns file_service:FileUploadResponse|http:InternalServerError {
+
         string contentType = request.getContentType();
-        byte[] content = check request.getBinaryPayload();
-        file_service:FileData fileData = {
-            content: content,
-            fileName: name,
-            contentType: contentType
-        };
-        file_service:FileUploadResponse response = check fileService.uploadFile(fileData);
+        byte[]|error content = request.getBinaryPayload();
+        if content is error {
+            string customError = "Error in reading file content from request body!";
+            log:printError(customError, content);
+            return {
+                body: {
+                    message: customError
+                }
+            };
+        }
+
+        file_service:FileData fileData = {content: content, fileName: fileName, contentType: contentType};
+
+        file_service:FileUploadResponse|error response = fileService.uploadFile(fileData);
+        if response is error {
+            string customError = "Error in uploading file!";
+            log:printError(customError, response);
+            return {
+                body: {
+                    message: customError
+                }
+            };
+        }
+
         return response;
     }
 
-    # Delete a file_service from Azure Blob Storage
+    # Delete a file from Azure Blob Storage
     #
-    # + fileName - Name of the file_service to delete (path parameter)
-    # + return - Success message or error
-    resource function delete files/[string fileName]() returns json|error {
-        boolean success = check fileService.deleteFile(fileName);
-        if success {
-            return {message: "File deleted successfully"};
-        } else {
-            return error("Failed to delete file_service");
+    # + fileName - Name of the file to delete (path parameter)
+    # + return - `http:Ok` on success, or `http:InternalServerError` on failure
+    resource function delete files/[string fileName]() returns http:Ok|http:InternalServerError {
+        boolean|error isDeleted = fileService.deleteFile(fileName);
+        if isDeleted is error {
+            string customError = "Error in deleting file!";
+            log:printError(customError, isDeleted);
+            return <http:InternalServerError>{ body: { message: customError } };
         }
+
+        if isDeleted {
+            return <http:Ok>{ body: { message: "File deleted successfully" } };
+        }
+
+        return <http:InternalServerError>{ body: { message: "Failed to delete file" } };
     }
 
     # Fetch user information of the logged in users.
@@ -469,10 +494,10 @@ service http:InterceptableService / on httpListener {
         return http:CREATED;
     }
 
-    # Create or update user information in the database (single or bulk).
+    # Insert or update user information in the database (single or bulk).
     #
     # + ctx - Request context
-    # + payload - User or BulkUserRequest containing users to create/update
+    # + payload - User or BulkUserRequest containing users to insert/update
     # + return - `http:Created` on success or errors on failure
     resource function post users(http:RequestContext ctx, User|User[] payload) 
         returns http:Created|http:InternalServerError|http:BadRequest {
@@ -498,14 +523,15 @@ service http:InterceptableService / on httpListener {
                 body: {message: customError}
             };
         }
+
         return http:CREATED;
     }
+
     # Get all users.  NOTE: NEED TO OPTIMIZE FOR LARGE USER BASE
     #
     # + ctx - Request context
     # + return - Array of users or errors on failure
-    resource function get users(http:RequestContext ctx) 
-        returns User[]|http:InternalServerError|http:NoContent {
+    resource function get users(http:RequestContext ctx) returns User[]|http:InternalServerError|http:NoContent {
 
         authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
         if userInfo is error {
@@ -555,16 +581,19 @@ service http:InterceptableService / on httpListener {
                     body: {message: "User not found"}
                 };
             }
+
             string customError = "Error occurred while deleting user!";
             log:printError(customError, result);
             return <http:InternalServerError>{
                 body: {message: customError}
             };
         }
+
         error? cacheError = userInfoCache.invalidate(email);
         if cacheError is error {
             log:printError("Error in invalidating the user cache!", cacheError);
         }
+        
         return http:NO_CONTENT;
     }
 
