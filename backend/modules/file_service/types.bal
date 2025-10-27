@@ -11,4 +11,5 @@ public type FileData record {|
     byte[] content;
     string fileName;
     string contentType;
+    map<anydata>? optionalParams = {};
 |};
