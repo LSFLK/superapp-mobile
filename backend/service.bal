@@ -1,7 +1,7 @@
 // Copyright (c) 2025 WSO2 LLC. (https://www.wso2.com).
 //
-// WSO2 LLC. licenses this file to you under the Apache License,
-// Version 2.0 (the "License"); you may not use this file except
+// WSO2 LLC. licenses this file_service to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file_service except
 // in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -16,7 +16,7 @@
 import superapp_mobile_service.authorization;
 import superapp_mobile_service.database;
 import superapp_mobile_service.token_exchange;
-import superapp_mobile_service.file;
+import superapp_mobile_service.file_service;
 
 import ballerina/http;
 import ballerina/log;
@@ -31,7 +31,7 @@ configurable string userInfoServiceType = "database"; // default to database
 configurable string fileServiceType = "azure-blob"; // default to azure-blob
 
 final UserInfoService userInfoService = check createUserInfoService(userInfoServiceType);
-final file:FileService fileService = check file:createFileService(fileServiceType);
+final file_service:FileService fileService = check file_service:createFileService(fileServiceType);
 
 @display {
     label: "SuperApp Mobile Service",
@@ -103,35 +103,35 @@ service http:InterceptableService / on httpListener {
         log:printInfo("Super app mobile backend started.");
     }
 
-    # Upload file directly in request body
+    # Upload file_service directly in request body
     # Headers: Content-Type, X-File-Name
     #
     # + request - HTTP request with binary body
     # + fileName - File name (optional, can use X-File-Name header)
-    # + return - Upload response with file URL or error
-    resource function post upload(http:Request request, string fileName = "unknown") returns file:FileUploadResponse|error {
+    # + return - Upload response with file_service URL or error
+    resource function post upload(http:Request request, string fileName = "unknown") returns file_service:FileUploadResponse|error {
         string name = fileName;
         string contentType = request.getContentType();
         byte[] content = check request.getBinaryPayload();
-        file:FileData fileData = {
+        file_service:FileData fileData = {
             content: content,
             fileName: name,
             contentType: contentType
         };
-        file:FileUploadResponse response = check fileService.uploadFile(fileData);
+        file_service:FileUploadResponse response = check fileService.uploadFile(fileData);
         return response;
     }
 
-    # Delete a file from Azure Blob Storage
+    # Delete a file_service from Azure Blob Storage
     #
-    # + fileName - Name of the file to delete (path parameter)
+    # + fileName - Name of the file_service to delete (path parameter)
     # + return - Success message or error
     resource function delete files/[string fileName]() returns json|error {
         boolean success = check fileService.deleteFile(fileName);
         if success {
             return {message: "File deleted successfully"};
         } else {
-            return error("Failed to delete file");
+            return error("Failed to delete file_service");
         }
     }
 
