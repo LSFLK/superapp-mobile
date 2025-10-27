@@ -128,6 +128,7 @@ public type Version record {|
     string downloadUrl;
 |};
 
+# User record type.
 public type User record {
     *shared_records:User;
 };

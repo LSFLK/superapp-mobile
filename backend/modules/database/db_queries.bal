@@ -97,7 +97,7 @@ isolated function getMicroAppByAppIdQuery(string appId) returns sql:Parameterize
 # + microApp - The `MicroApp` record to be inserted
 # + createdBy - User who performs the insertion (used for created_by/updated_by)
 # + return - Generated query to insert the micro app
-public isolated function upsertMicroAppQuery(MicroApp microApp, string createdBy) returns sql:ParameterizedQuery => `
+isolated function upsertMicroAppQuery(MicroApp microApp, string createdBy) returns sql:ParameterizedQuery => `
     INSERT INTO micro_app (
         name,
         description,
@@ -143,7 +143,7 @@ public isolated function upsertMicroAppQuery(MicroApp microApp, string createdBy
 # + version - `MicroAppVersion` record containing version, build and URLs
 # + createdBy - User who performs the insertion (used for created_by/updated_by)
 # + return - Generated query to insert micro app version
-public isolated function upsertMicroAppVersionQuery(string appId, MicroAppVersion version, string createdBy)
+isolated function upsertMicroAppVersionQuery(string appId, MicroAppVersion version, string createdBy)
     returns sql:ParameterizedQuery => `
     INSERT INTO micro_app_version (
         version,
@@ -184,7 +184,7 @@ public isolated function upsertMicroAppVersionQuery(string appId, MicroAppVersio
 # + appRole - MicroAppRole record containing the role name
 # + createdBy - User who performs the insertion (used for created_by/updated_by)
 # + return - Generated query to insert micro app role mapping
-public isolated function upsertMicroAppRoleQuery(string appId, MicroAppRole appRole, string createdBy)
+isolated function upsertMicroAppRoleQuery(string appId, MicroAppRole appRole, string createdBy)
     returns sql:ParameterizedQuery => `
     INSERT INTO micro_app_role (
         micro_app_id,
@@ -214,7 +214,7 @@ public isolated function upsertMicroAppRoleQuery(string appId, MicroAppRole appR
 # + appId - The micro app ID to be deleted
 # + updatedBy - User who performs the deletion (used for updated_by)
 # + return - Generated query to soft delete the micro app from the `micro_app` table
-public isolated function deleteMicroAppQuery(string appId, string updatedBy) returns sql:ParameterizedQuery =>
+isolated function deleteMicroAppQuery(string appId, string updatedBy) returns sql:ParameterizedQuery =>
     `UPDATE micro_app SET 
         active = 0, 
         updated_at = CURRENT_TIMESTAMP, 
@@ -227,7 +227,7 @@ public isolated function deleteMicroAppQuery(string appId, string updatedBy) ret
 # + appId - The micro app ID whose versions should be deleted
 # + updatedBy - User who performs the deletion (used for updated_by)
 # + return - Generated query to soft delete all versions from the `micro_app_version` table
-public isolated function deleteMicroAppVersionQuery(string appId, string updatedBy) returns sql:ParameterizedQuery =>
+isolated function deleteMicroAppVersionQuery(string appId, string updatedBy) returns sql:ParameterizedQuery =>
     `UPDATE micro_app_version SET 
         active = 0, 
         updated_at = CURRENT_TIMESTAMP, 
@@ -240,7 +240,7 @@ public isolated function deleteMicroAppVersionQuery(string appId, string updated
 # + appId - The micro app ID whose role mappings should be deleted
 # + updatedBy - User who performs the deletion (used for updated_by)
 # + return - Generated query to soft delete all role mappings from the `micro_app_role` table
-public isolated function deleteMicroAppRoleQuery(string appId, string updatedBy) returns sql:ParameterizedQuery =>
+isolated function deleteMicroAppRoleQuery(string appId, string updatedBy) returns sql:ParameterizedQuery =>
     `UPDATE micro_app_role SET 
         active = 0, 
         updated_at = CURRENT_TIMESTAMP, 
@@ -318,7 +318,11 @@ isolated function updateAppConfigsByEmailQuery(string email, string configKey, s
             active = ${isActive}
 `;
 
-public isolated function getUserInfoByEmailQuery(string email) returns sql:ParameterizedQuery => `
+# Query to get user information by email.
+#
+# + email - User email
+# + return - Generated query to get user information
+isolated function getUserInfoByEmailQuery(string email) returns sql:ParameterizedQuery => `
     SELECT
         email as workEmail,
         firstName,
@@ -331,16 +335,16 @@ public isolated function getUserInfoByEmailQuery(string email) returns sql:Param
         email = ${email}
 `;
 
-# Query to create/insert a new user into `users_` table.
+# Query to insert/update a new user into `users_` table.
 #
 # + email - User email
 # + firstName - User's first name
 # + lastName - User's last name
 # + userThumbnail - URL to user's profile picture
 # + location - User's location
-# + return - Generated query to insert a new user
-public isolated function createUserInfoQuery(string email, string firstName, string lastName, 
-    string userThumbnail, string location) returns sql:ParameterizedQuery => `
+# + return - Generated query to insert/update a new user
+isolated function upsertUserInfoQuery(string email, string firstName, string lastName,
+        string userThumbnail, string location) returns sql:ParameterizedQuery => `
     INSERT INTO users_ (
         email,
         firstName,
@@ -365,7 +369,7 @@ public isolated function createUserInfoQuery(string email, string firstName, str
 #
 # + email - User's email address
 # + return - Generated query to delete a user
-public isolated function deleteUserQuery(string email) returns sql:ParameterizedQuery => `
+isolated function deleteUserQuery(string email) returns sql:ParameterizedQuery => `
     DELETE FROM users_
     WHERE email = ${email}
 `;
@@ -373,7 +377,7 @@ public isolated function deleteUserQuery(string email) returns sql:Parameterized
 # Query to get all users from `users_` table.
 #
 # + return - Generated query to get all users
-public isolated function getAllUsersQuery() returns sql:ParameterizedQuery => `
+isolated function getAllUsersQuery() returns sql:ParameterizedQuery => `
     SELECT
         email as workEmail,
         firstName,

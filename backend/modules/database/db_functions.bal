@@ -208,6 +208,10 @@ public isolated function updateAppConfigsByEmail(string email, AppConfig appConf
     return result.cloneWithType(ExecutionSuccessResult);
 }
 
+# Get user information by email from the database.
+#
+# + email - User's email address
+# + return - User record or error
 public isolated function getUserInfoByEmail(string email) returns User|error? {
     User|error? userInfo = check databaseClient->queryRow(getUserInfoByEmailQuery(email));
     return userInfo;
@@ -217,10 +221,10 @@ public isolated function getUserInfoByEmail(string email) returns User|error? {
 #
 # + user - User record to create/update
 # + return - ExecutionSuccessResult on success or error
-public isolated function createUserInfo(User user) returns error? {
+public isolated function upsertUserInfo(User user) returns error? {
     
     sql:ExecutionResult result = check databaseClient->execute(
-        createUserInfoQuery(user.workEmail, user.firstName, user.lastName, user.userThumbnail?:"", user.location?:"")
+        upsertUserInfoQuery(user.workEmail, user.firstName, user.lastName, user.userThumbnail?:"", user.location?:"")
     );
     
     if result.affectedRowCount == 0 {
@@ -230,14 +234,14 @@ public isolated function createUserInfo(User user) returns error? {
 
 # Create or update multiple users in the database.
 #
-# + users - Array of users to create/update
+# + users - Array of users to insert/update
 # + return - ExecutionSuccessResult on success or error
-public isolated function createBulkUsers(User[] users) returns error? {
+public isolated function upsertBulkUsers(User[] users) returns error? {
     int successCount = 0;
     int errorCount = 0;
     
     foreach User user in users {
-        error? result = createUserInfo(user);
+        error? result = upsertUserInfo(user);
         
         if result is error {
             errorCount += 1;
