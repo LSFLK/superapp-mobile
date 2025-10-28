@@ -1,0 +1,1 @@
+// To be implemented when 'extensions' endpoint is available in SuperApp backend.

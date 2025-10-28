@@ -18,6 +18,7 @@ import superapp_mobile_service.database;
 import superapp_mobile_service.token_exchange;
 import superapp_mobile_service.file_service;
 import superapp_mobile_service.user_service;
+import superapp_mobile_service.db_user_service;
 
 import ballerina/http;
 import ballerina/log;
@@ -511,9 +512,9 @@ service http:InterceptableService / on httpListener {
 
         error? result;
         if payload is User[] {
-            result = userInfoService.saveUsers(payload);
+            result = db_user_service:upsertBulkUsersInfo(payload);
         } else {
-            result = userInfoService.saveUser(payload);
+            result = db_user_service:upsertUserInfo(payload);
         }
         
         if result is error {
@@ -540,7 +541,7 @@ service http:InterceptableService / on httpListener {
             };
         }
 
-        User[]|error? users = userInfoService.getAllUsers();
+        User[]|error? users = db_user_service:getAllUsers();
 
         if users is () {
             return http:NO_CONTENT;
@@ -572,7 +573,7 @@ service http:InterceptableService / on httpListener {
             };
         }
 
-        error? result = userInfoService.deleteUserByEmail(email);
+        error? result = db_user_service:deleteUser(email);
         
         if result is error {
             string errorMsg = result.message();

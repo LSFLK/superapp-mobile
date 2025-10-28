@@ -16,6 +16,8 @@
 import ballerina/cache;
 import ballerina/log;
 
+import superapp_mobile_service.db_user_service;
+
 final cache:Cache userInfoCache = new (capacity = 100, evictionFactor = 0.2);
 
 # Retrieves basic user information for a given email.
@@ -32,5 +34,5 @@ public function getUserInfo(string email) returns User|error? {
             return loggedInUser;
         }
     }
-    return userInfoService.getUserInfoByEmail(email);
+    return db_user_service:getUserInfoByEmail(email);
 }

@@ -133,12 +133,6 @@ public type User record {
     *shared_records:User;
 };
 
-# Record type for bulk user creation request.
-public type BulkUserRequest record {
-    # Array of users to create/update
-    User[] users;
-};
-
 # Record type to model configurations for the users of the SuperApp.
 public type AppConfig record {|
     # User email
