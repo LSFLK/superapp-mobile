@@ -1,4 +1,8 @@
-import { Box } from '@mui/material';
+import { Box, Drawer, List, ListItemIcon, ListItemText, ListItemButton } from '@mui/material';
+import AppsIcon from '@mui/icons-material/Apps';
+import PeopleIcon from '@mui/icons-material/People';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import { useNavigate } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
 
@@ -7,18 +11,51 @@ interface LayoutProps {
 }
 
 export default function Layout({ children }: LayoutProps) {
+  const navigate = useNavigate();
+  const menuItems = [
+    {
+      title: 'Micro Apps',
+      icon: <AppsIcon sx={{ color: '#1976d2' }} />, 
+      path: '/microapps',
+    },
+    {
+      title: 'Users',
+      icon: <PeopleIcon sx={{ color: '#2e7d32' }} />, 
+      path: '/users',
+    },
+    {
+      title: 'Analytics',
+      icon: <BarChartIcon sx={{ color: '#ed6c02' }} />, 
+      path: '/analytics',
+    },
+  ];
+
   return (
-    <Box sx={{ 
-      minHeight: '100vh', 
-      bgcolor: 'background.default',
-      display: 'flex',
-      flexDirection: 'column',
-    }}>
-      <Header />
-      <Box component="main" sx={{ flexGrow: 1 }}>
-        {children}
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', display: 'flex', flexDirection: 'row' }}>
+      <Drawer
+        variant="permanent"
+        sx={{
+          width: 220,
+          flexShrink: 0,
+          [`& .MuiDrawer-paper`]: { width: 220, boxSizing: 'border-box', bgcolor: 'background.paper' },
+        }}
+      >
+        <List>
+          {menuItems.map((item) => (
+            <ListItemButton key={item.path} onClick={() => navigate(item.path)}>
+              <ListItemIcon>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.title} />
+            </ListItemButton>
+          ))}
+        </List>
+      </Drawer>
+      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <Header />
+        <Box component="main" sx={{ flexGrow: 1 }}>
+          {children}
+        </Box>
+        <Footer />
       </Box>
-      <Footer />
-     </Box>
+    </Box>
   );
 }
