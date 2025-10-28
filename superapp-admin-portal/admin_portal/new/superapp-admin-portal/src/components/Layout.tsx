@@ -14,11 +14,6 @@ export default function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
   const menuItems = [
     {
-      title: 'Micro Apps',
-      icon: <AppsIcon sx={{ color: '#1976d2' }} />, 
-      path: '/microapps',
-    },
-    {
       title: 'Users',
       icon: <PeopleIcon sx={{ color: '#2e7d32' }} />, 
       path: '/users',
