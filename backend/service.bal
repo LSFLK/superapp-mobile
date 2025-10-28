@@ -612,8 +612,13 @@ service http:InterceptableService / on httpListener {
                 body: {message: ERR_MSG_USER_HEADER_NOT_FOUND}
             };
         }
+        
+        string[]? groups = ();
+        if userInfo.groups is string[] {
+            groups = userInfo.groups;
+        }
 
-        string|error token = token_exchange:issueJWT(userInfo.email, request.microAppId);
+        string|error token = token_exchange:issueJWT(userInfo.email, request.microAppId, groups);
         if token is error {
             string customError = "Error occurred while generating JWT token";
             log:printError(customError, token);

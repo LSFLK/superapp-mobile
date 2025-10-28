@@ -21,10 +21,12 @@ import ballerina/uuid;
 #
 # + userId - The identifier of the user for whom the token is issued
 # + microAppId - The unique identifier for the microapp
+# + groups - Optional list of group identifiers associated with the user
 # + return - JWT token string or error if token generation fails
-public isolated function issueJWT(string userId, string microAppId) returns string|error {
+public isolated function issueJWT(string userId, string microAppId, string[]? groups) returns string|error {
     string hashedMicroAppId = getHashedMicroAppId(microAppId);
     map<json> claims = {
+        "groups": groups,
         "email": userId,
         "jti": uuid:createType1AsString()
     };
