@@ -1,10 +1,17 @@
-import { Box, Drawer, List, ListItemIcon, ListItemText, ListItemButton } from '@mui/material';
-import AppsIcon from '@mui/icons-material/Apps';
-import PeopleIcon from '@mui/icons-material/People';
-import BarChartIcon from '@mui/icons-material/BarChart';
-import { useNavigate } from 'react-router-dom';
-import Header from './Header';
-import Footer from './Footer';
+import {
+  Box,
+  Drawer,
+  List,
+  ListItemIcon,
+  ListItemText,
+  ListItemButton,
+} from "@mui/material";
+import AppsIcon from "@mui/icons-material/Apps";
+import PeopleIcon from "@mui/icons-material/People";
+import BarChartIcon from "@mui/icons-material/BarChart";
+import { useNavigate } from "react-router-dom";
+import Header from "./Header";
+import Footer from "./Footer";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -14,31 +21,57 @@ export default function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
   const menuItems = [
     {
-      title: 'Users',
-      icon: <PeopleIcon sx={{ color: '#2e7d32' }} />, 
-      path: '/users',
+      title: "Users",
+      icon: <PeopleIcon sx={{ color: "#2e7d32" }} />,
+      path: "/users",
     },
     {
-      title: 'Analytics',
-      icon: <BarChartIcon sx={{ color: '#ed6c02' }} />, 
-      path: '/analytics',
+      title: "Analytics",
+      icon: <BarChartIcon sx={{ color: "#ed6c02" }} />,
+      path: "/analytics",
     },
   ];
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', display: 'flex', flexDirection: 'row' }}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        bgcolor: "background.default",
+        display: "flex",
+        flexDirection: "row",
+      }}
+    >
       <Drawer
         variant="permanent"
         sx={{
           width: 220,
           flexShrink: 0,
-          [`& .MuiDrawer-paper`]: { width: 220, boxSizing: 'border-box', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column', alignItems: 'center' },
+          [`& .MuiDrawer-paper`]: {
+            width: 220,
+            boxSizing: "border-box",
+            bgcolor: "background.paper",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          },
         }}
       >
-        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', py: 2 }}>
-          <img src="/icon.svg" alt="App Icon" style={{ width: 48, height: 48 }} />
+        <Box
+          sx={{
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            py: 2,
+          }}
+        >
+          <img
+            src="/icon.svg"
+            alt="App Icon"
+            style={{ width: 48, height: 48 }}
+          />
         </Box>
-        <List sx={{ width: '100%' }}>
+        <List sx={{ width: "100%" }}>
           {menuItems.map((item) => (
             <ListItemButton key={item.path} onClick={() => navigate(item.path)}>
               <ListItemIcon>{item.icon}</ListItemIcon>
@@ -47,7 +80,7 @@ export default function Layout({ children }: LayoutProps) {
           ))}
         </List>
       </Drawer>
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
         <Header />
         <Box component="main" sx={{ flexGrow: 1 }}>
           {children}

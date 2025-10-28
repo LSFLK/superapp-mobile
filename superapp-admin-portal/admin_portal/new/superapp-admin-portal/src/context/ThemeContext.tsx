@@ -1,15 +1,15 @@
 /**
  * Theme Context
- * 
+ *
  * Manages theme mode (light/dark) state with localStorage persistence.
  */
 
-import { createContext, useContext, useState, useMemo, useEffect } from 'react';
-import type { ReactNode } from 'react';
-import { ThemeProvider as MuiThemeProvider } from '@mui/material';
-import { createAppTheme } from '../theme';
+import { createContext, useContext, useState, useMemo, useEffect } from "react";
+import type { ReactNode } from "react";
+import { ThemeProvider as MuiThemeProvider } from "@mui/material";
+import { createAppTheme } from "../theme";
 
-type ThemeMode = 'light' | 'dark';
+type ThemeMode = "light" | "dark";
 
 interface ThemeContextType {
   mode: ThemeMode;
@@ -21,7 +21,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export const useTheme = () => {
   const context = useContext(ThemeContext);
   if (!context) {
-    throw new Error('useTheme must be used within ThemeProvider');
+    throw new Error("useTheme must be used within ThemeProvider");
   }
   return context;
 };
@@ -30,13 +30,13 @@ interface ThemeProviderProps {
   children: ReactNode;
 }
 
-const THEME_STORAGE_KEY = 'app-theme-mode';
+const THEME_STORAGE_KEY = "app-theme-mode";
 
 export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   // Initialize from localStorage or default to light
   const [mode, setMode] = useState<ThemeMode>(() => {
     const savedMode = localStorage.getItem(THEME_STORAGE_KEY);
-    return (savedMode === 'dark' || savedMode === 'light') ? savedMode : 'light';
+    return savedMode === "dark" || savedMode === "light" ? savedMode : "light";
   });
 
   // Save to localStorage whenever mode changes
@@ -45,16 +45,14 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   }, [mode]);
 
   const toggleTheme = () => {
-    setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
+    setMode((prevMode) => (prevMode === "light" ? "dark" : "light"));
   };
 
   const theme = useMemo(() => createAppTheme(mode), [mode]);
 
   return (
     <ThemeContext.Provider value={{ mode, toggleTheme }}>
-      <MuiThemeProvider theme={theme}>
-        {children}
-      </MuiThemeProvider>
+      <MuiThemeProvider theme={theme}>{children}</MuiThemeProvider>
     </ThemeContext.Provider>
   );
 };

@@ -1,39 +1,38 @@
 /**
  * App Component
- * 
+ *
  * Main application entry point with authentication routing.
  */
 
-import { useAuthContext } from '@asgardeo/auth-react';
-import { useEffect, useRef } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Layout, Dashboard, Loading } from './components';
-import Login from './pages/Login';
-import MicroApps from './pages/MicroApps';
-import Users from './pages/Users';
-import ComingSoon from './pages/ComingSoon';
-import { useNotification } from './context';
-import { apiService } from './services';
+import { useAuthContext } from "@asgardeo/auth-react";
+import { useEffect, useRef } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Layout, Dashboard, Loading } from "./components";
+import Login from "./pages/Login";
+import MicroApps from "./pages/MicroApps";
+import Users from "./pages/Users";
+import ComingSoon from "./pages/ComingSoon";
+import { useNotification } from "./context";
+import { apiService } from "./services";
 
 function App() {
   const { state, getAccessToken, signOut } = useAuthContext();
   const { showNotification } = useNotification();
   const hasShownLoginNotification = useRef(false);
 
-
   // Initialize API service with token getter and sign out function
   useEffect(() => {
     if (state.isAuthenticated) {
-      console.log('Setting up API service with auth functions');
-      
+      console.log("Setting up API service with auth functions");
+
       // Create stable wrappers inside effect to avoid unnecessary re-renders
       const tokenGetter = async () => {
         try {
           const token = await getAccessToken();
-          return token || '';
+          return token || "";
         } catch (error) {
-          console.error('Error getting access token:', error);
-          return '';
+          console.error("Error getting access token:", error);
+          return "";
         }
       };
 
@@ -46,7 +45,7 @@ function App() {
 
       // Cleanup: Reset the service when user logs out
       return () => {
-        console.log('Cleaning up API service auth functions');
+        console.log("Cleaning up API service auth functions");
         apiService.reset();
       };
     }
@@ -55,7 +54,7 @@ function App() {
   // Show notification when user logs in
   useEffect(() => {
     if (state.isAuthenticated && !hasShownLoginNotification.current) {
-      showNotification('Successfully signed in', 'success');
+      showNotification("Successfully signed in", "success");
       hasShownLoginNotification.current = true;
     } else if (!state.isAuthenticated) {
       // Reset notification flag when user logs out
@@ -65,13 +64,13 @@ function App() {
 
   // Show loading spinner while checking authentication status
   if (state.isLoading) {
-    console.log('Authentication loading...');
+    console.log("Authentication loading...");
     return <Loading />;
   }
-  
+
   // Show login page if not authenticated
   if (!state.isAuthenticated) {
-    console.log('User not authenticated, showing login page');
+    console.log("User not authenticated, showing login page");
     return <Login />;
   }
 

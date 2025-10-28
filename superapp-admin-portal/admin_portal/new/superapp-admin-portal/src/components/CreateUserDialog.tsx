@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -13,13 +13,13 @@ import {
   Stack,
   IconButton,
   Tooltip,
-} from '@mui/material';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import GroupAddIcon from '@mui/icons-material/GroupAdd';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
-import { useNotification } from '../context';
-import { usersService, type User } from '../services';
+} from "@mui/material";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import GroupAddIcon from "@mui/icons-material/GroupAdd";
+import DeleteIcon from "@mui/icons-material/Delete";
+import AddIcon from "@mui/icons-material/Add";
+import { useNotification } from "../context";
+import { usersService, type User } from "../services";
 
 interface CreateUserDialogProps {
   open: boolean;
@@ -49,28 +49,32 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-const CreateUserDialog = ({ open, onClose, onSuccess }: CreateUserDialogProps) => {
+const CreateUserDialog = ({
+  open,
+  onClose,
+  onSuccess,
+}: CreateUserDialogProps) => {
   const [tabValue, setTabValue] = useState(0);
   const [loading, setLoading] = useState(false);
   const { showNotification } = useNotification();
 
   // Single user state
   const [singleUser, setSingleUser] = useState<User>({
-    workEmail: '',
-    firstName: '',
-    lastName: '',
-    userThumbnail: '',
-    location: '',
+    workEmail: "",
+    firstName: "",
+    lastName: "",
+    userThumbnail: "",
+    location: "",
   });
 
   // Bulk users state
   const [bulkUsers, setBulkUsers] = useState<User[]>([
     {
-      workEmail: '',
-      firstName: '',
-      lastName: '',
-      userThumbnail: '',
-      location: '',
+      workEmail: "",
+      firstName: "",
+      lastName: "",
+      userThumbnail: "",
+      location: "",
     },
   ]);
 
@@ -82,7 +86,11 @@ const CreateUserDialog = ({ open, onClose, onSuccess }: CreateUserDialogProps) =
     setSingleUser((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleBulkUserChange = (index: number, field: keyof User, value: string) => {
+  const handleBulkUserChange = (
+    index: number,
+    field: keyof User,
+    value: string,
+  ) => {
     setBulkUsers((prev) => {
       const updated = [...prev];
       updated[index] = { ...updated[index], [field]: value };
@@ -94,11 +102,11 @@ const CreateUserDialog = ({ open, onClose, onSuccess }: CreateUserDialogProps) =
     setBulkUsers((prev) => [
       ...prev,
       {
-        workEmail: '',
-        firstName: '',
-        lastName: '',
-        userThumbnail: '',
-        location: '',
+        workEmail: "",
+        firstName: "",
+        lastName: "",
+        userThumbnail: "",
+        location: "",
       },
     ]);
   };
@@ -110,12 +118,16 @@ const CreateUserDialog = ({ open, onClose, onSuccess }: CreateUserDialogProps) =
   };
 
   const validateSingleUser = (): boolean => {
-    if (!singleUser.workEmail || !singleUser.firstName || !singleUser.lastName) {
-      showNotification('Please fill in all required fields', 'error');
+    if (
+      !singleUser.workEmail ||
+      !singleUser.firstName ||
+      !singleUser.lastName
+    ) {
+      showNotification("Please fill in all required fields", "error");
       return false;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(singleUser.workEmail)) {
-      showNotification('Please enter a valid email address', 'error');
+      showNotification("Please enter a valid email address", "error");
       return false;
     }
     return true;
@@ -125,11 +137,17 @@ const CreateUserDialog = ({ open, onClose, onSuccess }: CreateUserDialogProps) =
     for (let i = 0; i < bulkUsers.length; i++) {
       const user = bulkUsers[i];
       if (!user.workEmail || !user.firstName || !user.lastName) {
-        showNotification(`Please fill in all required fields for user ${i + 1}`, 'error');
+        showNotification(
+          `Please fill in all required fields for user ${i + 1}`,
+          "error",
+        );
         return false;
       }
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(user.workEmail)) {
-        showNotification(`Please enter a valid email address for user ${i + 1}`, 'error');
+        showNotification(
+          `Please enter a valid email address for user ${i + 1}`,
+          "error",
+        );
         return false;
       }
     }
@@ -137,7 +155,7 @@ const CreateUserDialog = ({ open, onClose, onSuccess }: CreateUserDialogProps) =
     const emails = bulkUsers.map((u) => u.workEmail.toLowerCase());
     const uniqueEmails = new Set(emails);
     if (emails.length !== uniqueEmails.size) {
-      showNotification('Duplicate email addresses found', 'error');
+      showNotification("Duplicate email addresses found", "error");
       return false;
     }
     return true;
@@ -153,21 +171,24 @@ const CreateUserDialog = ({ open, onClose, onSuccess }: CreateUserDialogProps) =
           return;
         }
         await usersService.createUser(singleUser);
-        showNotification('User created successfully', 'success');
+        showNotification("User created successfully", "success");
       } else {
         // Bulk users
         if (!validateBulkUsers()) {
           return;
         }
         await usersService.createBulkUsers(bulkUsers);
-        showNotification(`${bulkUsers.length} users created successfully`, 'success');
+        showNotification(
+          `${bulkUsers.length} users created successfully`,
+          "success",
+        );
       }
 
       onSuccess();
       handleClose();
     } catch (error) {
-      console.error('Error creating user(s):', error);
-      showNotification('Failed to create user(s)', 'error');
+      console.error("Error creating user(s):", error);
+      showNotification("Failed to create user(s)", "error");
     } finally {
       setLoading(false);
     }
@@ -177,19 +198,19 @@ const CreateUserDialog = ({ open, onClose, onSuccess }: CreateUserDialogProps) =
     if (!loading) {
       // Reset form
       setSingleUser({
-        workEmail: '',
-        firstName: '',
-        lastName: '',
-        userThumbnail: '',
-        location: '',
+        workEmail: "",
+        firstName: "",
+        lastName: "",
+        userThumbnail: "",
+        location: "",
       });
       setBulkUsers([
         {
-          workEmail: '',
-          firstName: '',
-          lastName: '',
-          userThumbnail: '',
-          location: '',
+          workEmail: "",
+          firstName: "",
+          lastName: "",
+          userThumbnail: "",
+          location: "",
         },
       ]);
       setTabValue(0);
@@ -200,13 +221,21 @@ const CreateUserDialog = ({ open, onClose, onSuccess }: CreateUserDialogProps) =
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
       <DialogTitle>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
           <Typography variant="h6" sx={{ mb: 2 }}>
             Add Users
           </Typography>
           <Tabs value={tabValue} onChange={handleTabChange}>
-            <Tab icon={<PersonAddIcon />} label="Single User" iconPosition="start" />
-            <Tab icon={<GroupAddIcon />} label="Bulk Add" iconPosition="start" />
+            <Tab
+              icon={<PersonAddIcon />}
+              label="Single User"
+              iconPosition="start"
+            />
+            <Tab
+              icon={<GroupAddIcon />}
+              label="Bulk Add"
+              iconPosition="start"
+            />
           </Tabs>
         </Box>
       </DialogTitle>
@@ -218,22 +247,28 @@ const CreateUserDialog = ({ open, onClose, onSuccess }: CreateUserDialogProps) =
               label="Email"
               type="email"
               value={singleUser.workEmail}
-              onChange={(e) => handleSingleUserChange('workEmail', e.target.value)}
+              onChange={(e) =>
+                handleSingleUserChange("workEmail", e.target.value)
+              }
               fullWidth
               required
             />
-            <Box sx={{ display: 'flex', gap: 2 }}>
+            <Box sx={{ display: "flex", gap: 2 }}>
               <TextField
                 label="First Name"
                 value={singleUser.firstName}
-                onChange={(e) => handleSingleUserChange('firstName', e.target.value)}
+                onChange={(e) =>
+                  handleSingleUserChange("firstName", e.target.value)
+                }
                 fullWidth
                 required
               />
               <TextField
                 label="Last Name"
                 value={singleUser.lastName}
-                onChange={(e) => handleSingleUserChange('lastName', e.target.value)}
+                onChange={(e) =>
+                  handleSingleUserChange("lastName", e.target.value)
+                }
                 fullWidth
                 required
               />
@@ -241,13 +276,17 @@ const CreateUserDialog = ({ open, onClose, onSuccess }: CreateUserDialogProps) =
             <TextField
               label="Profile Picture URL"
               value={singleUser.userThumbnail}
-              onChange={(e) => handleSingleUserChange('userThumbnail', e.target.value)}
+              onChange={(e) =>
+                handleSingleUserChange("userThumbnail", e.target.value)
+              }
               fullWidth
             />
             <TextField
               label="Location"
               value={singleUser.location}
-              onChange={(e) => handleSingleUserChange('location', e.target.value)}
+              onChange={(e) =>
+                handleSingleUserChange("location", e.target.value)
+              }
               fullWidth
             />
           </Stack>
@@ -260,13 +299,19 @@ const CreateUserDialog = ({ open, onClose, onSuccess }: CreateUserDialogProps) =
                 key={index}
                 sx={{
                   p: 2,
-                  border: '1px solid',
-                  borderColor: 'divider',
+                  border: "1px solid",
+                  borderColor: "divider",
                   borderRadius: 1,
-                  position: 'relative',
+                  position: "relative",
                 }}
               >
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mb: 2,
+                  }}
+                >
                   <Typography variant="subtitle2" color="text.secondary">
                     User {index + 1}
                   </Typography>
@@ -287,16 +332,20 @@ const CreateUserDialog = ({ open, onClose, onSuccess }: CreateUserDialogProps) =
                     label="Email"
                     type="email"
                     value={user.workEmail}
-                    onChange={(e) => handleBulkUserChange(index, 'workEmail', e.target.value)}
+                    onChange={(e) =>
+                      handleBulkUserChange(index, "workEmail", e.target.value)
+                    }
                     fullWidth
                     required
                     size="small"
                   />
-                  <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Box sx={{ display: "flex", gap: 2 }}>
                     <TextField
                       label="First Name"
                       value={user.firstName}
-                      onChange={(e) => handleBulkUserChange(index, 'firstName', e.target.value)}
+                      onChange={(e) =>
+                        handleBulkUserChange(index, "firstName", e.target.value)
+                      }
                       fullWidth
                       required
                       size="small"
@@ -304,7 +353,9 @@ const CreateUserDialog = ({ open, onClose, onSuccess }: CreateUserDialogProps) =
                     <TextField
                       label="Last Name"
                       value={user.lastName}
-                      onChange={(e) => handleBulkUserChange(index, 'lastName', e.target.value)}
+                      onChange={(e) =>
+                        handleBulkUserChange(index, "lastName", e.target.value)
+                      }
                       fullWidth
                       required
                       size="small"
@@ -313,14 +364,22 @@ const CreateUserDialog = ({ open, onClose, onSuccess }: CreateUserDialogProps) =
                   <TextField
                     label="Profile Picture URL"
                     value={user.userThumbnail}
-                    onChange={(e) => handleBulkUserChange(index, 'userThumbnail', e.target.value)}
+                    onChange={(e) =>
+                      handleBulkUserChange(
+                        index,
+                        "userThumbnail",
+                        e.target.value,
+                      )
+                    }
                     fullWidth
                     size="small"
                   />
                   <TextField
                     label="Location"
                     value={user.location}
-                    onChange={(e) => handleBulkUserChange(index, 'location', e.target.value)}
+                    onChange={(e) =>
+                      handleBulkUserChange(index, "location", e.target.value)
+                    }
                     fullWidth
                     size="small"
                   />
@@ -344,7 +403,11 @@ const CreateUserDialog = ({ open, onClose, onSuccess }: CreateUserDialogProps) =
           Cancel
         </Button>
         <Button onClick={handleSubmit} variant="contained" disabled={loading}>
-          {loading ? 'Creating...' : tabValue === 0 ? 'Create User' : `Create ${bulkUsers.length} Users`}
+          {loading
+            ? "Creating..."
+            : tabValue === 0
+              ? "Create User"
+              : `Create ${bulkUsers.length} Users`}
         </Button>
       </DialogActions>
     </Dialog>

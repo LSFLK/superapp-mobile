@@ -5,8 +5,8 @@ import {
   DialogContentText,
   DialogActions,
   Button,
-} from '@mui/material';
-import { useEffect, useState } from 'react';
+} from "@mui/material";
+import { useEffect, useState } from "react";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -16,7 +16,13 @@ interface ConfirmDialogProps {
   onCancel: () => void;
   confirmText?: string;
   cancelText?: string;
-  confirmColor?: 'error' | 'primary' | 'secondary' | 'success' | 'info' | 'warning';
+  confirmColor?:
+    | "error"
+    | "primary"
+    | "secondary"
+    | "success"
+    | "info"
+    | "warning";
 }
 
 const ConfirmDialog = ({
@@ -25,9 +31,9 @@ const ConfirmDialog = ({
   message,
   onConfirm,
   onCancel,
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
-  confirmColor = 'primary',
+  confirmText = "Confirm",
+  cancelText = "Cancel",
+  confirmColor = "primary",
 }: ConfirmDialogProps) => {
   // Keep the last non-empty message to prevent flickering during close animation
   const [displayMessage, setDisplayMessage] = useState(message);
@@ -57,7 +63,12 @@ const ConfirmDialog = ({
         <Button onClick={onCancel} color="inherit">
           {cancelText}
         </Button>
-        <Button onClick={onConfirm} color={confirmColor} variant="contained" autoFocus>
+        <Button
+          onClick={onConfirm}
+          color={confirmColor}
+          variant="contained"
+          autoFocus
+        >
           {confirmText}
         </Button>
       </DialogActions>

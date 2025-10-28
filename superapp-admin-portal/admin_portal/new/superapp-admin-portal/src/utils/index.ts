@@ -1,1 +1,1 @@
-export * from './zipValidator';
+export * from "./zipValidator";
