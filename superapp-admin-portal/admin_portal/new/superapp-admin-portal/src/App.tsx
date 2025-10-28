@@ -80,7 +80,6 @@ function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<MicroApps />} />
-          <Route path="/microapps" element={<MicroApps />} />
           <Route path="/users" element={<Users />} />
           <Route path="/analytics" element={<ComingSoon />} />
           <Route path="*" element={<Navigate to="/" replace />} />
