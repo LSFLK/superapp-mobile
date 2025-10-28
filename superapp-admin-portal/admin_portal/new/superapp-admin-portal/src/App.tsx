@@ -79,7 +79,7 @@ function App() {
     <BrowserRouter>
       <Layout>
         <Routes>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/" element={<MicroApps />} />
           <Route path="/microapps" element={<MicroApps />} />
           <Route path="/users" element={<Users />} />
           <Route path="/analytics" element={<ComingSoon />} />
