@@ -37,10 +37,13 @@ export default function Layout({ children }: LayoutProps) {
         sx={{
           width: 220,
           flexShrink: 0,
-          [`& .MuiDrawer-paper`]: { width: 220, boxSizing: 'border-box', bgcolor: 'background.paper' },
+          [`& .MuiDrawer-paper`]: { width: 220, boxSizing: 'border-box', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column', alignItems: 'center' },
         }}
       >
-        <List>
+        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', py: 2 }}>
+          <img src="/icon.svg" alt="App Icon" style={{ width: 48, height: 48 }} />
+        </Box>
+        <List sx={{ width: '100%' }}>
           {menuItems.map((item) => (
             <ListItemButton key={item.path} onClick={() => navigate(item.path)}>
               <ListItemIcon>{item.icon}</ListItemIcon>
