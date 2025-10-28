@@ -613,7 +613,7 @@ service http:InterceptableService / on httpListener {
             };
         }
 
-        string|error token = token_exchange:issueJWT(userInfo.email, request.clientId);
+        string|error token = token_exchange:issueJWT(userInfo.email, request.microAppId);
         if token is error {
             string customError = "Error occurred while generating JWT token";
             log:printError(customError, token);
@@ -622,10 +622,8 @@ service http:InterceptableService / on httpListener {
             };
         }
 
-        decimal expiresAt = token_exchange:getTokenTTL();
         return <token_exchange:TokenResponse>{
-            token: token, 
-            expiresAt: expiresAt
+            token: token
         };
     }
 }

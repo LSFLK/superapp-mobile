@@ -17,13 +17,13 @@
 import ballerina/jwt;
 import ballerina/uuid;
 
-# Issues a JWT for the given user and client identifiers.
+# Issues a JWT for the given user and microapp identifiers.
 #
 # + userId - The identifier of the user for whom the token is issued
-# + clientId - The unique identifier for the client
+# + microAppId - The unique identifier for the microapp
 # + return - JWT token string or error if token generation fails
-public isolated function issueJWT(string userId, string clientId) returns string|error {
-    string hashedClientId = getHashedClientId(clientId);
+public isolated function issueJWT(string userId, string microAppId) returns string|error {
+    string hashedMicroAppId = getHashedMicroAppId(microAppId);
     map<json> claims = {
         "email": userId,
         "jti": uuid:createType1AsString()
@@ -31,7 +31,7 @@ public isolated function issueJWT(string userId, string clientId) returns string
 
     jwt:IssuerConfig issuerConfig = {
         issuer: SUPERAPP_ISSUER,
-        audience: hashedClientId,
+        audience: hashedMicroAppId,
         keyId: KEY_ID,
         expTime: tokenTTLSeconds,
         customClaims: claims,

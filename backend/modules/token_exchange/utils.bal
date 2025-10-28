@@ -17,24 +17,17 @@
 import ballerina/crypto;
 import ballerina/io;
 
-configurable decimal tokenTTLSeconds = 300.0; // Default 5 minutes
-configurable string privateKeyPath = "modules/token_exchange/private_key.pem";
+configurable decimal tokenTTLSeconds = ?; // Default 5 minutes
+configurable string privateKeyPath = ?;
 
 # Get the hashed client ID.
 #
 # + clientId - Client ID to be hashed
 # + return - Hashed client ID
-public isolated function getHashedClientId(string clientId) returns string {
+public isolated function getHashedMicroAppId(string clientId) returns string {
     byte[] data = clientId.toBytes();
     byte[] hash = crypto:hashSha256(data);
     return hash.toBase64();
-}
-
-# Get the configured token TTL in seconds.
-#
-# + return - Token time-to-live in seconds
-public isolated function getTokenTTL() returns decimal {
-    return tokenTTLSeconds;
 }
 
 # Get the JSON Web Key Set (JWKS) for token verification.

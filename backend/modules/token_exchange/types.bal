@@ -22,15 +22,13 @@ public type TokenRequest record {|
     @constraint:String {
         minLength: 1
     }
-    string clientId;
+    string microAppId;
 |};
 
 # Token response record type.
 public type TokenResponse record {|
     # Issued token
     string token;
-    # Token expiration time in seconds
-    decimal expiresAt;
 |};
 
 # JSON Web Key (JWK) record type for RSA keys.
