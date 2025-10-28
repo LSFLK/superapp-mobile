@@ -63,7 +63,9 @@ export default function Layout({ children }: LayoutProps) {
             justifyContent: "center",
             alignItems: "center",
             py: 2,
+            cursor: "pointer",
           }}
+          onClick={() => navigate("/")}
         >
           <img
             src="/icon.svg"
