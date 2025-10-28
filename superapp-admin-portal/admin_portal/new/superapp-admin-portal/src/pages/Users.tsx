@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Button,
@@ -34,6 +35,7 @@ import { usersService, type User } from '../services';
 import { CreateUserDialog, ConfirmDialog } from '../components';
 
 const Users = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -124,6 +126,9 @@ const Users = () => {
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box>
+          <Button variant="text" onClick={() => navigate(-1)} sx={{ mb: 2 }}>
+            ← Back
+          </Button>
           <Typography variant="h4" component="h1" gutterBottom>
             Users
           </Typography>
