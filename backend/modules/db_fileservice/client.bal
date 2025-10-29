@@ -13,14 +13,19 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
+import ballerinax/mysql;
+import ballerinax/mysql.driver as _;
 
-import ballerinax/azure_storage_service.blobs as azure_blobs;
+configurable DatabaseConfig databaseConfig = ?;
 
-public configurable AzureBlobServiceConfig azureBlobServiceConfig = ?;
-
-azure_blobs:ConnectionConfig blobServiceConfig = {
-    accountName: azureBlobServiceConfig.accountName,
-    accessKeyOrSAS: azureBlobServiceConfig.accessKey,
-    authorizationMethod: "accessKey"
+SuperappMobileDatabaseConfig superappMobileDatabaseConfig = {
+    ...databaseConfig,
+    options: {
+        ssl: {
+            mode: mysql:SSL_PREFERRED
+        },
+        connectTimeout: 10
+    }
 };
-public azure_blobs:BlobClient blobClient = check new (blobServiceConfig);
+
+final mysql:Client databaseClient = check new (...superappMobileDatabaseConfig);

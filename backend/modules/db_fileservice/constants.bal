@@ -14,13 +14,5 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerinax/azure_storage_service.blobs as azure_blobs;
-
-public configurable AzureBlobServiceConfig azureBlobServiceConfig = ?;
-
-azure_blobs:ConnectionConfig blobServiceConfig = {
-    accountName: azureBlobServiceConfig.accountName,
-    accessKeyOrSAS: azureBlobServiceConfig.accessKey,
-    authorizationMethod: "accessKey"
-};
-public azure_blobs:BlobClient blobClient = check new (blobServiceConfig);
+public const string SUCCESS_FILE_UPLOADED = "File uploaded successfully.";
+public const string BASE_URL = "http://localhost:9090/";
