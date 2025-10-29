@@ -1,73 +1,159 @@
-# React + TypeScript + Vite
+# SuperApp Admin Portal
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Overview
 
-Currently, two official plugins are available:
+This is the Admin Portal for SuperApp, built using Vite for fast development and optimized builds. The portal provides administrative features for managing users, content, and system configurations.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## React Compiler
+- User management (create, update, delete, view)
+- Role-based access control
+- Content moderation
+- Analytics dashboard
+- System configuration
+- Responsive UI
+- Authentication and authorization
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tech Stack
 
-## Expanding the ESLint configuration
+- [Vite](https://vitejs.dev/) (Frontend build tool)
+- [React](https://react.dev/) (UI library)
+- [TypeScript](https://www.typescriptlang.org/) (Type safety)
+- [Redux Toolkit](https://redux-toolkit.js.org/) (State management)
+- [React Router](https://reactrouter.com/) (Routing)
+- [Tailwind CSS](https://tailwindcss.com/) (Styling)
+- [Axios](https://axios-http.com/) (API requests)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Getting Started
 
-```js
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
+### Prerequisites
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- Node.js (v18+ recommended)
+- npm or yarn
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone <repo-url>
+   cd superapp-admin-portal/admin_portal/new
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
+
+### Running the Development Server
+
+```bash
+npm run dev
+# or
+yarn dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The app will be available at `http://localhost:5173` (default Vite port).
 
-```js
-// eslint.config.js
-import reactX from "eslint-plugin-react-x";
-import reactDom from "eslint-plugin-react-dom";
+### Building for Production
 
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs["recommended-typescript"],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+```bash
+npm run build
+# or
+yarn build
 ```
+
+The production-ready files will be in the `dist/` directory.
+
+### Preview Production Build
+
+```bash
+npm run preview
+# or
+yarn preview
+```
+
+## Project Structure
+
+```
+admin_portal/
+  new/
+    src/
+      components/      # Reusable UI components
+      pages/           # Route-based pages
+      store/           # Redux store setup
+      hooks/           # Custom React hooks
+      assets/          # Images, fonts, etc.
+      App.tsx          # Main app component
+      main.tsx         # Entry point
+    public/            # Static files
+    vite.config.ts     # Vite configuration
+    tsconfig.json      # TypeScript configuration
+    package.json       # Project metadata and scripts
+    README.md          # Project documentation
+```
+
+## Environment Variables
+
+Create a `.env` file in the root of the project for sensitive configuration:
+
+```
+VITE_API_URL=https://api.superapp.com
+VITE_AUTH_CLIENT_ID=your-client-id
+```
+
+Refer to `vite.config.ts` for usage.
+
+## Scripts
+
+- `dev`: Start development server
+- `build`: Build for production
+- `preview`: Preview production build
+- `lint`: Run linter
+- `test`: Run tests
+
+## Testing
+
+This project uses [Vitest](https://vitest.dev/) for unit and integration tests.
+
+```bash
+npm run test
+```
+
+Test files are located in `src/__tests__/`.
+
+## Linting & Formatting
+
+- ESLint for code linting
+- Prettier for code formatting
+
+```bash
+npm run lint
+npm run format
+```
+
+## Deployment
+
+You can deploy the production build (`dist/`) to any static hosting service (e.g., Vercel, Netlify, AWS S3).
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/your-feature`)
+3. Commit your changes (`git commit -am 'Add new feature'`)
+4. Push to the branch (`git push origin feature/your-feature`)
+5. Open a Pull Request
+
+## Troubleshooting
+
+- If dependencies fail to install, ensure your Node.js version is compatible.
+- For CORS/API issues, check your `.env` and backend configuration.
+- For build errors, check `vite.config.ts` and TypeScript settings.
+
+## License
+
+This project is licensed under the MIT License.
+
+## Contact
+
+For questions or support, contact the SuperApp team at [support@superapp.com](mailto:support@superapp.com).
