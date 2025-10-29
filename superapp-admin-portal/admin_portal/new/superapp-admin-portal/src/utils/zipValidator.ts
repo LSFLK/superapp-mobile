@@ -1,13 +1,15 @@
 /**
  * ZIP File Validation Utility
- * 
+ *
  * Comprehensive validation for ZIP files before upload.
  * Includes magic byte verification, size limits, and content checks.
  */
 
 // Configuration
 const DEFAULT_MAX_SIZE_MB = 10;
-const MAX_SIZE_MB = Number(import.meta.env.VITE_MAX_UPLOAD_MB ?? DEFAULT_MAX_SIZE_MB);
+const MAX_SIZE_MB = Number(
+  import.meta.env.VITE_MAX_UPLOAD_MB ?? DEFAULT_MAX_SIZE_MB,
+);
 const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
 const MIN_SIZE_BYTES = 22; // Minimum size for a valid (empty) ZIP file
 
@@ -30,10 +32,10 @@ function hasValidZipSignature(buffer: ArrayBuffer): boolean {
   if (!buffer || buffer.byteLength < 4) {
     return false;
   }
-  
+
   const view = new Uint8Array(buffer, 0, 4);
-  return ZIP_SIGNATURES.some((signature) => 
-    signature.every((byte, index) => view[index] === byte)
+  return ZIP_SIGNATURES.some((signature) =>
+    signature.every((byte, index) => view[index] === byte),
   );
 }
 
@@ -45,15 +47,18 @@ async function verifyZipStructure(file: File): Promise<boolean> {
     // Read last 22 bytes (minimum size of End of Central Directory Record)
     const tailSize = Math.min(file.size, 22);
     const tail = await file.slice(file.size - tailSize).arrayBuffer();
-    
+
     // Check for End of Central Directory signature at the end
     const tailView = new Uint8Array(tail);
-    const hasEOCD = tailView[0] === 0x50 && tailView[1] === 0x4b && 
-                     tailView[2] === 0x05 && tailView[3] === 0x06;
-    
+    const hasEOCD =
+      tailView[0] === 0x50 &&
+      tailView[1] === 0x4b &&
+      tailView[2] === 0x05 &&
+      tailView[3] === 0x06;
+
     return hasEOCD;
   } catch (error) {
-    console.error('Error verifying ZIP structure:', error);
+    console.error("Error verifying ZIP structure:", error);
     return false;
   }
 }
@@ -73,7 +78,7 @@ export interface ZipValidationResult {
 
 /**
  * Comprehensive ZIP file validation
- * 
+ *
  * Performs multiple checks:
  * 1. File existence
  * 2. File name validity
@@ -81,22 +86,28 @@ export interface ZipValidationResult {
  * 4. File size limits
  * 5. Magic byte verification
  * 6. ZIP structure integrity
- * 
+ *
  * @param file - The file to validate
  * @returns Validation result with error message if invalid
  */
-export async function validateZipFile(file: File | null): Promise<ZipValidationResult> {
+export async function validateZipFile(
+  file: File | null,
+): Promise<ZipValidationResult> {
   // Check if file exists
   if (!file) {
     return {
       valid: false,
-      error: 'No file selected. Please choose a ZIP file to upload.',
+      error: "No file selected. Please choose a ZIP file to upload.",
     };
   }
 
   // Check if file has a valid name (not just an extension)
-  const fileNameWithoutExt = file.name.toLowerCase().replace(/\.zip$/i, '');
-  if (!fileNameWithoutExt || fileNameWithoutExt.trim() === '' || fileNameWithoutExt === '.') {
+  const fileNameWithoutExt = file.name.toLowerCase().replace(/\.zip$/i, "");
+  if (
+    !fileNameWithoutExt ||
+    fileNameWithoutExt.trim() === "" ||
+    fileNameWithoutExt === "."
+  ) {
     return {
       valid: false,
       error: `Invalid file name: "${file.name}". File name cannot be empty or just an extension.`,
@@ -109,7 +120,7 @@ export async function validateZipFile(file: File | null): Promise<ZipValidationR
   }
 
   // Check file extension
-  if (!file.name.toLowerCase().endsWith('.zip')) {
+  if (!file.name.toLowerCase().endsWith(".zip")) {
     return {
       valid: false,
       error: `Invalid file type: "${file.name}". Only .zip files are accepted.`,
@@ -125,7 +136,8 @@ export async function validateZipFile(file: File | null): Promise<ZipValidationR
   if (file.size < MIN_SIZE_BYTES) {
     return {
       valid: false,
-      error: 'File is too small to be a valid ZIP archive. The file may be corrupted.',
+      error:
+        "File is too small to be a valid ZIP archive. The file may be corrupted.",
       details: {
         fileName: file.name,
         fileSize: file.size,
@@ -151,11 +163,12 @@ export async function validateZipFile(file: File | null): Promise<ZipValidationR
   // Check magic bytes (file signature)
   try {
     const header = await file.slice(0, 4).arrayBuffer();
-    
+
     if (!hasValidZipSignature(header)) {
       return {
         valid: false,
-        error: 'File is not a valid ZIP archive. The file may be corrupted or renamed.',
+        error:
+          "File is not a valid ZIP archive. The file may be corrupted or renamed.",
         details: {
           fileName: file.name,
           fileSize: file.size,
@@ -164,10 +177,11 @@ export async function validateZipFile(file: File | null): Promise<ZipValidationR
       };
     }
   } catch (error) {
-    console.error('Error reading file header:', error);
+    console.error("Error reading file header:", error);
     return {
       valid: false,
-      error: 'Unable to read file. Please try again or choose a different file.',
+      error:
+        "Unable to read file. Please try again or choose a different file.",
       details: {
         fileName: file.name,
         fileSize: file.size,
@@ -181,7 +195,8 @@ export async function validateZipFile(file: File | null): Promise<ZipValidationR
   if (!hasValidStructure) {
     return {
       valid: false,
-      error: 'ZIP file structure is invalid or corrupted. Please verify the file integrity.',
+      error:
+        "ZIP file structure is invalid or corrupted. Please verify the file integrity.",
       details: {
         fileName: file.name,
         fileSize: file.size,
@@ -212,12 +227,12 @@ export function isZipExtension(fileName: string): boolean {
  * Format file size for display
  */
 export function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 Bytes';
-  
+  if (bytes === 0) return "0 Bytes";
+
   const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
 }
 
