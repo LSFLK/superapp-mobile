@@ -192,7 +192,7 @@ class ApiService {
       };
 
       const response = await fetch(
-  `${this.baseUrl}/files?fileName=${encodeURIComponent(file.name)}`,
+        `${this.baseUrl}/files?fileName=${encodeURIComponent(file.name)}`,
         {
           method: "POST",
           headers,
