@@ -14,13 +14,11 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerinax/azure_storage_service.blobs as azure_blobs;
-
-public configurable AzureBlobServiceConfig azureBlobServiceConfig = ?;
-
-azure_blobs:ConnectionConfig blobServiceConfig = {
-    accountName: azureBlobServiceConfig.accountName,
-    accessKeyOrSAS: azureBlobServiceConfig.accessKey,
-    authorizationMethod: "accessKey"
-};
-public azure_blobs:BlobClient blobClient = check new (blobServiceConfig);
+# Generate a download URL for the given file name.
+#
+# + fileName - Name of the file
+# + return - The download URL for the file
+public isolated function getDownloadUrl(string fileName) returns string {
+    string downloadUrl = BASE_URL + "micro-app-files/download/" + fileName;
+    return downloadUrl;
+}

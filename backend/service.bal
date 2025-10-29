@@ -18,6 +18,7 @@ import superapp_mobile_service.database;
 import superapp_mobile_service.token_exchange;
 import superapp_mobile_service.db_userservice;
 import superapp_mobile_service.azure_fileservice;
+import superapp_mobile_service.db_fileservice;
 
 import ballerina/http;
 import ballerina/log;
@@ -103,10 +104,9 @@ service http:InterceptableService / on httpListener {
             };
         }
 
-        string filepath = string `${folderName is null ? "" : folderName + "/"}${fileName}`;
-        azure_blobs:ResponseHeaders|azure_blobs:Error result = azure_fileservice:blobClient->putBlob(azure_fileservice:azureBlobServiceConfig.containerName, filepath, azure_fileservice:BLOB_TYPE_BLOCK, content);
-        if result is azure_blobs:Error {
-            string customError = azure_fileservice:ERROR_UPLOADING_FILE;
+        db_fileservice:ExecutionSuccessResult|error result = db_fileservice:upsertMicroAppFile({fileName: fileName, blobContent: content});
+        if result is error {
+            string customError = "Error in uploading file to database!";
             log:printError(customError, 'error = result);
             return <http:InternalServerError>{
                 body: {
@@ -115,10 +115,10 @@ service http:InterceptableService / on httpListener {
             };
         }
 
-        string downloadUrl = azure_fileservice:getDownloadUrl(azure_fileservice:azureBlobServiceConfig.containerName, filepath);
+        string downloadUrl = db_fileservice:getDownloadUrl(fileName);
         return <http:Created>{
             body: {
-                message: azure_fileservice:SUCCESS_FILE_UPLOADED,
+                message: db_fileservice:SUCCESS_FILE_UPLOADED,
                 downloadUrl: downloadUrl
             }
         };
@@ -148,6 +148,47 @@ service http:InterceptableService / on httpListener {
         }
 
         return <http:NoContent>{};
+    }
+
+    # Download Micro App file by name
+    # 
+    # + ctx - Request context
+    # + fileName - File name as a path parameter
+    # + return - byte[] of the MicroAppFile on success or error
+    resource function get micro\-app\-files/download/[string fileName](http:RequestContext ctx) 
+        returns byte[]|http:InternalServerError|http:NotFound {
+        
+        authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
+        if userInfo is error {
+            return <http:InternalServerError>{
+                body: {
+                    message: ERR_MSG_USER_HEADER_NOT_FOUND
+                }
+            };
+        }
+
+        byte[]|error? microAppBlobContent = db_fileservice:getMicroAppBlobContentByName(fileName);
+        if microAppBlobContent is error {
+            string customError = "Error occurred while retrieving Micro App file for the given file name!";
+            log:printError(customError, microAppBlobContent);
+            return <http:InternalServerError>{
+                body: {
+                    message: customError
+                }
+            };
+        }
+
+        if microAppBlobContent is () {
+            string customError = "Micro App file not found for the given file name!";
+            log:printError(customError, fileName = fileName);
+            return <http:NotFound>{
+                body: {
+                    message: customError
+                }
+            };
+        }
+
+        return microAppBlobContent;
     }
 
     # Fetch user information of the logged in users.
