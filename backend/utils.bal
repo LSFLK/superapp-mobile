@@ -16,7 +16,8 @@
 import ballerina/cache;
 import ballerina/log;
 
-import superapp_mobile_service.db_user_service;
+import superapp_mobile_service.database;
+import superapp_mobile_service.db_userservice;
 
 final cache:Cache userInfoCache = new (capacity = 100, evictionFactor = 0.2);
 
@@ -24,15 +25,15 @@ final cache:Cache userInfoCache = new (capacity = 100, evictionFactor = 0.2);
 #
 # + email - Email address of the user
 # + return - database:User record if available, or error? if an error occurs or the user is not found
-public function getUserInfo(string email) returns User|error? {
+public function getUserInfo(string email) returns database:User|error? {
 
     if userInfoCache.hasKey(email) {
-        User|error loggedInUser = userInfoCache.get(email).ensureType();
+        database:User|error loggedInUser = userInfoCache.get(email).ensureType();
         if loggedInUser is error {
             log:printWarn(string `Error occurred while retrieving user data: ${email}!`, loggedInUser);
         } else {
             return loggedInUser;
         }
     }
-    return db_user_service:getUserInfoByEmail(email);
+    return db_userservice:getUserInfoByEmail(email);
 }

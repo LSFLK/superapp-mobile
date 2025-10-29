@@ -16,12 +16,12 @@
 import superapp_mobile_service.authorization;
 import superapp_mobile_service.database;
 import superapp_mobile_service.token_exchange;
-import superapp_mobile_service.file_service;
-import superapp_mobile_service.user_service;
-import superapp_mobile_service.db_user_service;
+import superapp_mobile_service.db_userservice;
+import superapp_mobile_service.azure_fileservice;
 
 import ballerina/http;
 import ballerina/log;
+import ballerinax/azure_storage_service.blobs as azure_blobs;
 
 configurable int maxHeaderSize = 16384; // 16KB header size for WSO2 Choreo support
 configurable string[] restrictedAppsForNonLk = ?;
@@ -29,11 +29,6 @@ configurable string lkLocation = "Sri Lanka";
 configurable string mobileAppReviewerEmail = ?; // App store reviewer email
 configurable string[] allowedOrigins = ["*"]; // Allowed origins for CORS (comma-separated in production, or "*" for dev)
 configurable boolean corsAllowCredentials = false; // Enable CORS credentials
-configurable string userInfoServiceType = user_service:DATABASE_USER_INFO_SERVICE; // default to database
-configurable string fileServiceType = file_service:AZURE_BLOB_SERVICE; // default to azure-blob
-
-final user_service:UserInfoService userInfoService = check user_service:createUserInfoService(userInfoServiceType);
-final file_service:FileService fileService = check file_service:createFileService(fileServiceType);
 
 @display {
     label: "SuperApp Mobile Service",
@@ -58,15 +53,6 @@ service class ErrorInterceptor {
 
 listener http:Listener httpListener = new http:Listener(9090, config = {requestLimits: {maxHeaderSize}});
 
-@http:ServiceConfig {
-    cors: {
-        allowOrigins: allowedOrigins,
-        allowCredentials: corsAllowCredentials,
-        allowHeaders: ["Content-Type"],
-        allowMethods: ["GET", "OPTIONS"],
-        maxAge: 3600
-    }
-}
 service /\.well\-known on httpListener {
 
     # Serves the JSON Web Key Set (JWKS) for token verification (public endpoint, no authentication)
@@ -86,15 +72,6 @@ service /\.well\-known on httpListener {
     }
 }
 
-@http:ServiceConfig {
-    cors: {
-        allowOrigins: allowedOrigins,
-        allowCredentials: corsAllowCredentials,
-        allowHeaders: ["Authorization", "Content-Type", "x-jwt-assertion"],
-        allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        maxAge: 3600
-    }
-}
 service http:InterceptableService / on httpListener {
 
     # + return - authorization:JwtInterceptor, ErrorInterceptor
@@ -110,62 +87,74 @@ service http:InterceptableService / on httpListener {
     #
     # + request - HTTP request with binary body
     # + fileName - File name as a query parameter
+    # + folderName - Folder name as a query parameter (optional)
     # + return - Upload response with file URL or error
-    resource function post files(http:Request request, string fileName) 
-        returns file_service:FileUploadResponse|http:InternalServerError {
+    resource function post files(http:Request request, string fileName, string? folderName = null) 
+        returns http:Created|http:InternalServerError {
 
-        string contentType = request.getContentType();
         byte[]|error content = request.getBinaryPayload();
         if content is error {
-            string customError = "Error in reading file content from request body!";
+            string customError = azure_fileservice:ERROR_READING_REQUEST_BODY;
             log:printError(customError, content);
-            return {
+            return <http:InternalServerError>{
                 body: {
                     message: customError
                 }
             };
         }
 
-        file_service:FileData fileData = {content: content, fileName: fileName, contentType: contentType};
-
-        file_service:FileUploadResponse|error response = fileService.uploadFile(fileData);
-        if response is error {
-            string customError = "Error in uploading file!";
-            log:printError(customError, response);
-            return {
+        string filepath = string `${folderName is null ? "" : folderName + "/"}${fileName}`;
+        azure_blobs:ResponseHeaders|azure_blobs:Error result = azure_fileservice:blobClient->putBlob(azure_fileservice:azureBlobServiceConfig.containerName, filepath, azure_fileservice:BLOB_TYPE_BLOCK, content);
+        if result is azure_blobs:Error {
+            string customError = azure_fileservice:ERROR_UPLOADING_FILE;
+            log:printError(customError, 'error = result);
+            return <http:InternalServerError>{
                 body: {
                     message: customError
                 }
             };
         }
 
-        return response;
+        string downloadUrl = azure_fileservice:getDownloadUrl(azure_fileservice:azureBlobServiceConfig.containerName, filepath);
+        return <http:Created>{
+            body: {
+                message: azure_fileservice:SUCCESS_FILE_UPLOADED,
+                downloadUrl: downloadUrl
+            }
+        };
+
     }
 
-    # Delete a file from Azure Blob Storage
+    # Delete file by name
+    # Headers: None
     #
-    # + fileName - Name of the file to delete (path parameter)
-    # + return - `http:Ok` on success, or `http:InternalServerError` on failure
-    resource function delete files/[string fileName]() returns http:Ok|http:InternalServerError {
-        boolean|error isDeleted = fileService.deleteFile(fileName);
-        if isDeleted is error {
-            string customError = "Error in deleting file!";
-            log:printError(customError, isDeleted);
-            return <http:InternalServerError>{ body: { message: customError } };
+    # + request - HTTP request
+    # + fileName - File name as a query parameter
+    # + folderName - Folder name as a query parameter (optional)
+    # + return - No content or error
+    resource function delete files(http:Request request, string fileName, string? folderName = null) 
+        returns http:NoContent|http:InternalServerError {
+        
+        string filepath = string `${folderName is null ? "" : folderName + "/"}${fileName}`;
+        azure_blobs:ResponseHeaders|azure_blobs:Error result = azure_fileservice:blobClient->deleteBlob(azure_fileservice:azureBlobServiceConfig.containerName, filepath);
+        if result is azure_blobs:Error {
+            string customError = azure_fileservice:ERROR_DELETING_FILE;
+            log:printError(customError, 'error = result);
+            return <http:InternalServerError>{
+                body: {
+                    message: customError
+                }
+            };
         }
 
-        if isDeleted {
-            return <http:Ok>{ body: { message: "File deleted successfully" } };
-        }
-
-        return <http:InternalServerError>{ body: { message: "Failed to delete file" } };
+        return <http:NoContent>{};
     }
 
     # Fetch user information of the logged in users.
     #
     # + ctx - Request context
     # + return - User information object or an error
-    resource function get user\-info(http:RequestContext ctx) returns User|http:InternalServerError|http:NotFound {
+    resource function get user\-info(http:RequestContext ctx) returns db_userservice:User|http:InternalServerError|http:NotFound {
         authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
         if userInfo is error {
             return <http:InternalServerError>{
@@ -175,7 +164,7 @@ service http:InterceptableService / on httpListener {
             };
         }
 
-        User|error? loggedInUser = getUserInfo(userInfo.email);
+        db_userservice:User|error? loggedInUser = getUserInfo(userInfo.email);
         if loggedInUser is error {
             string customError = "Error occurred while retrieving user data!";
             log:printError(customError, loggedInUser);
@@ -500,7 +489,7 @@ service http:InterceptableService / on httpListener {
     # + ctx - Request context
     # + payload - User or BulkUserRequest containing users to insert/update
     # + return - `http:Created` on success or errors on failure
-    resource function post users(http:RequestContext ctx, User|User[] payload) 
+    resource function post users(http:RequestContext ctx, db_userservice:User|db_userservice:User[] payload) 
         returns http:Created|http:InternalServerError|http:BadRequest {
 
         authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
@@ -511,10 +500,10 @@ service http:InterceptableService / on httpListener {
         }
 
         error? result;
-        if payload is User[] {
-            result = db_user_service:upsertBulkUsersInfo(payload);
+        if payload is db_userservice:User[] {
+            result = db_userservice:upsertBulkUsersInfo(payload);
         } else {
-            result = db_user_service:upsertUserInfo(payload);
+            result = db_userservice:upsertUserInfo(payload);
         }
         
         if result is error {
@@ -528,11 +517,11 @@ service http:InterceptableService / on httpListener {
         return http:CREATED;
     }
 
-    # Get all users.  NOTE: NEED TO OPTIMIZE FOR LARGE USER BASE
+    # Get all users.
     #
     # + ctx - Request context
     # + return - Array of users or errors on failure
-    resource function get users(http:RequestContext ctx) returns User[]|http:InternalServerError|http:NoContent {
+    resource function get users(http:RequestContext ctx) returns db_userservice:User[]|http:InternalServerError|http:NoContent {
 
         authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
         if userInfo is error {
@@ -541,7 +530,7 @@ service http:InterceptableService / on httpListener {
             };
         }
 
-        User[]|error? users = db_user_service:getAllUsers();
+       db_userservice:User[]|error? users = db_userservice:getAllUsers();
 
         if users is () {
             return http:NO_CONTENT;
@@ -573,7 +562,7 @@ service http:InterceptableService / on httpListener {
             };
         }
 
-        error? result = db_user_service:deleteUser(email);
+        error? result = db_userservice:deleteUser(email);
         
         if result is error {
             string errorMsg = result.message();
