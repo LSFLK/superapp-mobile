@@ -14,13 +14,6 @@ const ComingSoon = () => {
         minHeight="60vh"
         textAlign="center"
       >
-        <Button
-          variant="text"
-          onClick={() => navigate(-1)}
-          sx={{ alignSelf: "flex-start", mb: 2 }}
-        >
-          ← Back
-        </Button>
         <ConstructionIcon
           sx={{ fontSize: 80, color: "text.secondary", mb: 3 }}
         />

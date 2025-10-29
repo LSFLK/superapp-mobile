@@ -13,9 +13,9 @@ import {
   IconButton,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import type { MicroApp } from "../types/microapp.types";
-import { microAppsService } from "../services";
-import { useNotification } from "../context";
+import type { MicroApp } from "../../types/microapp.types";
+import { microAppsService } from "../../services";
+import { useNotification } from "../../context";
 
 interface EditMicroAppDialogProps {
   open: boolean;

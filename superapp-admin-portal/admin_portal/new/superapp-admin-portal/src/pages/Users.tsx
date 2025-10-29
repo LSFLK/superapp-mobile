@@ -32,7 +32,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNotification } from "../context";
 import { usersService, type User } from "../services";
-import { CreateUserDialog, ConfirmDialog } from "../components";
+import { CreateUserDialog, ConfirmDialog } from "..";
 
 const Users = () => {
   const navigate = useNavigate();
@@ -141,9 +141,6 @@ const Users = () => {
         }}
       >
         <Box>
-          <Button variant="text" onClick={() => navigate(-1)} sx={{ mb: 2 }}>
-            ← Back
-          </Button>
           <Typography variant="h4" component="h1" gutterBottom>
             Users
           </Typography>

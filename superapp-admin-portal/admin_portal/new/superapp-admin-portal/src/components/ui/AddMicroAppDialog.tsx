@@ -22,10 +22,10 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import AddIcon from "@mui/icons-material/Add";
-import type { MicroApp } from "../types/microapp.types";
-import { microAppsService, apiService } from "../services";
-import { useNotification } from "../context";
-import { validateZipFile } from "../utils";
+import type { MicroApp } from "../../types/microapp.types";
+import { microAppsService, apiService } from "../../services";
+import { useNotification } from "../../context";
+import { validateZipFile } from "../../utils";
 
 interface AddMicroAppDialogProps {
   open: boolean;

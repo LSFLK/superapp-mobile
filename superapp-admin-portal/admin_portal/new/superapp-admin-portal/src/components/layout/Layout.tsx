@@ -6,12 +6,11 @@ import {
   ListItemText,
   ListItemButton,
 } from "@mui/material";
-import AppsIcon from "@mui/icons-material/Apps";
 import PeopleIcon from "@mui/icons-material/People";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import { useNavigate } from "react-router-dom";
-import Header from "./Header";
-import Footer from "./Footer";
+import Header from "../common/Header";
+import Footer from "../common/Footer";
 
 interface LayoutProps {
   children: React.ReactNode;

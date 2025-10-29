@@ -34,12 +34,8 @@ import AppsIcon from "@mui/icons-material/Apps";
 import type { MicroApp } from "../types/microapp.types";
 import { useNotification } from "../context";
 import { microAppsService } from "../services";
-import {
-  ConfirmDialog,
-  EditMicroAppDialog,
-  AddVersionDialog,
-} from "../components";
-import AddMicroAppDialog from "../components/AddMicroAppDialog";
+import { ConfirmDialog, EditMicroAppDialog, AddVersionDialog } from "..";
+import AddMicroAppDialog from "../components/ui/AddMicroAppDialog";
 
 const MicroApps = () => {
   const [microApps, setMicroApps] = useState<MicroApp[]>([]);

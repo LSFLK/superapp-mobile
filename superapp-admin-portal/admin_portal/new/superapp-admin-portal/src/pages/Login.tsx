@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import { useAuthContext } from "@asgardeo/auth-react";
 import LoginIcon from "@mui/icons-material/Login";
-import loginBanner from "../assets/login_banner.png";
+import loginBanner from "../assets/images/login-banner.png";
 import { createAppTheme } from "../theme";
 
 export default function Login() {
