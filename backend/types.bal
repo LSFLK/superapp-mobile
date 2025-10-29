@@ -12,10 +12,28 @@
 // "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
-// under the License..
-import superapp_mobile_service.shared_records;
+// under the License.
+// import ballerina/constraint;
 
-# User record type.
-public type User record {
-    *shared_records:User;
-};
+// # Record type to represent a User.
+// public type User record {
+//     # Email of the user
+//     @constraint:String {
+//         pattern: re`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+//     }
+//     string workEmail;
+//     # First name of the user
+//     @constraint:String {
+//         minLength: 1
+//     }
+//     string firstName;
+//     # Last name of the user
+//     @constraint:String {
+//         minLength: 1
+//     }
+//     string lastName;
+//     # Thumbnail of the user
+//     string? userThumbnail;
+//     # Location of the user
+//     string? location;
+// };
