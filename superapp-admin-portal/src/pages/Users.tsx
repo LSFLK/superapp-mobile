@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -35,7 +34,6 @@ import { usersService, type User } from "../services";
 import { CreateUserDialog, ConfirmDialog } from "..";
 
 const Users = () => {
-  const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
