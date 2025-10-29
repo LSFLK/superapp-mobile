@@ -8,6 +8,7 @@ import {
 } from "@mui/material";
 import PeopleIcon from "@mui/icons-material/People";
 import BarChartIcon from "@mui/icons-material/BarChart";
+import AppsIcon from "@mui/icons-material/Apps";
 import { useNavigate } from "react-router-dom";
 import Header from "../common/Header";
 import Footer from "../common/Footer";
@@ -19,6 +20,11 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
   const menuItems = [
+    {
+      title: "Micro Apps",
+      icon: <AppsIcon sx={{ color: "#1976d2" }} />,
+      path: "/dashboard",
+    },
     {
       title: "Users",
       icon: <PeopleIcon sx={{ color: "#2e7d32" }} />,
