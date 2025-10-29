@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -23,23 +24,27 @@ import {
   MenuItem,
   IconButton,
   Tooltip,
-} from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import PersonIcon from '@mui/icons-material/Person';
-import InfoIcon from '@mui/icons-material/Info';
-import SearchIcon from '@mui/icons-material/Search';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { useNotification } from '../context';
-import { usersService, type User } from '../services';
-import { CreateUserDialog, ConfirmDialog } from '../components';
+} from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import PersonIcon from "@mui/icons-material/Person";
+import InfoIcon from "@mui/icons-material/Info";
+import SearchIcon from "@mui/icons-material/Search";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { useNotification } from "../context";
+import { usersService, type User } from "../services";
+import { CreateUserDialog, ConfirmDialog } from "../components";
 
 const Users = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [locationFilter, setLocationFilter] = useState<string>('all');
-  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; user?: User }>({
+  const [searchQuery, setSearchQuery] = useState("");
+  const [locationFilter, setLocationFilter] = useState<string>("all");
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    user?: User;
+  }>({
     open: false,
   });
   const { showNotification } = useNotification();
@@ -50,8 +55,8 @@ const Users = () => {
       const data = await usersService.getAll();
       setUsers(data);
     } catch (error) {
-      console.error('Error fetching users:', error);
-      showNotification('Failed to load users', 'error');
+      console.error("Error fetching users:", error);
+      showNotification("Failed to load users", "error");
     } finally {
       setLoading(false);
     }
@@ -75,12 +80,12 @@ const Users = () => {
 
     try {
       await usersService.deleteUser(deleteDialog.user.workEmail);
-      showNotification('User deleted successfully', 'success');
+      showNotification("User deleted successfully", "success");
       setDeleteDialog({ open: false });
       fetchUsers();
     } catch (error) {
-      console.error('Error deleting user:', error);
-      showNotification('Failed to delete user', 'error');
+      console.error("Error deleting user:", error);
+      showNotification("Failed to delete user", "error");
     }
   };
 
@@ -96,7 +101,7 @@ const Users = () => {
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
       // Location filter
-      if (locationFilter !== 'all' && user.location !== locationFilter) {
+      if (locationFilter !== "all" && user.location !== locationFilter) {
         return false;
       }
 
@@ -114,7 +119,12 @@ const Users = () => {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="80vh"
+      >
         <CircularProgress />
       </Box>
     );
@@ -122,8 +132,18 @@ const Users = () => {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Box
+        sx={{
+          mb: 4,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         <Box>
+          <Button variant="text" onClick={() => navigate(-1)} sx={{ mb: 2 }}>
+            ← Back
+          </Button>
           <Typography variant="h4" component="h1" gutterBottom>
             Users
           </Typography>
@@ -145,9 +165,9 @@ const Users = () => {
         sx={{
           mb: 3,
           p: 2,
-          backgroundColor: 'divider',
+          backgroundColor: "divider",
           borderLeft: 4,
-          borderColor: 'warning.main',
+          borderColor: "warning.main",
         }}
       >
         <Stack direction="row" spacing={2} alignItems="flex-start">
@@ -157,9 +177,10 @@ const Users = () => {
               Important: IDP Account Required
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              This user management is only for the SuperApp database. You must also create 
-              corresponding accounts in your Identity Provider (IDP) with the same email address 
-              to grant users access to the application.
+              This user management is only for the SuperApp database. You must
+              also create corresponding accounts in your Identity Provider (IDP)
+              with the same email address to grant users access to the
+              application.
             </Typography>
           </Box>
         </Stack>
@@ -170,15 +191,15 @@ const Users = () => {
           elevation={0}
           sx={{
             p: 8,
-            textAlign: 'center',
-            border: '2px dashed',
-            borderColor: 'divider',
+            textAlign: "center",
+            border: "2px dashed",
+            borderColor: "divider",
             borderRadius: 2,
-            mx: 'auto',
+            mx: "auto",
             maxWidth: 600,
           }}
         >
-          <PersonIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
+          <PersonIcon sx={{ fontSize: 64, color: "text.disabled", mb: 2 }} />
           <Typography variant="h6" gutterBottom>
             No Users Yet
           </Typography>
@@ -197,7 +218,7 @@ const Users = () => {
         <>
           {/* Search and Filter Controls */}
           <Paper sx={{ p: 2, mb: 2 }}>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
               <TextField
                 placeholder="Search by name or email..."
                 value={searchQuery}
@@ -228,8 +249,12 @@ const Users = () => {
                 </Select>
               </FormControl>
             </Stack>
-            {(searchQuery || locationFilter !== 'all') && (
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
+            {(searchQuery || locationFilter !== "all") && (
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mt: 1.5 }}
+              >
                 Showing {filteredUsers.length} of {users.length} users
               </Typography>
             )}
@@ -244,66 +269,71 @@ const Users = () => {
                   <TableCell>Location</TableCell>
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredUsers.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} align="center" sx={{ py: 8 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      No users found matching your filters
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredUsers.map((user) => (
-                  <TableRow key={user.workEmail} hover>
-                    <TableCell>
-                      <Stack direction="row" spacing={2} alignItems="center">
-                        <Avatar
-                          src={user.userThumbnail}
-                          alt={`${user.firstName} ${user.lastName}`}
-                          sx={{ width: 40, height: 40 }}
-                        >
-                          {user.firstName[0]}{user.lastName[0]}
-                        </Avatar>
-                        <Box>
-                          <Typography variant="body1" fontWeight="medium">
-                            {user.firstName} {user.lastName}
-                          </Typography>
-                        </Box>
-                      </Stack>
-                    </TableCell>
-                    <TableCell>
+              </TableHead>
+              <TableBody>
+                {filteredUsers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} align="center" sx={{ py: 8 }}>
                       <Typography variant="body2" color="text.secondary">
-                        {user.workEmail}
+                        No users found matching your filters
                       </Typography>
                     </TableCell>
-                    <TableCell>
-                      {user.location ? (
-                        <Chip label={user.location} size="small" variant="outlined" />
-                      ) : (
-                        <Typography variant="body2" color="text.disabled">
-                          —
-                        </Typography>
-                      )}
-                    </TableCell>
-                    <TableCell align="right">
-                      <Tooltip title="Delete user">
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => handleDeleteClick(user)}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                ) : (
+                  filteredUsers.map((user) => (
+                    <TableRow key={user.workEmail} hover>
+                      <TableCell>
+                        <Stack direction="row" spacing={2} alignItems="center">
+                          <Avatar
+                            src={user.userThumbnail}
+                            alt={`${user.firstName} ${user.lastName}`}
+                            sx={{ width: 40, height: 40 }}
+                          >
+                            {user.firstName[0]}
+                            {user.lastName[0]}
+                          </Avatar>
+                          <Box>
+                            <Typography variant="body1" fontWeight="medium">
+                              {user.firstName} {user.lastName}
+                            </Typography>
+                          </Box>
+                        </Stack>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" color="text.secondary">
+                          {user.workEmail}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        {user.location ? (
+                          <Chip
+                            label={user.location}
+                            size="small"
+                            variant="outlined"
+                          />
+                        ) : (
+                          <Typography variant="body2" color="text.disabled">
+                            —
+                          </Typography>
+                        )}
+                      </TableCell>
+                      <TableCell align="right">
+                        <Tooltip title="Delete user">
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => handleDeleteClick(user)}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </>
       )}
 
@@ -319,7 +349,7 @@ const Users = () => {
         message={
           deleteDialog.user
             ? `Are you sure you want to delete ${deleteDialog.user.firstName} ${deleteDialog.user.lastName}? This action cannot be undone.`
-            : ''
+            : ""
         }
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeleteDialog({ open: false })}

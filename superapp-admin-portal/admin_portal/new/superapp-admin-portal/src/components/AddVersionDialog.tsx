@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -12,13 +12,13 @@ import {
   Paper,
   Chip,
   LinearProgress,
-} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import type { MicroApp } from '../types/microapp.types';
-import { microAppsService, apiService } from '../services';
-import { useNotification } from '../context';
-import { validateZipFile } from '../utils';
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import type { MicroApp } from "../types/microapp.types";
+import { microAppsService, apiService } from "../services";
+import { useNotification } from "../context";
+import { validateZipFile } from "../utils";
 
 interface AddVersionDialogProps {
   open: boolean;
@@ -27,7 +27,12 @@ interface AddVersionDialogProps {
   microApp: MicroApp;
 }
 
-const AddVersionDialog = ({ open, onClose, onSuccess, microApp }: AddVersionDialogProps) => {
+const AddVersionDialog = ({
+  open,
+  onClose,
+  onSuccess,
+  microApp,
+}: AddVersionDialogProps) => {
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | undefined>();
   const [pendingFile, setPendingFile] = useState<File | undefined>();
@@ -36,25 +41,25 @@ const AddVersionDialog = ({ open, onClose, onSuccess, microApp }: AddVersionDial
   // Calculate next available build number
   const getNextBuildNumber = () => {
     if (!microApp.versions || microApp.versions.length === 0) return 1;
-    const maxBuild = Math.max(...microApp.versions.map(v => v.build));
+    const maxBuild = Math.max(...microApp.versions.map((v) => v.build));
     return maxBuild + 1;
   };
 
   const [formData, setFormData] = useState({
-    version: '',
+    version: "",
     build: getNextBuildNumber(),
-    releaseNotes: '',
-    downloadUrl: '',
+    releaseNotes: "",
+    downloadUrl: "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleClose = () => {
     setFormData({
-      version: '',
+      version: "",
       build: getNextBuildNumber(),
-      releaseNotes: '',
-      downloadUrl: '',
+      releaseNotes: "",
+      downloadUrl: "",
     });
     setPendingFile(undefined);
     setUploadProgress(undefined);
@@ -66,30 +71,34 @@ const AddVersionDialog = ({ open, onClose, onSuccess, microApp }: AddVersionDial
     if (file) {
       // Validate the ZIP file
       const validation = await validateZipFile(file);
-      
+
       if (!validation.valid) {
-        showNotification(validation.error || 'Invalid file', 'error');
+        showNotification(validation.error || "Invalid file", "error");
         setPendingFile(undefined);
         return;
       }
-      
+
       setPendingFile(file);
-      showNotification(`Package selected: ${file.name}`, 'info');
+      showNotification(`Package selected: ${file.name}`, "info");
     } else {
       setPendingFile(undefined);
-      setFormData((prev) => ({ ...prev, downloadUrl: '' }));
+      setFormData((prev) => ({ ...prev, downloadUrl: "" }));
     }
   };
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.version.trim()) newErrors.version = 'Version is required';
-    if (!formData.releaseNotes.trim()) newErrors.releaseNotes = 'Release notes are required';
-    if (!formData.downloadUrl && !pendingFile) newErrors.downloadUrl = 'App package (ZIP) is required';
+    if (!formData.version.trim()) newErrors.version = "Version is required";
+    if (!formData.releaseNotes.trim())
+      newErrors.releaseNotes = "Release notes are required";
+    if (!formData.downloadUrl && !pendingFile)
+      newErrors.downloadUrl = "App package (ZIP) is required";
 
     // Check if build number already exists (build is the unique identifier)
-    const buildExists = microApp.versions?.some(v => v.build === formData.build);
+    const buildExists = microApp.versions?.some(
+      (v) => v.build === formData.build,
+    );
     if (buildExists) {
       newErrors.build = `Build ${formData.build} already exists. Please use a different build number.`;
     }
@@ -108,11 +117,11 @@ const AddVersionDialog = ({ open, onClose, onSuccess, microApp }: AddVersionDial
 
       // Upload file if pending
       if (pendingFile) {
-        showNotification('Uploading app package...', 'info');
+        showNotification("Uploading app package...", "info");
         const result = await apiService.uploadFile(pendingFile);
         finalDownloadUrl = result.url;
         setPendingFile(undefined);
-        showNotification('Package uploaded successfully!', 'success');
+        showNotification("Package uploaded successfully!", "success");
       }
 
       // Add new version using the dedicated endpoint
@@ -123,16 +132,16 @@ const AddVersionDialog = ({ open, onClose, onSuccess, microApp }: AddVersionDial
         iconUrl: microApp.iconUrl,
         downloadUrl: finalDownloadUrl,
       };
-      
+
       await microAppsService.addVersion(microApp.appId, newVersion);
-      showNotification('New version added successfully', 'success');
+      showNotification("New version added successfully", "success");
       handleClose();
       onSuccess();
     } catch (error) {
-      console.error('Error adding version:', error);
+      console.error("Error adding version:", error);
       showNotification(
-        error instanceof Error ? error.message : 'Failed to add version',
-        'error'
+        error instanceof Error ? error.message : "Failed to add version",
+        "error",
       );
     } finally {
       setLoading(false);
@@ -160,24 +169,31 @@ const AddVersionDialog = ({ open, onClose, onSuccess, microApp }: AddVersionDial
           </Typography>
         </Box>
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <TextField
             label="Version"
             placeholder="1.0.0"
             value={formData.version}
-            onChange={(e) => setFormData((prev) => ({ ...prev, version: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, version: e.target.value }))
+            }
             error={!!errors.version}
-            helperText={errors.version || 'Semantic version (e.g., 1.0.0)'}
+            helperText={errors.version || "Semantic version (e.g., 1.0.0)"}
             fullWidth
             required
             disabled={loading}
           />
-          
+
           <TextField
             label="Build Number"
             type="number"
             value={formData.build}
-            onChange={(e) => setFormData((prev) => ({ ...prev, build: parseInt(e.target.value) || 1 }))}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                build: parseInt(e.target.value) || 1,
+              }))
+            }
             fullWidth
             disabled={loading}
           />
@@ -186,7 +202,9 @@ const AddVersionDialog = ({ open, onClose, onSuccess, microApp }: AddVersionDial
             label="Release Notes"
             placeholder="What's new in this version?"
             value={formData.releaseNotes}
-            onChange={(e) => setFormData((prev) => ({ ...prev, releaseNotes: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, releaseNotes: e.target.value }))
+            }
             error={!!errors.releaseNotes}
             helperText={errors.releaseNotes}
             multiline
@@ -200,10 +218,14 @@ const AddVersionDialog = ({ open, onClose, onSuccess, microApp }: AddVersionDial
             <Typography variant="subtitle2" gutterBottom>
               App Package (ZIP) *
             </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: "block", mb: 1 }}
+            >
               Upload the ZIP file containing the app bundle
             </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2, mt: 1 }}>
               <Button
                 variant="outlined"
                 component="label"
@@ -235,17 +257,25 @@ const AddVersionDialog = ({ open, onClose, onSuccess, microApp }: AddVersionDial
                   color="success"
                   size="small"
                   onDelete={() => {
-                    setFormData((prev) => ({ ...prev, downloadUrl: '' }));
+                    setFormData((prev) => ({ ...prev, downloadUrl: "" }));
                     setPendingFile(undefined);
                   }}
                 />
               )}
             </Box>
             {uploadProgress !== undefined && (
-              <LinearProgress variant="determinate" value={uploadProgress} sx={{ mt: 1 }} />
+              <LinearProgress
+                variant="determinate"
+                value={uploadProgress}
+                sx={{ mt: 1 }}
+              />
             )}
             {errors.downloadUrl && (
-              <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+              <Typography
+                variant="caption"
+                color="error"
+                sx={{ mt: 1, display: "block" }}
+              >
                 {errors.downloadUrl}
               </Typography>
             )}
@@ -258,7 +288,7 @@ const AddVersionDialog = ({ open, onClose, onSuccess, microApp }: AddVersionDial
           Cancel
         </Button>
         <Button variant="contained" onClick={handleSubmit} disabled={loading}>
-          {loading ? 'Adding...' : 'Add Version'}
+          {loading ? "Adding..." : "Add Version"}
         </Button>
       </DialogActions>
     </Dialog>

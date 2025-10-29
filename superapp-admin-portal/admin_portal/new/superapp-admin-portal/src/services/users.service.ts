@@ -3,7 +3,7 @@
  * Handles all user-related API operations
  */
 
-import { apiService } from './api.service';
+import { apiService } from "./api.service";
 
 export interface User {
   workEmail: string;
@@ -14,7 +14,7 @@ export interface User {
 }
 
 class UsersService {
-  private readonly BASE_PATH = '/users';
+  private readonly BASE_PATH = "/users";
 
   /**
    * Get all users

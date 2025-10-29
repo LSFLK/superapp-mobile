@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -11,11 +11,11 @@ import {
   Switch,
   Typography,
   IconButton,
-} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import type { MicroApp } from '../types/microapp.types';
-import { microAppsService } from '../services';
-import { useNotification } from '../context';
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import type { MicroApp } from "../types/microapp.types";
+import { microAppsService } from "../services";
+import { useNotification } from "../context";
 
 interface EditMicroAppDialogProps {
   open: boolean;
@@ -24,14 +24,19 @@ interface EditMicroAppDialogProps {
   microApp: MicroApp;
 }
 
-const EditMicroAppDialog = ({ open, onClose, onSuccess, microApp }: EditMicroAppDialogProps) => {
+const EditMicroAppDialog = ({
+  open,
+  onClose,
+  onSuccess,
+  microApp,
+}: EditMicroAppDialogProps) => {
   const [loading, setLoading] = useState(false);
   const { showNotification } = useNotification();
 
   const [formData, setFormData] = useState({
     name: microApp.name,
     description: microApp.description,
-    promoText: microApp.promoText || '',
+    promoText: microApp.promoText || "",
     isMandatory: microApp.isMandatory,
   });
 
@@ -41,7 +46,7 @@ const EditMicroAppDialog = ({ open, onClose, onSuccess, microApp }: EditMicroApp
     setFormData({
       name: microApp.name,
       description: microApp.description,
-      promoText: microApp.promoText || '',
+      promoText: microApp.promoText || "",
       isMandatory: microApp.isMandatory,
     });
     setErrors({});
@@ -51,8 +56,9 @@ const EditMicroAppDialog = ({ open, onClose, onSuccess, microApp }: EditMicroApp
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.name.trim()) newErrors.name = 'Name is required';
-    if (!formData.description.trim()) newErrors.description = 'Description is required';
+    if (!formData.name.trim()) newErrors.name = "Name is required";
+    if (!formData.description.trim())
+      newErrors.description = "Description is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -73,14 +79,14 @@ const EditMicroAppDialog = ({ open, onClose, onSuccess, microApp }: EditMicroApp
       };
 
       await microAppsService.upsert(updatedMicroApp);
-      showNotification('Micro app updated successfully', 'success');
+      showNotification("Micro app updated successfully", "success");
       handleClose();
       onSuccess();
     } catch (error) {
-      console.error('Error updating micro app:', error);
+      console.error("Error updating micro app:", error);
       showNotification(
-        error instanceof Error ? error.message : 'Failed to update micro app',
-        'error'
+        error instanceof Error ? error.message : "Failed to update micro app",
+        "error",
       );
     } finally {
       setLoading(false);
@@ -99,7 +105,7 @@ const EditMicroAppDialog = ({ open, onClose, onSuccess, microApp }: EditMicroApp
       </DialogTitle>
 
       <DialogContent>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
           <TextField
             label="App ID"
             value={microApp.appId}
@@ -110,7 +116,9 @@ const EditMicroAppDialog = ({ open, onClose, onSuccess, microApp }: EditMicroApp
           <TextField
             label="Name"
             value={formData.name}
-            onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, name: e.target.value }))
+            }
             error={!!errors.name}
             helperText={errors.name}
             fullWidth
@@ -120,7 +128,9 @@ const EditMicroAppDialog = ({ open, onClose, onSuccess, microApp }: EditMicroApp
           <TextField
             label="Description"
             value={formData.description}
-            onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, description: e.target.value }))
+            }
             error={!!errors.description}
             helperText={errors.description}
             multiline
@@ -132,7 +142,9 @@ const EditMicroAppDialog = ({ open, onClose, onSuccess, microApp }: EditMicroApp
           <TextField
             label="Promo Text"
             value={formData.promoText}
-            onChange={(e) => setFormData((prev) => ({ ...prev, promoText: e.target.value }))}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, promoText: e.target.value }))
+            }
             fullWidth
             disabled={loading}
           />
@@ -140,7 +152,12 @@ const EditMicroAppDialog = ({ open, onClose, onSuccess, microApp }: EditMicroApp
             control={
               <Switch
                 checked={formData.isMandatory === 1}
-                onChange={(e) => setFormData((prev) => ({ ...prev, isMandatory: e.target.checked ? 1 : 0 }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    isMandatory: e.target.checked ? 1 : 0,
+                  }))
+                }
                 disabled={loading}
               />
             }
@@ -154,7 +171,7 @@ const EditMicroAppDialog = ({ open, onClose, onSuccess, microApp }: EditMicroApp
           Cancel
         </Button>
         <Button variant="contained" onClick={handleSubmit} disabled={loading}>
-          {loading ? 'Updating...' : 'Update'}
+          {loading ? "Updating..." : "Update"}
         </Button>
       </DialogActions>
     </Dialog>

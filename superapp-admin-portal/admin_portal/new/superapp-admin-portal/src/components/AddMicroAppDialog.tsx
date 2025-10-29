@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -18,14 +18,14 @@ import {
   Chip,
   LinearProgress,
   Alert,
-} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import AddIcon from '@mui/icons-material/Add';
-import type { MicroApp } from '../types/microapp.types';
-import { microAppsService, apiService } from '../services';
-import { useNotification } from '../context';
-import { validateZipFile } from '../utils';
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import AddIcon from "@mui/icons-material/Add";
+import type { MicroApp } from "../types/microapp.types";
+import { microAppsService, apiService } from "../services";
+import { useNotification } from "../context";
+import { validateZipFile } from "../utils";
 
 interface AddMicroAppDialogProps {
   open: boolean;
@@ -33,35 +33,53 @@ interface AddMicroAppDialogProps {
   onSuccess: () => void;
 }
 
-const steps = ['Basic Information', 'Upload Assets', 'Version Details', 'Assign Roles', 'Review'];
+const steps = [
+  "Basic Information",
+  "Upload Assets",
+  "Version Details",
+  "Assign Roles",
+  "Review",
+];
 
-const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps) => {
+const AddMicroAppDialog = ({
+  open,
+  onClose,
+  onSuccess,
+}: AddMicroAppDialogProps) => {
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState<{ icon?: number; banner?: number; zip?: number }>({});
-  const [pendingFiles, setPendingFiles] = useState<{ icon?: File; banner?: File; zip?: File }>({});
+  const [uploadProgress, setUploadProgress] = useState<{
+    icon?: number;
+    banner?: number;
+    zip?: number;
+  }>({});
+  const [pendingFiles, setPendingFiles] = useState<{
+    icon?: File;
+    banner?: File;
+    zip?: File;
+  }>({});
   const { showNotification } = useNotification();
 
   // Form state
   const [formData, setFormData] = useState({
-    appId: '',
-    name: '',
-    description: '',
-    promoText: '',
+    appId: "",
+    name: "",
+    description: "",
+    promoText: "",
     isMandatory: 0,
-    iconUrl: '',
-    bannerImageUrl: '',
+    iconUrl: "",
+    bannerImageUrl: "",
     version: {
-      version: '',
+      version: "",
       build: 1,
-      releaseNotes: '',
-      iconUrl: '',
-      downloadUrl: '',
+      releaseNotes: "",
+      iconUrl: "",
+      downloadUrl: "",
     },
     roles: [] as string[],
   });
 
-  const [newRole, setNewRole] = useState('');
+  const [newRole, setNewRole] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleNext = async () => {
@@ -74,24 +92,28 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
       // Upload Assets step - upload icon and banner
       try {
         setLoading(true);
-        
+
         if (pendingFiles.icon) {
-          showNotification('Uploading icon...', 'info');
-          await uploadFile(pendingFiles.icon, 'icon');
+          showNotification("Uploading icon...", "info");
+          await uploadFile(pendingFiles.icon, "icon");
         }
-        
+
         if (pendingFiles.banner) {
-          showNotification('Uploading banner...', 'info');
-          await uploadFile(pendingFiles.banner, 'banner');
+          showNotification("Uploading banner...", "info");
+          await uploadFile(pendingFiles.banner, "banner");
         }
-        
-        setPendingFiles((prev) => ({ ...prev, icon: undefined, banner: undefined }));
-        showNotification('Assets uploaded successfully!', 'success');
+
+        setPendingFiles((prev) => ({
+          ...prev,
+          icon: undefined,
+          banner: undefined,
+        }));
+        showNotification("Assets uploaded successfully!", "success");
       } catch (error) {
-        console.error('Upload error:', error);
+        console.error("Upload error:", error);
         showNotification(
-          error instanceof Error ? error.message : 'Failed to upload assets',
-          'error'
+          error instanceof Error ? error.message : "Failed to upload assets",
+          "error",
         );
         setLoading(false);
         return;
@@ -102,19 +124,21 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
       // Version Details step - upload ZIP
       try {
         setLoading(true);
-        
+
         if (pendingFiles.zip) {
-          showNotification('Uploading app package...', 'info');
-          await uploadFile(pendingFiles.zip, 'zip');
+          showNotification("Uploading app package...", "info");
+          await uploadFile(pendingFiles.zip, "zip");
         }
-        
+
         setPendingFiles((prev) => ({ ...prev, zip: undefined }));
-        showNotification('App package uploaded successfully!', 'success');
+        showNotification("App package uploaded successfully!", "success");
       } catch (error) {
-        console.error('Upload error:', error);
+        console.error("Upload error:", error);
         showNotification(
-          error instanceof Error ? error.message : 'Failed to upload app package',
-          'error'
+          error instanceof Error
+            ? error.message
+            : "Failed to upload app package",
+          "error",
         );
         setLoading(false);
         return;
@@ -133,19 +157,19 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
   const handleClose = () => {
     setActiveStep(0);
     setFormData({
-      appId: '',
-      name: '',
-      description: '',
-      promoText: '',
+      appId: "",
+      name: "",
+      description: "",
+      promoText: "",
       isMandatory: 0,
-      iconUrl: '',
-      bannerImageUrl: '',
+      iconUrl: "",
+      bannerImageUrl: "",
       version: {
-        version: '',
+        version: "",
         build: 1,
-        releaseNotes: '',
-        iconUrl: '',
-        downloadUrl: '',
+        releaseNotes: "",
+        iconUrl: "",
+        downloadUrl: "",
       },
       roles: [],
     });
@@ -158,21 +182,27 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
 
     switch (step) {
       case 0: // Basic Information
-        if (!formData.appId.trim()) newErrors.appId = 'App ID is required';
-        if (!formData.name.trim()) newErrors.name = 'Name is required';
-        if (!formData.description.trim()) newErrors.description = 'Description is required';
+        if (!formData.appId.trim()) newErrors.appId = "App ID is required";
+        if (!formData.name.trim()) newErrors.name = "Name is required";
+        if (!formData.description.trim())
+          newErrors.description = "Description is required";
         break;
       case 1: // Upload Assets
-        if (!formData.iconUrl && !pendingFiles.icon) newErrors.iconUrl = 'App icon is required';
+        if (!formData.iconUrl && !pendingFiles.icon)
+          newErrors.iconUrl = "App icon is required";
         // Banner is optional
         break;
       case 2: // Version Details
-        if (!formData.version.version.trim()) newErrors.version = 'Version is required';
-        if (!formData.version.releaseNotes.trim()) newErrors.releaseNotes = 'Release notes are required';
-        if (!formData.version.downloadUrl && !pendingFiles.zip) newErrors.downloadUrl = 'App package (ZIP) is required';
+        if (!formData.version.version.trim())
+          newErrors.version = "Version is required";
+        if (!formData.version.releaseNotes.trim())
+          newErrors.releaseNotes = "Release notes are required";
+        if (!formData.version.downloadUrl && !pendingFiles.zip)
+          newErrors.downloadUrl = "App package (ZIP) is required";
         break;
       case 3: // Roles
-        if (formData.roles.length === 0) newErrors.roles = 'At least one role is required';
+        if (formData.roles.length === 0)
+          newErrors.roles = "At least one role is required";
         break;
     }
 
@@ -180,24 +210,24 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
     return Object.keys(newErrors).length === 0;
   };
 
-  const uploadFile = async (file: File, type: 'icon' | 'banner' | 'zip') => {
+  const uploadFile = async (file: File, type: "icon" | "banner" | "zip") => {
     try {
       setUploadProgress((prev) => ({ ...prev, [type]: 0 }));
-      
+
       const result = await apiService.uploadFile(file);
-      
+
       setUploadProgress((prev) => ({ ...prev, [type]: 100 }));
 
       // Update form data with the uploaded URL
-      if (type === 'icon') {
+      if (type === "icon") {
         setFormData((prev) => ({
           ...prev,
           iconUrl: result.url,
           version: { ...prev.version, iconUrl: result.url },
         }));
-      } else if (type === 'banner') {
+      } else if (type === "banner") {
         setFormData((prev) => ({ ...prev, bannerImageUrl: result.url }));
-      } else if (type === 'zip') {
+      } else if (type === "zip") {
         setFormData((prev) => ({
           ...prev,
           version: { ...prev.version, downloadUrl: result.url },
@@ -212,7 +242,7 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
         });
       }, 1000);
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error("Upload error:", error);
       setUploadProgress((prev) => {
         const newProgress = { ...prev };
         delete newProgress[type];
@@ -222,20 +252,26 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
     }
   };
 
-  const handleFileSelect = async (file: File | null, type: 'icon' | 'banner' | 'zip') => {
+  const handleFileSelect = async (
+    file: File | null,
+    type: "icon" | "banner" | "zip",
+  ) => {
     if (file) {
       // Validate ZIP files before accepting them
-      if (type === 'zip') {
+      if (type === "zip") {
         const validation = await validateZipFile(file);
-        
+
         if (!validation.valid) {
-          showNotification(validation.error || 'Invalid ZIP file', 'error');
+          showNotification(validation.error || "Invalid ZIP file", "error");
           return;
         }
       }
-      
+
       setPendingFiles((prev) => ({ ...prev, [type]: file }));
-      showNotification(`${type === 'icon' ? 'Icon' : type === 'banner' ? 'Banner' : 'App package'} selected. Click Next to upload.`, 'info');
+      showNotification(
+        `${type === "icon" ? "Icon" : type === "banner" ? "Banner" : "App package"} selected. Click Next to upload.`,
+        "info",
+      );
     } else {
       setPendingFiles((prev) => {
         const newFiles = { ...prev };
@@ -251,7 +287,7 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
         ...prev,
         roles: [...prev.roles, newRole.trim()],
       }));
-      setNewRole('');
+      setNewRole("");
     }
   };
 
@@ -281,14 +317,14 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
       };
 
       await microAppsService.upsert(microApp);
-      showNotification('Micro app created successfully', 'success');
+      showNotification("Micro app created successfully", "success");
       handleClose();
       onSuccess();
     } catch (error) {
-      console.error('Error creating micro app:', error);
+      console.error("Error creating micro app:", error);
       showNotification(
-        error instanceof Error ? error.message : 'Failed to create micro app',
-        'error'
+        error instanceof Error ? error.message : "Failed to create micro app",
+        "error",
       );
     } finally {
       setLoading(false);
@@ -299,21 +335,27 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
     switch (activeStep) {
       case 0:
         return (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
             <TextField
               label="App ID"
               placeholder="com.example.myapp"
               value={formData.appId}
-              onChange={(e) => setFormData((prev) => ({ ...prev, appId: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, appId: e.target.value }))
+              }
               error={!!errors.appId}
-              helperText={errors.appId || 'Unique identifier (e.g., com.wso2.leaveapp)'}
+              helperText={
+                errors.appId || "Unique identifier (e.g., com.wso2.leaveapp)"
+              }
               fullWidth
               required
             />
             <TextField
               label="App Name"
               value={formData.name}
-              onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, name: e.target.value }))
+              }
               error={!!errors.name}
               helperText={errors.name}
               fullWidth
@@ -322,7 +364,12 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
             <TextField
               label="Description"
               value={formData.description}
-              onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  description: e.target.value,
+                }))
+              }
               error={!!errors.description}
               helperText={errors.description}
               multiline
@@ -333,7 +380,9 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
             <TextField
               label="Promotional Text"
               value={formData.promoText}
-              onChange={(e) => setFormData((prev) => ({ ...prev, promoText: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, promoText: e.target.value }))
+              }
               helperText="Short tagline for the app"
               fullWidth
             />
@@ -342,7 +391,10 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
                 <Switch
                   checked={formData.isMandatory === 1}
                   onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, isMandatory: e.target.checked ? 1 : 0 }))
+                    setFormData((prev) => ({
+                      ...prev,
+                      isMandatory: e.target.checked ? 1 : 0,
+                    }))
                   }
                 />
               }
@@ -353,15 +405,21 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
 
       case 1:
         return (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mt: 2 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 3, mt: 2 }}>
             <Paper variant="outlined" sx={{ p: 3 }}>
               <Typography variant="subtitle2" gutterBottom>
                 App Icon (128x128 PNG) *
               </Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ display: "block", mb: 1 }}
+              >
                 Required size: 128x128px. Formats: PNG, JPEG
               </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
+              <Box
+                sx={{ display: "flex", alignItems: "center", gap: 2, mt: 1 }}
+              >
                 <Button
                   variant="outlined"
                   component="label"
@@ -375,7 +433,7 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
                     accept="image/png,image/jpeg"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
-                      handleFileSelect(file || null, 'icon');
+                      handleFileSelect(file || null, "icon");
                     }}
                   />
                 </Button>
@@ -384,7 +442,7 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
                     label={`Selected: ${pendingFiles.icon.name}`}
                     color="info"
                     size="small"
-                    onDelete={() => handleFileSelect(null, 'icon')}
+                    onDelete={() => handleFileSelect(null, "icon")}
                   />
                 )}
                 {formData.iconUrl && (
@@ -392,15 +450,25 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
                     label="Uploaded"
                     color="success"
                     size="small"
-                    onDelete={() => setFormData((prev) => ({ ...prev, iconUrl: '' }))}
+                    onDelete={() =>
+                      setFormData((prev) => ({ ...prev, iconUrl: "" }))
+                    }
                   />
                 )}
               </Box>
               {uploadProgress.icon !== undefined && (
-                <LinearProgress variant="determinate" value={uploadProgress.icon} sx={{ mt: 1 }} />
+                <LinearProgress
+                  variant="determinate"
+                  value={uploadProgress.icon}
+                  sx={{ mt: 1 }}
+                />
               )}
               {errors.iconUrl && (
-                <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                <Typography
+                  variant="caption"
+                  color="error"
+                  sx={{ mt: 1, display: "block" }}
+                >
                   {errors.iconUrl}
                 </Typography>
               )}
@@ -410,10 +478,16 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
               <Typography variant="subtitle2" gutterBottom>
                 Banner Image (for app store) - Optional
               </Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ display: "block", mb: 1 }}
+              >
                 Recommended size: 1200x400px. Formats: PNG, JPEG
               </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
+              <Box
+                sx={{ display: "flex", alignItems: "center", gap: 2, mt: 1 }}
+              >
                 <Button
                   variant="outlined"
                   component="label"
@@ -427,7 +501,7 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
                     accept="image/png,image/jpeg"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
-                      handleFileSelect(file || null, 'banner');
+                      handleFileSelect(file || null, "banner");
                     }}
                   />
                 </Button>
@@ -436,7 +510,7 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
                     label={`Selected: ${pendingFiles.banner.name}`}
                     color="info"
                     size="small"
-                    onDelete={() => handleFileSelect(null, 'banner')}
+                    onDelete={() => handleFileSelect(null, "banner")}
                   />
                 )}
                 {formData.bannerImageUrl && (
@@ -444,15 +518,25 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
                     label="Uploaded"
                     color="success"
                     size="small"
-                    onDelete={() => setFormData((prev) => ({ ...prev, bannerImageUrl: '' }))}
+                    onDelete={() =>
+                      setFormData((prev) => ({ ...prev, bannerImageUrl: "" }))
+                    }
                   />
                 )}
               </Box>
               {uploadProgress.banner !== undefined && (
-                <LinearProgress variant="determinate" value={uploadProgress.banner} sx={{ mt: 1 }} />
+                <LinearProgress
+                  variant="determinate"
+                  value={uploadProgress.banner}
+                  sx={{ mt: 1 }}
+                />
               )}
               {errors.bannerImageUrl && (
-                <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                <Typography
+                  variant="caption"
+                  color="error"
+                  sx={{ mt: 1, display: "block" }}
+                >
                   {errors.bannerImageUrl}
                 </Typography>
               )}
@@ -462,7 +546,7 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
 
       case 2:
         return (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
             <TextField
               label="Version"
               placeholder="1.0.0"
@@ -485,7 +569,10 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
               onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
-                  version: { ...prev.version, build: parseInt(e.target.value) || 1 },
+                  version: {
+                    ...prev.version,
+                    build: parseInt(e.target.value) || 1,
+                  },
                 }))
               }
               fullWidth
@@ -511,7 +598,9 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
               <Typography variant="subtitle2" gutterBottom>
                 App Package (ZIP file) *
               </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
+              <Box
+                sx={{ display: "flex", alignItems: "center", gap: 2, mt: 1 }}
+              >
                 <Button
                   variant="outlined"
                   component="label"
@@ -525,7 +614,7 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
                     accept=".zip"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
-                      handleFileSelect(file || null, 'zip');
+                      handleFileSelect(file || null, "zip");
                     }}
                   />
                 </Button>
@@ -534,7 +623,7 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
                     label={`Selected: ${pendingFiles.zip.name}`}
                     color="info"
                     size="small"
-                    onDelete={() => handleFileSelect(null, 'zip')}
+                    onDelete={() => handleFileSelect(null, "zip")}
                   />
                 )}
                 {formData.version.downloadUrl && (
@@ -545,17 +634,25 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
                     onDelete={() =>
                       setFormData((prev) => ({
                         ...prev,
-                        version: { ...prev.version, downloadUrl: '' },
+                        version: { ...prev.version, downloadUrl: "" },
                       }))
                     }
                   />
                 )}
               </Box>
               {uploadProgress.zip !== undefined && (
-                <LinearProgress variant="determinate" value={uploadProgress.zip} sx={{ mt: 1 }} />
+                <LinearProgress
+                  variant="determinate"
+                  value={uploadProgress.zip}
+                  sx={{ mt: 1 }}
+                />
               )}
               {errors.downloadUrl && (
-                <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                <Typography
+                  variant="caption"
+                  color="error"
+                  sx={{ mt: 1, display: "block" }}
+                >
                   {errors.downloadUrl}
                 </Typography>
               )}
@@ -565,18 +662,18 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
 
       case 3:
         return (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
             <Typography variant="body2" color="text.secondary">
               Assign roles/groups that can access this micro app
             </Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box sx={{ display: "flex", gap: 1 }}>
               <TextField
                 label="Role/Group Name"
                 placeholder="e.g., admin, employee"
                 value={newRole}
                 onChange={(e) => setNewRole(e.target.value)}
                 onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
+                  if (e.key === "Enter") {
                     e.preventDefault();
                     handleAddRole();
                   }
@@ -584,14 +681,16 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
                 fullWidth
                 size="small"
               />
-              <IconButton color="primary" onClick={handleAddRole} disabled={!newRole.trim()}>
+              <IconButton
+                color="primary"
+                onClick={handleAddRole}
+                disabled={!newRole.trim()}
+              >
                 <AddIcon />
               </IconButton>
             </Box>
-            {errors.roles && (
-              <Alert severity="error">{errors.roles}</Alert>
-            )}
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+            {errors.roles && <Alert severity="error">{errors.roles}</Alert>}
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
               {formData.roles.map((role) => (
                 <Chip
                   key={role}
@@ -603,7 +702,11 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
               ))}
             </Box>
             {formData.roles.length === 0 && (
-              <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', mt: 1 }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ fontStyle: "italic", mt: 1 }}
+              >
                 No roles assigned yet. Add at least one role.
               </Typography>
             )}
@@ -631,7 +734,8 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
                   <strong>Description:</strong> {formData.description}
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Mandatory:</strong> {formData.isMandatory === 1 ? 'Yes' : 'No'}
+                  <strong>Mandatory:</strong>{" "}
+                  {formData.isMandatory === 1 ? "Yes" : "No"}
                 </Typography>
               </Box>
             </Paper>
@@ -641,11 +745,12 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
               </Typography>
               <Box sx={{ mt: 1 }}>
                 <Typography variant="body2">
-                  <strong>Version:</strong> {formData.version.version} (Build{' '}
+                  <strong>Version:</strong> {formData.version.version} (Build{" "}
                   {formData.version.build})
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Release Notes:</strong> {formData.version.releaseNotes}
+                  <strong>Release Notes:</strong>{" "}
+                  {formData.version.releaseNotes}
                 </Typography>
               </Box>
             </Paper>
@@ -653,9 +758,15 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
               <Typography variant="subtitle2" color="text.secondary">
                 Roles
               </Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
                 {formData.roles.map((role) => (
-                  <Chip key={role} label={role} size="small" color="primary" variant="outlined" />
+                  <Chip
+                    key={role}
+                    label={role}
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                  />
                 ))}
               </Box>
             </Paper>
@@ -694,13 +805,13 @@ const AddMicroAppDialog = ({ open, onClose, onSuccess }: AddMicroAppDialogProps)
         <Button onClick={handleClose} disabled={loading}>
           Cancel
         </Button>
-        <Box sx={{ flex: '1 1 auto' }} />
+        <Box sx={{ flex: "1 1 auto" }} />
         <Button onClick={handleBack} disabled={activeStep === 0 || loading}>
           Back
         </Button>
         {activeStep === steps.length - 1 ? (
           <Button variant="contained" onClick={handleSubmit} disabled={loading}>
-            {loading ? 'Creating...' : 'Create Micro App'}
+            {loading ? "Creating..." : "Create Micro App"}
           </Button>
         ) : (
           <Button variant="contained" onClick={handleNext} disabled={loading}>
