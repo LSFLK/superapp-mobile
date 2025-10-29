@@ -18,8 +18,8 @@ import PersonIcon from "@mui/icons-material/Person";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
-import { useNotification } from "../context";
-import { useTheme } from "../context";
+import { useNotification } from "../../context";
+import { useTheme } from "../../context";
 
 // Map paths to readable names
 const pathNames: Record<string, string> = {

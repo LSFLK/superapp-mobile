@@ -4,7 +4,7 @@ import { AuthProvider } from "@asgardeo/auth-react";
 import { CssBaseline } from "@mui/material";
 import { authConfig } from "./config/authConfig";
 import { ThemeProvider, NotificationProvider } from "./context";
-import App from "./App.tsx";
+import App from "./App";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

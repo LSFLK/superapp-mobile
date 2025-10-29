@@ -38,8 +38,8 @@ import {
   ConfirmDialog,
   EditMicroAppDialog,
   AddVersionDialog,
-} from "../components";
-import AddMicroAppDialog from "../components/AddMicroAppDialog";
+} from "..";
+import AddMicroAppDialog from "../components/ui/AddMicroAppDialog";
 
 const MicroApps = () => {
   const [microApps, setMicroApps] = useState<MicroApp[]>([]);

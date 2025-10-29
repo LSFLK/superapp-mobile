@@ -7,7 +7,7 @@
 import { useAuthContext } from "@asgardeo/auth-react";
 import { useEffect, useRef } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { Layout, Dashboard, Loading } from "./components";
+import { Layout, Loading } from ".";
 import Login from "./pages/Login";
 import MicroApps from "./pages/MicroApps";
 import Users from "./pages/Users";

@@ -18,8 +18,8 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import GroupAddIcon from "@mui/icons-material/GroupAdd";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
-import { useNotification } from "../context";
-import { usersService, type User } from "../services";
+import { useNotification } from "../../context";
+import { usersService, type User } from "../../services";
 
 interface CreateUserDialogProps {
   open: boolean;
