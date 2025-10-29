@@ -153,7 +153,3 @@ You can deploy the production build (`dist/`) to any static hosting service (e.g
 ## License
 
 This project is licensed under the MIT License.
-
-## Contact
-
-For questions or support, contact the SuperApp team at [support@superapp.com](mailto:support@superapp.com).
