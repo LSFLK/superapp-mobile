@@ -49,7 +49,7 @@ export const microAppsService = {
    * Delete a micro app
    */
     async delete(appId: string): Promise<void> {
-      // Use the correct backend endpoint for deactivation
-      return apiService.post<void>(`/micro-apps/deactivate/${appId}`);
+      // Use PUT to match backend deactivation endpoint
+      return apiService.put<void>(`/micro-apps/deactivate/${appId}`);
   },
 };
