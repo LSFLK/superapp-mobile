@@ -209,12 +209,12 @@ isolated function upsertMicroAppRoleQuery(string appId, MicroAppRole appRole, st
         updated_at = CURRENT_TIMESTAMP
 `;
 
-# Query to delete (soft delete) a micro app by setting active = 0.
+# Query to deactivate (soft delete) a micro app by setting active = 0.
 #
-# + appId - The micro app ID to be deleted
-# + updatedBy - User who performs the deletion (used for updated_by)
+# + appId - The micro app ID to be deactivated
+# + updatedBy - User who performs the deactivation (used for updated_by)
 # + return - Generated query to soft delete the micro app from the `micro_app` table
-isolated function deleteMicroAppQuery(string appId, string updatedBy) returns sql:ParameterizedQuery =>
+isolated function deactivateMicroAppQuery(string appId, string updatedBy) returns sql:ParameterizedQuery =>
     `UPDATE micro_app SET 
         active = 0, 
         updated_at = CURRENT_TIMESTAMP, 
@@ -222,12 +222,12 @@ isolated function deleteMicroAppQuery(string appId, string updatedBy) returns sq
     WHERE micro_app_id = ${appId}
 `;
 
-# Query to soft delete all versions of a micro app by setting active = 0.
+# Query to deactivate (soft delete) all versions of a micro app by setting active = 0.
 #
-# + appId - The micro app ID whose versions should be deleted
-# + updatedBy - User who performs the deletion (used for updated_by)
-# + return - Generated query to soft delete all versions from the `micro_app_version` table
-isolated function deleteMicroAppVersionQuery(string appId, string updatedBy) returns sql:ParameterizedQuery =>
+# + appId - The micro app ID whose versions should be deactivated
+# + updatedBy - User who performs the deactivation (used for updated_by)
+# + return - Generated query to deactivate all versions from the `micro_app_version` table
+isolated function deactivateMicroAppVersionQuery(string appId, string updatedBy) returns sql:ParameterizedQuery =>
     `UPDATE micro_app_version SET 
         active = 0, 
         updated_at = CURRENT_TIMESTAMP, 
@@ -235,12 +235,12 @@ isolated function deleteMicroAppVersionQuery(string appId, string updatedBy) ret
     WHERE micro_app_id = ${appId}
 `;
 
-# Query to soft delete all role mappings of a micro app by setting active = 0.
+# Query to deactivate (soft delete) all role mappings of a micro app by setting active = 0.
 #
-# + appId - The micro app ID whose role mappings should be deleted
-# + updatedBy - User who performs the deletion (used for updated_by)
-# + return - Generated query to soft delete all role mappings from the `micro_app_role` table
-isolated function deleteMicroAppRoleQuery(string appId, string updatedBy) returns sql:ParameterizedQuery =>
+# + appId - The micro app ID whose role mappings should be deactivated
+# + updatedBy - User who performs the deactivation (used for updated_by)
+# + return - Generated query to deactivate all role mappings from the `micro_app_role` table
+isolated function deactivateMicroAppRoleQuery(string appId, string updatedBy) returns sql:ParameterizedQuery =>
     `UPDATE micro_app_role SET 
         active = 0, 
         updated_at = CURRENT_TIMESTAMP, 

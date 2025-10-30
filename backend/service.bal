@@ -17,12 +17,10 @@ import superapp_mobile_service.authorization;
 import superapp_mobile_service.database;
 import superapp_mobile_service.token_exchange;
 import superapp_mobile_service.db_userservice;
-import superapp_mobile_service.azure_fileservice;
 import superapp_mobile_service.db_fileservice;
 
 import ballerina/http;
 import ballerina/log;
-import ballerinax/azure_storage_service.blobs as azure_blobs;
 
 configurable int maxHeaderSize = 16384; // 16KB header size for WSO2 Choreo support
 configurable string[] restrictedAppsForNonLk = ?;
@@ -95,7 +93,7 @@ service http:InterceptableService / on httpListener {
 
         byte[]|error content = request.getBinaryPayload();
         if content is error {
-            string customError = azure_fileservice:ERROR_READING_REQUEST_BODY;
+            string customError = "Error in reading file content from request body!";
             log:printError(customError, content);
             return <http:InternalServerError>{
                 body: {
@@ -134,11 +132,10 @@ service http:InterceptableService / on httpListener {
     # + return - No content or error
     resource function delete files(http:Request request, string fileName, string? folderName = null) 
         returns http:NoContent|http:InternalServerError {
-        
-        string filepath = string `${folderName is null ? "" : folderName + "/"}${fileName}`;
-        azure_blobs:ResponseHeaders|azure_blobs:Error result = azure_fileservice:blobClient->deleteBlob(azure_fileservice:azureBlobServiceConfig.containerName, filepath);
-        if result is azure_blobs:Error {
-            string customError = azure_fileservice:ERROR_DELETING_FILE;
+
+        db_fileservice:ExecutionSuccessResult|error result = db_fileservice:deleteMicroAppFileByName(fileName);
+        if result is error {
+            string customError = "Error in deleting file from database!";
             log:printError(customError, 'error = result);
             return <http:InternalServerError>{
                 body: {
@@ -397,12 +394,12 @@ service http:InterceptableService / on httpListener {
         return http:CREATED;
     }
 
-    # Delete a MicroApp by setting it inactive along with its versions and roles.
+    # Deactivate a MicroApp by setting it inactive along with its versions and roles.
     #
     # + ctx - Request context
     # + appId - MicroApp ID to delete
     # + return - `http:Ok` on success or errors on failure
-    resource function delete micro\-apps/[string appId](http:RequestContext ctx)
+    resource function post micro\-apps/deactivate/[string appId](http:RequestContext ctx)
         returns http:Ok|http:InternalServerError {
 
         authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
@@ -412,9 +409,9 @@ service http:InterceptableService / on httpListener {
             };
         }
         
-        database:ExecutionSuccessResult|error result = database:deleteMicroApp(appId, userInfo.email);
+        database:ExecutionSuccessResult|error result = database:deactivateMicroApp(appId, userInfo.email);
         if result is error {
-            string customError = "Error occurred while deleting Micro App!";
+            string customError = "Error occurred while deactivating Micro App!";
             log:printError(customError, result);
             return <http:InternalServerError>{body: {message: customError}};
         }
@@ -634,7 +631,7 @@ service http:InterceptableService / on httpListener {
     # + request - Token request payload
     # + return - `TokenResponse` with the generated JWT token on success, or errors on failure
     resource function post tokens(http:RequestContext ctx, token_exchange:TokenRequest request)
-        returns token_exchange:TokenResponse|http:InternalServerError|http:BadRequest {
+        returns string|http:InternalServerError|http:BadRequest {
 
         authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
         if userInfo is error {
@@ -642,13 +639,8 @@ service http:InterceptableService / on httpListener {
                 body: {message: ERR_MSG_USER_HEADER_NOT_FOUND}
             };
         }
-        
-        string[]? groups = ();
-        if userInfo.groups is string[] {
-            groups = userInfo.groups;
-        }
 
-        string|error token = token_exchange:issueJWT(userInfo.email, request.microAppId, groups);
+        string|error token = token_exchange:issueJWT(userInfo.email, request.microAppId);
         if token is error {
             string customError = "Error occurred while generating JWT token";
             log:printError(customError, token);
@@ -657,8 +649,6 @@ service http:InterceptableService / on httpListener {
             };
         }
 
-        return <token_exchange:TokenResponse>{
-            token: token
-        };
+        return token;
     }
 }

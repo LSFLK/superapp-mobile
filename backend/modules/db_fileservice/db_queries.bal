@@ -37,6 +37,11 @@ isolated function upsertMicroAppFileQuery(MicroAppFile microAppFile) returns sql
         blob_content = VALUES(blob_content);
 `;
 
+isolated function deleteMicroAppFileByNameQuery(string fileName) returns sql:ParameterizedQuery => `
+    DELETE FROM micro_apps_storage
+    WHERE file_name = ${fileName};
+`;
+
 # Get micro app blob content by file name query.
 #
 # + fileName - The unique file name of the MicroAppFile
