@@ -397,12 +397,12 @@ service http:InterceptableService / on httpListener {
         return http:CREATED;
     }
 
-    # Delete a MicroApp by setting it inactive along with its versions and roles.
+    # Deactivate a MicroApp by setting it inactive along with its versions and roles.
     #
     # + ctx - Request context
     # + appId - MicroApp ID to delete
     # + return - `http:Ok` on success or errors on failure
-    resource function delete micro\-apps/[string appId](http:RequestContext ctx)
+    resource function post micro\-apps/deactivate/[string appId](http:RequestContext ctx)
         returns http:Ok|http:InternalServerError {
 
         authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
@@ -412,9 +412,9 @@ service http:InterceptableService / on httpListener {
             };
         }
         
-        database:ExecutionSuccessResult|error result = database:deleteMicroApp(appId, userInfo.email);
+        database:ExecutionSuccessResult|error result = database:deactivateMicroApp(appId, userInfo.email);
         if result is error {
-            string customError = "Error occurred while deleting Micro App!";
+            string customError = "Error occurred while deactivating Micro App!";
             log:printError(customError, result);
             return <http:InternalServerError>{body: {message: customError}};
         }
@@ -634,7 +634,7 @@ service http:InterceptableService / on httpListener {
     # + request - Token request payload
     # + return - `TokenResponse` with the generated JWT token on success, or errors on failure
     resource function post tokens(http:RequestContext ctx, token_exchange:TokenRequest request)
-        returns token_exchange:TokenResponse|http:InternalServerError|http:BadRequest {
+        returns string|http:InternalServerError|http:BadRequest {
 
         authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
         if userInfo is error {
@@ -642,13 +642,8 @@ service http:InterceptableService / on httpListener {
                 body: {message: ERR_MSG_USER_HEADER_NOT_FOUND}
             };
         }
-        
-        string[]? groups = ();
-        if userInfo.groups is string[] {
-            groups = userInfo.groups;
-        }
 
-        string|error token = token_exchange:issueJWT(userInfo.email, request.microAppId, groups);
+        string|error token = token_exchange:issueJWT(userInfo.email, request.microAppId);
         if token is error {
             string customError = "Error occurred while generating JWT token";
             log:printError(customError, token);
@@ -657,8 +652,6 @@ service http:InterceptableService / on httpListener {
             };
         }
 
-        return <token_exchange:TokenResponse>{
-            token: token
-        };
+        return token;
     }
 }
