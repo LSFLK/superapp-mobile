@@ -399,7 +399,7 @@ service http:InterceptableService / on httpListener {
     # + ctx - Request context
     # + appId - MicroApp ID to delete
     # + return - `http:Ok` on success or errors on failure
-    resource function post micro\-apps/deactivate/[string appId](http:RequestContext ctx)
+    resource function put micro\-apps/deactivate/[string appId](http:RequestContext ctx)
         returns http:Ok|http:InternalServerError {
 
         authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
