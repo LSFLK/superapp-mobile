@@ -17,12 +17,10 @@ import superapp_mobile_service.authorization;
 import superapp_mobile_service.database;
 import superapp_mobile_service.token_exchange;
 import superapp_mobile_service.db_userservice;
-import superapp_mobile_service.azure_fileservice;
 import superapp_mobile_service.db_fileservice;
 
 import ballerina/http;
 import ballerina/log;
-import ballerinax/azure_storage_service.blobs as azure_blobs;
 
 configurable int maxHeaderSize = 16384; // 16KB header size for WSO2 Choreo support
 configurable string[] restrictedAppsForNonLk = ?;
@@ -95,7 +93,7 @@ service http:InterceptableService / on httpListener {
 
         byte[]|error content = request.getBinaryPayload();
         if content is error {
-            string customError = azure_fileservice:ERROR_READING_REQUEST_BODY;
+            string customError = "Error in reading file content from request body!";
             log:printError(customError, content);
             return <http:InternalServerError>{
                 body: {
@@ -134,11 +132,10 @@ service http:InterceptableService / on httpListener {
     # + return - No content or error
     resource function delete files(http:Request request, string fileName, string? folderName = null) 
         returns http:NoContent|http:InternalServerError {
-        
-        string filepath = string `${folderName is null ? "" : folderName + "/"}${fileName}`;
-        azure_blobs:ResponseHeaders|azure_blobs:Error result = azure_fileservice:blobClient->deleteBlob(azure_fileservice:azureBlobServiceConfig.containerName, filepath);
-        if result is azure_blobs:Error {
-            string customError = azure_fileservice:ERROR_DELETING_FILE;
+
+        db_fileservice:ExecutionSuccessResult|error result = db_fileservice:deleteMicroAppFileByName(fileName);
+        if result is error {
+            string customError = "Error in deleting file from database!";
             log:printError(customError, 'error = result);
             return <http:InternalServerError>{
                 body: {

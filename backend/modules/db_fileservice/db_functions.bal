@@ -36,6 +36,20 @@ public isolated function upsertMicroAppFile(MicroAppFile microAppFile)
     return result.cloneWithType(ExecutionSuccessResult);
 }
 
+# Delete a MicroAppFile record from the database by file name.
+#
+# + fileName - The unique file name of the MicroAppFile
+# + return - ExecutionSuccessResult on success or error
+public isolated function deleteMicroAppFileByName(string fileName) returns ExecutionSuccessResult|error {
+
+    sql:ExecutionResult result = check databaseClient->execute(deleteMicroAppFileByNameQuery(fileName));
+    if result.affectedRowCount == 0 {
+        return error("No micro app file found to delete with the given file name.");
+    }
+
+    return result.cloneWithType(ExecutionSuccessResult);
+}
+
 # Get a MicroAppFile record from the database by file name.
 #
 # + fileName - The unique file name of the MicroAppFile
