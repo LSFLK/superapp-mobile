@@ -152,20 +152,20 @@ public isolated function upsertMicroAppRole(string appId, MicroAppRole appRole, 
     return result.cloneWithType(ExecutionSuccessResult);
 }
 
-# Deletes (soft delete) a MicroApp by setting active = 0.
+# Deactivates (soft delete) a MicroApp by setting active = 0.
 # Also cascades the soft delete to related versions and role mappings.
 #
-# + appId - MicroApp ID to delete
-# + updatedBy - User who performs the deletion
+# + appId - MicroApp ID to deactivate
+# + updatedBy - User who performs the operation
 # + return - ExecutionSuccessResult on success or error
-public isolated function deleteMicroApp(string appId, string updatedBy) returns ExecutionSuccessResult|error {
-    sql:ExecutionResult result = check databaseClient->execute(deleteMicroAppQuery(appId, updatedBy));
+public isolated function deactivateMicroApp(string appId, string updatedBy) returns ExecutionSuccessResult|error {
+    sql:ExecutionResult result = check databaseClient->execute(deactivateMicroAppQuery(appId, updatedBy));
     if result.affectedRowCount == 0 {
-        return error("No matching micro app found to delete.");
+        return error("No matching micro app found to deactivate.");
     }
 
-    _ = check databaseClient->execute(deleteMicroAppVersionQuery(appId, updatedBy));
-    _ = check databaseClient->execute(deleteMicroAppRoleQuery(appId, updatedBy));
+    _ = check databaseClient->execute(deactivateMicroAppVersionQuery(appId, updatedBy));
+    _ = check databaseClient->execute(deactivateMicroAppRoleQuery(appId, updatedBy));
     return result.cloneWithType(ExecutionSuccessResult);
 }
 

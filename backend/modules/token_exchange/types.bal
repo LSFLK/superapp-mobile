@@ -25,12 +25,6 @@ public type TokenRequest record {|
     string microAppId;
 |};
 
-# Token response record type.
-public type TokenResponse record {|
-    # Issued token
-    string token;
-|};
-
 # JSON Web Key (JWK) record type for RSA keys.
 public type JsonWebKey record {|
     # Key type (e.g., "RSA")
