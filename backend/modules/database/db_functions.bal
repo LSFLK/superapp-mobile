@@ -16,19 +16,16 @@
 import ballerina/log;
 import ballerina/sql;
 
-public configurable string defaultMicroAppsGroup = ?; // Default micro apps group name
-
-const DEFAULT_CONFIG_KEY = "superapp.apps.list"; // Default config key for user app list
-
 # Get list of all MicroApp IDs for given groups.
 #
 # + groups - User's groups
 # + return - Array of MicroApp IDs or an error
-public isolated function getMicroAppIdsByGroups(string[] groups) returns string[]|error {
-    string[] effectiveGroups = groups;
-    effectiveGroups.push(defaultMicroAppsGroup);
-    stream<MicroAppId, sql:Error?> appIdStream = databaseClient->query(getMicroAppIdsByGroupsQuery(effectiveGroups));
-
+isolated function getMicroAppIdsByGroups(string[] groups) returns string[]|error {
+    if groups.length() == 0 {
+        log:printWarn("No groups found for the user");
+        return [];
+    }
+    stream<MicroAppId, sql:Error?> appIdStream = databaseClient->query(getMicroAppIdsByGroupsQuery(groups));
     string[] appIds = check from MicroAppId microAppId in appIdStream
         select microAppId.appId;
 
@@ -45,7 +42,9 @@ public isolated function getMicroAppIdsByGroups(string[] groups) returns string[
 # + return - Array of MicroApps or an error
 public isolated function getMicroApps(string[] groups) returns MicroApp[]|error {
     string[] appIds = check getMicroAppIdsByGroups(groups);
+
     if appIds.length() == 0 {
+        log:printWarn("No groups found for the user");
         return [];
     }
 
@@ -53,6 +52,7 @@ public isolated function getMicroApps(string[] groups) returns MicroApp[]|error 
     MicroApp[] microApps = check from MicroApp microApp in appStream
         order by microApp.name ascending
         select microApp;
+
     if microApps.length() == 0 {
         return [];
     }
@@ -64,6 +64,7 @@ public isolated function getMicroApps(string[] groups) returns MicroApp[]|error 
             select version;
         microApp.versions = versions;
     }
+
     return microApps;
 }
 
@@ -179,126 +180,99 @@ public isolated function getVersionsByPlatform(string platform) returns Version[
         select version;
 }
 
-# Get all the user configurations for a given user email.
+# Get all the app configurations for a given user email.
 #
 # + email - email address of the user
 # + return - Array of app configurations or else an error
-public isolated function getUserConfigsByEmail(string email) returns UserConfig[]|error {
-    stream<UserConfig, sql:Error?> configStream =
-        databaseClient->query(getUserConfigsByEmailQuery(email));
-    UserConfig[] userConfigs = check from UserConfig userConfig in configStream
-        select userConfig;
-
-    if userConfigs.length() == 0 {
-        UserConfig userConfig = check addDefaultUserConfig(email, []);
-        userConfigs.push(userConfig);
-        return userConfigs;
-    }
-    foreach UserConfig config in userConfigs {
-        string[] configValues = check config.configValue.fromJsonWithType();
-        UserConfig userConfig = check addDefaultUserConfig(email, configValues);
-        config.configValue = userConfig.configValue;
-    }
-    return userConfigs;
+public isolated function getAppConfigsByEmail(string email) returns AppConfig[]|error {
+    stream<AppConfig, sql:Error?> configStream =
+        databaseClient->query(getAppConfigsByEmailQuery(email));
+    return from AppConfig appConfig in configStream
+        select appConfig;
 }
 
-# Insert or update user configurations of the logged in user.
+# Insert or update app configurations of the logged in user.
 #
 # + email - email of the user
-# + userConfig - User configurations to be inserted or updated
+# + appConfig - App configurations to be inserted or updated
 # + return - Insert or update result, or an error
-public isolated function updateUserConfigsByEmail(string email, UserConfig userConfig)
+public isolated function updateAppConfigsByEmail(string email, AppConfig appConfig)
     returns ExecutionSuccessResult|error {
 
-    sql:ParameterizedQuery query = updateUserConfigsByEmailQuery(
-        email,
-        userConfig.configKey,
-        userConfig.configValue.toJsonString(),
-        userConfig.isActive);
+    sql:ParameterizedQuery query = updateAppConfigsByEmailQuery(
+            email,
+            appConfig.configKey,
+            appConfig.configValue.toJsonString(),
+            appConfig.isActive);
     sql:ExecutionResult result = check databaseClient->execute(query);
     return result.cloneWithType(ExecutionSuccessResult);
 }
 
-# Get FCM tokens for a list of emails with pagination.
+# Get user information by email from the database.
 #
-# + emails - Array of user emails to retrieve tokens for
-# + startIndex - Start index for pagination
-# + return - FCMTokenResponse with tokens and pagination info, or an error.
-public isolated function getFcmTokens(string[] emails, int startIndex) returns FcmTokenResponse|error {
-    FcmTokenCount countRecord = check databaseClient->queryRow(countFcmTokensQuery(emails));
-
-    if startIndex < 0 || startIndex >= countRecord.count {
-        return error(string `Invalid start index: ${startIndex}. Total results: ${countRecord.count}`);
-    }
-
-    stream<FcmToken, sql:Error?> tokenStream = databaseClient->query(getFcmTokensQuery(emails, startIndex));
-    string[] tokens = check from FcmToken tokenRecord in tokenStream
-        where tokenRecord.fcmToken != ""
-        select tokenRecord.fcmToken;
-
-    return {
-        fcmTokens: tokens,
-        totalResults: countRecord.count,
-        startIndex,
-        itemsPerPage: countRecord.count > 'limit ? 'limit : countRecord.count
-    };
+# + email - User's email address
+# + return - User record or error
+public isolated function getUserInfoByEmail(string email) returns User|error? {
+    User|error? userInfo = check databaseClient->queryRow(getUserInfoByEmailQuery(email));
+    return userInfo;
 }
 
-# Inserts an FCM token into the `device_token` table for the given email.
+# Create or update user information in the database.
 #
-# + email - The user email
-# + fcmToken - The FCM token to be stored
-# + return - `ExecutionSuccessResult` if the insertion succeeds, or `error` if it fails
-public isolated function addFcmToken(string email, string fcmToken) returns ExecutionSuccessResult|error {
-    sql:ExecutionResult result = check databaseClient->execute(addFcmTokenQuery(email, fcmToken));
+# + user - User record to create/update
+# + return - ExecutionSuccessResult on success or error
+public isolated function upsertUserInfo(User user) returns error? {
+    
+    sql:ExecutionResult result = check databaseClient->execute(
+        upsertUserInfoQuery(user.workEmail, user.firstName, user.lastName, user.userThumbnail?:"", user.location?:"")
+    );
+    
     if result.affectedRowCount == 0 {
-        return error("Failed to add FCM token.");
+        return error("Failed to create or update user information.");
     }
-
-    return result.cloneWithType(ExecutionSuccessResult);
 }
 
-# Delete an FCM token from the database.
+# Create or update multiple users in the database.
 #
-# + fcmToken - The FCM token to be deleted
-# + return - `ExecutionSuccessResult` if the deletion is successful, or `error` if the operation fails
-public isolated function deleteFcmToken(string fcmToken) returns ExecutionSuccessResult|error {
-    sql:ExecutionResult result = check databaseClient->execute(deleteFcmTokenQuery(fcmToken));
+# + users - Array of users to insert/update
+# + return - ExecutionSuccessResult on success or error
+public isolated function upsertBulkUsers(User[] users) returns error? {
+    int successCount = 0;
+    int errorCount = 0;
+    
+    foreach User user in users {
+        error? result = upsertUserInfo(user);
+        
+        if result is error {
+            errorCount += 1;
+        } else {
+            successCount += 1;
+        }
+    }
+    
+    if errorCount > 0 {
+        return error(string `Bulk user creation completed with errors: ${successCount} succeeded, ${errorCount} failed`);
+    }
+}
+
+# Get all users from the database.
+#
+# + return - Array of User records or error
+public isolated function getAllUsers() returns User[]|error {
+    stream<User, sql:Error?> userStream = databaseClient->query(getAllUsersQuery());
+    User[] users = check from User user in userStream select user;
+    check userStream.close();
+    return users;
+}
+
+# Delete a user from the database.
+#
+# + email - User's email address
+# + return - ExecutionSuccessResult on success or error
+public isolated function deleteUser(string email) returns error? {
+    sql:ExecutionResult result = check databaseClient->execute(deleteUserQuery(email));
+    
     if result.affectedRowCount == 0 {
-        return error("No matching FCM token found to delete.");
+        return error("User not found or already deleted.");
     }
-
-    return result.cloneWithType(ExecutionSuccessResult);
-}
-
-# Retrieve all application configurations from the database.
-#
-# + return - An array of `AppConfig`,or `error` if the configs cannot be retrieved
-public isolated function getAppConfigs() returns AppConfig[]|error {
-    stream<AppConfig, sql:Error?> resultStream = databaseClient->query(getAppConfigsQuery());
-    AppConfig[] rows = check from var row in resultStream
-        select row;
-    AppConfig[] results = [];
-
-    foreach var row in rows {
-        var value = check parseConfigValue(row);
-        results.push({configKey: row.configKey, value});
-    }
-    return results;
-}
-
-# Add default user configuration for a new user.
-# 
-# + email - Email of the user
-# + configValues - Initial configuration values
-# + return - UserConfig with default settings, or an error if the operation fails
-public isolated function addDefaultUserConfig(string email, string[] configValues) returns UserConfig|error {
-    string[] defaultMicroAppIds = check getMicroAppIdsByGroups([]);
-    configValues.push(...defaultMicroAppIds);
-    return {
-        email,
-        configKey: DEFAULT_CONFIG_KEY,
-        configValue: configValues.toJson(),
-        isActive: 1
-    };
 }

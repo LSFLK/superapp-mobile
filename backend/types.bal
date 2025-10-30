@@ -13,34 +13,27 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
-import superapp_mobile_service.database;
+// import ballerina/constraint;
 
-# App scope record type.
-public type AppScope record {|
-    # Micro-app id
-    string appId;
-    # Scopes for the micro-app
-    string scopes;
-|};
-
-# App config info record type.
-public type AppConfig record {|
-    # App configs
-    database:AppConfig[] appConfigs;
-    # Micro App Ids
-    string[] defaultMicroAppIds;
-    # Micro App Scopes
-    AppScope[] appScopes;
-    # Token exchange type
-    string tokenExchangeType;
-|};
-
-# Token exchange configuration record type.
-public type TokenExchangeConfig record {|
-    # Token exchange endpoint
-    string tokenUrl;
-    # Request format
-    RequestFormat requestFormat;
-    # Optional parameters
-    map<string> optionalParams?;
-|};
+// # Record type to represent a User.
+// public type User record {
+//     # Email of the user
+//     @constraint:String {
+//         pattern: re`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+//     }
+//     string workEmail;
+//     # First name of the user
+//     @constraint:String {
+//         minLength: 1
+//     }
+//     string firstName;
+//     # Last name of the user
+//     @constraint:String {
+//         minLength: 1
+//     }
+//     string lastName;
+//     # Thumbnail of the user
+//     string? userThumbnail;
+//     # Location of the user
+//     string? location;
+// };

@@ -126,8 +126,31 @@ public type Version record {|
     string downloadUrl;
 |};
 
+# Record type to represent a User.
+public type User record {
+    # Email of the user
+    @constraint:String {
+        pattern: re`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+    }
+    string workEmail;
+    # First name of the user
+    @constraint:String {
+        minLength: 1
+    }
+    string firstName;
+    # Last name of the user
+    @constraint:String {
+        minLength: 1
+    }
+    string lastName;
+    # Thumbnail of the user
+    string? userThumbnail;
+    # Location of the user
+    string? location;
+};
+
 # Record type to model configurations for the users of the SuperApp.
-public type UserConfig record {|
+public type AppConfig record {|
     # User email
     string email;
     # Configuration key, unique key for the configuration
@@ -149,40 +172,4 @@ public type ExecutionSuccessResult record {|
     string|int? lastInsertId?;
     # Unique id for the operation
     string uniqueId?;
-|};
-
-# Record type for count query results.
-public type FcmTokenCount record {|
-    # Count result from a SQL COUNT query
-    int count;
-|};
-
-# Record representing an FCM token for a device associated with a user.
-public type FcmToken record {|
-    # FCM token for the device
-    @sql:Column {name: "fcm_token"}
-    string fcmToken;
-|};
-
-# Response type for paginated FCM tokens.
-public type FcmTokenResponse record {|
-    # Array of FCM tokens
-    string[] fcmTokens;
-    # Total FCM Token count
-    int totalResults;
-    # Start index of response 
-    int startIndex;
-    # Total items per page
-    int itemsPerPage;
-|};
-
-# Response type for app config response.
-public type AppConfig record {|
-    # Configuration key
-    @sql:Column {name: "config_key"}
-    string configKey;
-    # Configuration value
-    boolean|string|int value;
-    # Type of configuration value
-    string 'type?;
 |};

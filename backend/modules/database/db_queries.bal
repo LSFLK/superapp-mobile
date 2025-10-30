@@ -15,8 +15,6 @@
 // under the License.
 import ballerina/sql;
 
-configurable int 'limit = 100;
-
 # Query to retrieve distinct micro app IDs allowed for the given user groups.
 #
 # + groups - An array of user groups used to filter allowed micro apps
@@ -99,7 +97,7 @@ isolated function getMicroAppByAppIdQuery(string appId) returns sql:Parameterize
 # + microApp - The `MicroApp` record to be inserted
 # + createdBy - User who performs the insertion (used for created_by/updated_by)
 # + return - Generated query to insert the micro app
-public isolated function upsertMicroAppQuery(MicroApp microApp, string createdBy) returns sql:ParameterizedQuery => `
+isolated function upsertMicroAppQuery(MicroApp microApp, string createdBy) returns sql:ParameterizedQuery => `
     INSERT INTO micro_app (
         name,
         description,
@@ -145,7 +143,7 @@ public isolated function upsertMicroAppQuery(MicroApp microApp, string createdBy
 # + version - `MicroAppVersion` record containing version, build and URLs
 # + createdBy - User who performs the insertion (used for created_by/updated_by)
 # + return - Generated query to insert micro app version
-public isolated function upsertMicroAppVersionQuery(string appId, MicroAppVersion version, string createdBy)
+isolated function upsertMicroAppVersionQuery(string appId, MicroAppVersion version, string createdBy)
     returns sql:ParameterizedQuery => `
     INSERT INTO micro_app_version (
         version,
@@ -186,7 +184,7 @@ public isolated function upsertMicroAppVersionQuery(string appId, MicroAppVersio
 # + appRole - MicroAppRole record containing the role name
 # + createdBy - User who performs the insertion (used for created_by/updated_by)
 # + return - Generated query to insert micro app role mapping
-public isolated function upsertMicroAppRoleQuery(string appId, MicroAppRole appRole, string createdBy)
+isolated function upsertMicroAppRoleQuery(string appId, MicroAppRole appRole, string createdBy)
     returns sql:ParameterizedQuery => `
     INSERT INTO micro_app_role (
         micro_app_id,
@@ -216,7 +214,7 @@ public isolated function upsertMicroAppRoleQuery(string appId, MicroAppRole appR
 # + appId - The micro app ID to be deleted
 # + updatedBy - User who performs the deletion (used for updated_by)
 # + return - Generated query to soft delete the micro app from the `micro_app` table
-public isolated function deleteMicroAppQuery(string appId, string updatedBy) returns sql:ParameterizedQuery =>
+isolated function deleteMicroAppQuery(string appId, string updatedBy) returns sql:ParameterizedQuery =>
     `UPDATE micro_app SET 
         active = 0, 
         updated_at = CURRENT_TIMESTAMP, 
@@ -229,7 +227,7 @@ public isolated function deleteMicroAppQuery(string appId, string updatedBy) ret
 # + appId - The micro app ID whose versions should be deleted
 # + updatedBy - User who performs the deletion (used for updated_by)
 # + return - Generated query to soft delete all versions from the `micro_app_version` table
-public isolated function deleteMicroAppVersionQuery(string appId, string updatedBy) returns sql:ParameterizedQuery =>
+isolated function deleteMicroAppVersionQuery(string appId, string updatedBy) returns sql:ParameterizedQuery =>
     `UPDATE micro_app_version SET 
         active = 0, 
         updated_at = CURRENT_TIMESTAMP, 
@@ -242,7 +240,7 @@ public isolated function deleteMicroAppVersionQuery(string appId, string updated
 # + appId - The micro app ID whose role mappings should be deleted
 # + updatedBy - User who performs the deletion (used for updated_by)
 # + return - Generated query to soft delete all role mappings from the `micro_app_role` table
-public isolated function deleteMicroAppRoleQuery(string appId, string updatedBy) returns sql:ParameterizedQuery =>
+isolated function deleteMicroAppRoleQuery(string appId, string updatedBy) returns sql:ParameterizedQuery =>
     `UPDATE micro_app_role SET 
         active = 0, 
         updated_at = CURRENT_TIMESTAMP, 
@@ -271,11 +269,11 @@ isolated function getVersionsByPlatformQuery(string platform) returns sql:Parame
         build DESC
 `;
 
-# Query to get user configurations by email
+# Query to get app configurations by email
 #
 # + email - User email
-# + return - Generated Query to get user configurations by email
-isolated function getUserConfigsByEmailQuery(string email) returns sql:ParameterizedQuery => `
+# + return - Generated Query to get app configurations by email
+isolated function getAppConfigsByEmailQuery(string email) returns sql:ParameterizedQuery => `
     SELECT
         email,
         config_key,
@@ -296,7 +294,7 @@ isolated function getUserConfigsByEmailQuery(string email) returns sql:Parameter
 # + configValue - Configuration value
 # + isActive - status 1 or 0
 # + return - Generated Query to insert/update configurations
-isolated function updateUserConfigsByEmailQuery(string email, string configKey, string configValue, int isActive)
+isolated function updateAppConfigsByEmailQuery(string email, string configKey, string configValue, int isActive)
     returns sql:ParameterizedQuery => `
         INSERT INTO user_config (
             email,
@@ -320,73 +318,74 @@ isolated function updateUserConfigsByEmailQuery(string email, string configKey, 
             active = ${isActive}
 `;
 
-# Query to get FCM tokens for a given email.
+# Query to get user information by email.
 #
-# + emails - Array of user emails to retrieve tokens for
-# + startIndex - Start index for pagination
-# + return - Generated query to get FCM tokens from the `device_token` table
-public isolated function getFcmTokensQuery(string[] emails, int startIndex) returns sql:ParameterizedQuery =>
-    sql:queryConcat(`
-        SELECT 
-            t.fcm_token
-        FROM 
-            device_token t
-        INNER JOIN 
-            user_config uc ON t.user_id = uc.id
-        WHERE
-            uc.email IN (`, sql:arrayFlattenQuery(emails), `) LIMIT ${'limit} OFFSET ${startIndex}
-    `);
-
-# Query to count FCM tokens for a given list of emails.
-#
-# + emails - Array of user emails to count tokens for
-# + return - Generated query to count FCM tokens from the `device_token` table.
-public isolated function countFcmTokensQuery(string[] emails) returns sql:ParameterizedQuery =>
-    sql:queryConcat(`
-        SELECT 
-            COUNT(*) as count
-        FROM 
-            device_token t
-        INNER JOIN 
-            user_config uc ON t.user_id = uc.id
-        WHERE
-            uc.email IN (`, sql:arrayFlattenQuery(emails), `) 
-    `);
-
-# Query to insert or update an FCM token.
-#
-# + email - The user email used to fetch the corresponding `user_id` from `user_config`
-# + fcmToken - The FCM token to be inserted or updated
-# + return - Generated query to insert the FCM token into `device_token` table
-public isolated function addFcmTokenQuery(string email, string fcmToken) returns sql:ParameterizedQuery => `
-    INSERT INTO device_token (
-        user_id, 
-        fcm_token, 
-        created_at
-    )VALUES (
-        (SELECT id FROM user_config WHERE email = ${email} AND config_key = ${DEFAULT_CONFIG_KEY}),
-        ${fcmToken},
-        CURRENT_TIMESTAMP
-    )
-    ON DUPLICATE KEY UPDATE 
-        created_at = CURRENT_TIMESTAMP
+# + email - User email
+# + return - Generated query to get user information
+isolated function getUserInfoByEmailQuery(string email) returns sql:ParameterizedQuery => `
+    SELECT
+        email as workEmail,
+        firstName,
+        lastName,
+        userThumbnail,
+        location
+    FROM
+        users_
+    WHERE
+        email = ${email}
 `;
 
-# Query to delete an FCM token.
+# Query to insert/update a new user into `users_` table.
 #
-# + fcmToken - The FCM token to be deleted
-# + return - Generated query to remove the matching FCM token from the `device_token` table
-public isolated function deleteFcmTokenQuery(string fcmToken) returns sql:ParameterizedQuery =>
-    `DELETE FROM device_token WHERE fcm_token = ${fcmToken}`;
+# + email - User email
+# + firstName - User's first name
+# + lastName - User's last name
+# + userThumbnail - URL to user's profile picture
+# + location - User's location
+# + return - Generated query to insert/update a new user
+isolated function upsertUserInfoQuery(string email, string firstName, string lastName,
+        string userThumbnail, string location) returns sql:ParameterizedQuery => `
+    INSERT INTO users_ (
+        email,
+        firstName,
+        lastName,
+        userThumbnail,
+        location
+    ) VALUES (
+        ${email},
+        ${firstName},
+        ${lastName},
+        ${userThumbnail},
+        ${location}
+    )
+    ON DUPLICATE KEY UPDATE
+        firstName = ${firstName},
+        lastName = ${lastName},
+        userThumbnail = ${userThumbnail},
+        location = ${location}
+`;
 
-# Query to retrieve all application configurations.
+# Query to delete a user from `users_` table.
 #
-# + return - A query that selects the `ConfigKey`, `Value`, and `Type` fields from the `app_configs` table
-public isolated function getAppConfigsQuery() returns sql:ParameterizedQuery => `
-    SELECT 
-        config_key, 
-        value, 
-        type
-    FROM 
-        app_configs
+# + email - User's email address
+# + return - Generated query to delete a user
+isolated function deleteUserQuery(string email) returns sql:ParameterizedQuery => `
+    DELETE FROM users_
+    WHERE email = ${email}
+`;
+
+# Query to get all users from `users_` table.
+#
+# + return - Generated query to get all users
+isolated function getAllUsersQuery() returns sql:ParameterizedQuery => `
+    SELECT
+        email as workEmail,
+        firstName,
+        lastName,
+        userThumbnail,
+        location
+    FROM
+        users_
+    ORDER BY
+        firstName, lastName
 `;

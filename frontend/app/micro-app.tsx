@@ -51,8 +51,8 @@ import prompt from "react-native-prompt-android";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { WebView, WebViewMessageEvent } from "react-native-webview";
 import { useDispatch, useSelector } from "react-redux";
-WebBrowser.maybeCompleteAuthSession();
 
+WebBrowser.maybeCompleteAuthSession();
 import { BRIDGE_FUNCTION as QR_REQUEST_BRIDGE_FUNCTION } from "@/utils/bridgeHandlers/qrRequest";
 
 const MicroApp = () => {
@@ -161,12 +161,9 @@ const MicroApp = () => {
     }
   };
 
-
-
-
   // Handle messages from WebView
   const onMessage = async (event: WebViewMessageEvent) => {
-    try {
+   try {
       const { topic, data, requestId } = JSON.parse(event.nativeEvent.data);
       if (!topic) throw new Error("Invalid message format: Missing topic");
 
@@ -230,7 +227,6 @@ const MicroApp = () => {
       console.error("Error handling WebView message:", error);
     }
   };
-
 
   const handleError = (syntheticEvent: any) => {
     setHasError(true);
@@ -312,7 +308,7 @@ const MicroApp = () => {
           title: shouldShowHeader ? appName : "",
           headerShown: shouldShowHeader,
           headerRight: () =>
-            isDeveloper &&
+            isDeveloper ? (
             shouldShowHeader && (
               <TouchableOpacity
                 onPressIn={() => {
@@ -367,7 +363,7 @@ const MicroApp = () => {
               >
                 <Text style={styles.headerText}>App URL</Text>
               </TouchableOpacity>
-            ),
+            )) : null,
         }}
       />
       <View style={styles.container}>

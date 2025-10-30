@@ -1,7 +1,7 @@
 // Copyright (c) 2025 WSO2 LLC. (https://www.wso2.com).
 //
-// WSO2 LLC. licenses this file to you under the Apache License,
-// Version 2.0 (the "License"); you may not use this file except
+// WSO2 LLC. licenses this file_service to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file_service except
 // in compliance with the License.
 // You may obtain a copy of the License at
 //
@@ -13,22 +13,23 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
-
 import superapp_mobile_service.authorization;
 import superapp_mobile_service.database;
-import superapp_mobile_service.entity;
-import superapp_mobile_service.scim;
+import superapp_mobile_service.token_exchange;
+import superapp_mobile_service.db_userservice;
+import superapp_mobile_service.azure_fileservice;
+import superapp_mobile_service.db_fileservice;
 
 import ballerina/http;
 import ballerina/log;
+import ballerinax/azure_storage_service.blobs as azure_blobs;
 
 configurable int maxHeaderSize = 16384; // 16KB header size for WSO2 Choreo support
 configurable string[] restrictedAppsForNonLk = ?;
 configurable string lkLocation = "Sri Lanka";
 configurable string mobileAppReviewerEmail = ?; // App store reviewer email
-configurable AppScope[] appScopes = [];
-configurable TokenExchangeConfig tokenExchangeConfig = ?;
-configurable string tokenExchangeType = ?;
+configurable string[] allowedOrigins = ["*"]; // Allowed origins for CORS (comma-separated in production, or "*" for dev)
+configurable boolean corsAllowCredentials = false; // Enable CORS credentials
 
 @display {
     label: "SuperApp Mobile Service",
@@ -51,7 +52,28 @@ service class ErrorInterceptor {
     }
 }
 
-service http:InterceptableService / on new http:Listener(9090, config = {requestLimits: {maxHeaderSize}}) {
+listener http:Listener httpListener = new http:Listener(9090, config = {requestLimits: {maxHeaderSize}});
+
+service /\.well\-known on httpListener {
+
+    # Serves the JSON Web Key Set (JWKS) for token verification (public endpoint, no authentication)
+    #
+    # + return - JWKS response or error
+    resource function get jwks() returns token_exchange:JsonWebKeySet|http:InternalServerError {
+        token_exchange:JsonWebKeySet|error jwks = token_exchange:getJWKS();
+        if jwks is error {
+            string customError = "Failed to read JWKS";
+            log:printError(customError, jwks);
+            return <http:InternalServerError>{
+                body: {message: customError}
+            };
+        }
+        
+        return jwks;
+    }
+}
+
+service http:InterceptableService / on httpListener {
 
     # + return - authorization:JwtInterceptor, ErrorInterceptor
     public function createInterceptors() returns http:Interceptor[] =>
@@ -61,11 +83,81 @@ service http:InterceptableService / on new http:Listener(9090, config = {request
         log:printInfo("Super app mobile backend started.");
     }
 
-    # Fetch application configuration details for the given user groups and config key.
+    # Upload file directly in request body
+    # Headers: Content-Type
     #
+    # + request - HTTP request with binary body
+    # + fileName - File name as a query parameter
+    # + folderName - Folder name as a query parameter (optional)
+    # + return - Upload response with file URL or error
+    resource function post files(http:Request request, string fileName, string? folderName = null) 
+        returns http:Created|http:InternalServerError {
+
+        byte[]|error content = request.getBinaryPayload();
+        if content is error {
+            string customError = azure_fileservice:ERROR_READING_REQUEST_BODY;
+            log:printError(customError, content);
+            return <http:InternalServerError>{
+                body: {
+                    message: customError
+                }
+            };
+        }
+
+        db_fileservice:ExecutionSuccessResult|error result = db_fileservice:upsertMicroAppFile({fileName: fileName, blobContent: content});
+        if result is error {
+            string customError = "Error in uploading file to database!";
+            log:printError(customError, 'error = result);
+            return <http:InternalServerError>{
+                body: {
+                    message: customError
+                }
+            };
+        }
+
+        string downloadUrl = db_fileservice:getDownloadUrl(fileName);
+        return <http:Created>{
+            body: {
+                message: db_fileservice:SUCCESS_FILE_UPLOADED,
+                downloadUrl: downloadUrl
+            }
+        };
+
+    }
+
+    # Delete file by name
+    # Headers: None
+    #
+    # + request - HTTP request
+    # + fileName - File name as a query parameter
+    # + folderName - Folder name as a query parameter (optional)
+    # + return - No content or error
+    resource function delete files(http:Request request, string fileName, string? folderName = null) 
+        returns http:NoContent|http:InternalServerError {
+        
+        string filepath = string `${folderName is null ? "" : folderName + "/"}${fileName}`;
+        azure_blobs:ResponseHeaders|azure_blobs:Error result = azure_fileservice:blobClient->deleteBlob(azure_fileservice:azureBlobServiceConfig.containerName, filepath);
+        if result is azure_blobs:Error {
+            string customError = azure_fileservice:ERROR_DELETING_FILE;
+            log:printError(customError, 'error = result);
+            return <http:InternalServerError>{
+                body: {
+                    message: customError
+                }
+            };
+        }
+
+        return <http:NoContent>{};
+    }
+
+    # Download Micro App file by name
+    # 
     # + ctx - Request context
-    # + return - `AppConfig` or `http:InternalServerError` if the operation fails.
-    resource function get app\-configs(http:RequestContext ctx) returns AppConfig|http:InternalServerError {
+    # + fileName - File name as a path parameter
+    # + return - byte[] of the MicroAppFile on success or error
+    resource function get micro\-app\-files/download/[string fileName](http:RequestContext ctx) 
+        returns byte[]|http:InternalServerError|http:NotFound {
+        
         authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
         if userInfo is error {
             return <http:InternalServerError>{
@@ -75,10 +167,10 @@ service http:InterceptableService / on new http:Listener(9090, config = {request
             };
         }
 
-        string[]|error defaultMicroAppIds = database:getMicroAppIdsByGroups([database:defaultMicroAppsGroup]);
-        if defaultMicroAppIds is error {
-            string customError = "Failed to fetch default micro app IDs";
-            log:printError(customError, defaultMicroAppIds);
+        byte[]|error? microAppBlobContent = db_fileservice:getMicroAppBlobContentByName(fileName);
+        if microAppBlobContent is error {
+            string customError = "Error occurred while retrieving Micro App file for the given file name!";
+            log:printError(customError, microAppBlobContent);
             return <http:InternalServerError>{
                 body: {
                     message: customError
@@ -86,37 +178,24 @@ service http:InterceptableService / on new http:Listener(9090, config = {request
             };
         }
 
-        database:AppConfig[]|error appConfigs = database:getAppConfigs();
-        if appConfigs is error {
-            string customError = "Error occurred while retrieving app settings!";
-            log:printError(customError, appConfigs);
-            return <http:InternalServerError>{
+        if microAppBlobContent is () {
+            string customError = "Micro App file not found for the given file name!";
+            log:printError(customError, fileName = fileName);
+            return <http:NotFound>{
                 body: {
                     message: customError
                 }
             };
         }
 
-        return <AppConfig>{
-            appConfigs,
-            defaultMicroAppIds,
-            appScopes,
-            tokenExchangeType
-        };
+        return microAppBlobContent;
     }
-
-    # Fetch token exchange configuration details.
-    # 
-    # + return - Token exchange configuration relevant to the implementation
-    resource function get micro\-apps/token\-exchange\-configs() returns TokenExchangeConfig => tokenExchangeConfig;
 
     # Fetch user information of the logged in users.
     #
     # + ctx - Request context
     # + return - User information object or an error
-    resource function get user\-info(http:RequestContext ctx)
-        returns entity:Employee|http:InternalServerError|http:NotFound {
-
+    resource function get user\-info(http:RequestContext ctx) returns db_userservice:User|http:InternalServerError|http:NotFound {
         authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
         if userInfo is error {
             return <http:InternalServerError>{
@@ -126,7 +205,7 @@ service http:InterceptableService / on new http:Listener(9090, config = {request
             };
         }
 
-        entity:Employee|error? loggedInUser = getUserInfo(userInfo.email);
+        db_userservice:User|error? loggedInUser = getUserInfo(userInfo.email);
         if loggedInUser is error {
             string customError = "Error occurred while retrieving user data!";
             log:printError(customError, loggedInUser);
@@ -149,7 +228,7 @@ service http:InterceptableService / on new http:Listener(9090, config = {request
 
         return loggedInUser;
     }
-
+    
     # Retrieves the list of micro apps available to the authenticated user.
     #
     # + ctx - Request context
@@ -180,7 +259,7 @@ service http:InterceptableService / on new http:Listener(9090, config = {request
             return allMicroApps;
         }
 
-        entity:Employee|error? loggedInUser = getUserInfo(userInfo.email);
+        database:User|error? loggedInUser = getUserInfo(userInfo.email);
         if loggedInUser is error {
             string customError = "Error occurred while retrieving user data!";
             log:printError(customError, loggedInUser);
@@ -193,7 +272,7 @@ service http:InterceptableService / on new http:Listener(9090, config = {request
 
         database:MicroApp[] filteredMicroApps = allMicroApps;
 
-        if loggedInUser is entity:Employee && loggedInUser.location != lkLocation {
+        if loggedInUser is database:User && loggedInUser.location != lkLocation {
             filteredMicroApps = allMicroApps.filter(microapp => restrictedAppsForNonLk.indexOf(microapp.appId) is ());
         }
 
@@ -239,37 +318,6 @@ service http:InterceptableService / on new http:Listener(9090, config = {request
         }
 
         return microApp;
-    }
-
-    # Retrieves Super App version details for a given platform.
-    #
-    # + ctx - Request context
-    # + platform - Target platform to fetch versions for (android or ios)
-    # + return - A list of database:Version records if successful, or an error on failure
-    resource function get versions(http:RequestContext ctx, string platform)
-        returns database:Version[]|http:InternalServerError {
-
-        authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
-        if userInfo is error {
-            return <http:InternalServerError>{
-                body: {
-                    message: ERR_MSG_USER_HEADER_NOT_FOUND
-                }
-            };
-        }
-
-        database:Version[]|error versions = database:getVersionsByPlatform(platform);
-        if versions is error {
-            string customError = "Error occurred while retrieving versions for the given platform!";
-            log:printError(customError, versions);
-            return <http:InternalServerError>{
-                body: {
-                    message: customError
-                }
-            };
-        }
-
-        return versions;
     }
 
     # Create or update a MicroApp along with provided versions and roles.
@@ -374,12 +422,43 @@ service http:InterceptableService / on new http:Listener(9090, config = {request
         return <http:Ok>{body: {message: result}};
     }
 
-    # Fetch the user configurations(downloaded microapps) of the logged in user.
+    # Retrieves Super App version details for a given platform.
+    #
+    # + ctx - Request context
+    # + platform - Target platform to fetch versions for (android or ios)
+    # + return - A list of database:Version records if successful, or an error on failure
+    resource function get versions(http:RequestContext ctx, string platform)
+        returns database:Version[]|http:InternalServerError {
+
+        authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
+        if userInfo is error {
+            return <http:InternalServerError>{
+                body: {
+                    message: ERR_MSG_USER_HEADER_NOT_FOUND
+                }
+            };
+        }
+
+        database:Version[]|error versions = database:getVersionsByPlatform(platform);
+        if versions is error {
+            string customError = "Error occurred while retrieving versions for the given platform!";
+            log:printError(customError, versions);
+            return <http:InternalServerError>{
+                body: {
+                    message: customError
+                }
+            };
+        }
+
+        return versions;
+    }
+
+    # Fetch the app configurations(downloaded microapps) of the logged in user.
     #
     # + ctx - Request context
     # + return - User configurations or error
-    resource function get users/user\-configs(http:RequestContext ctx)
-        returns database:UserConfig[]|http:InternalServerError {
+    resource function get users/app\-configs(http:RequestContext ctx)
+        returns database:AppConfig[]|http:InternalServerError {
 
         authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
         if userInfo is error {
@@ -390,10 +469,10 @@ service http:InterceptableService / on new http:Listener(9090, config = {request
             };
         }
 
-        database:UserConfig[]|error userConfigs = database:getUserConfigsByEmail(userInfo.email);
-        if userConfigs is error {
+        database:AppConfig[]|error appConfigs = database:getAppConfigsByEmail(userInfo.email);
+        if appConfigs is error {
             string customError = "Error occurred while retrieving app configurations for the user!";
-            log:printError(customError, userConfigs);
+            log:printError(customError, appConfigs);
             return {
                 body: {
                     message: customError
@@ -401,16 +480,16 @@ service http:InterceptableService / on new http:Listener(9090, config = {request
             };
         }
 
-        return userConfigs;
+        return appConfigs;
     }
 
-    # Add/Update user configurations(downloaded microapps) of the logged in user.
+    # Add/Update app configurations(downloaded microapps) of the logged in user.
     #
     # + ctx - Request context
-    # + configuration - User's user configurations including downloaded microapps
+    # + configuration - User's app configurations including downloaded microapps
     # + return - Created response or error
-    resource function post users/user\-configs(http:RequestContext ctx,
-        database:UserConfig configuration) returns http:Created|http:InternalServerError|http:BadRequest {
+    resource function post users/app\-configs(http:RequestContext ctx,
+        database:AppConfig configuration) returns http:Created|http:InternalServerError|http:BadRequest {
 
         authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
         if userInfo is error {
@@ -432,7 +511,7 @@ service http:InterceptableService / on new http:Listener(9090, config = {request
         }
 
         database:ExecutionSuccessResult|error result =
-            database:updateUserConfigsByEmail(userInfo.email, configuration);
+            database:updateAppConfigsByEmail(userInfo.email, configuration);
         if result is error {
             string customError = "Error occurred while updating the user configuration!";
             log:printError(customError, result);
@@ -446,14 +525,13 @@ service http:InterceptableService / on new http:Listener(9090, config = {request
         return http:CREATED;
     }
 
-    # Retrieves FCM tokens for all members of a specified group.
+    # Insert or update user information in the database (single or bulk).
     #
     # + ctx - Request context
-    # + group - The group name to search for members 
-    # + startIndex - Starting index for pagination
-    # + return - Paginated FCM tokens response or an error
-    resource function get users/fcm\-tokens(http:RequestContext ctx, string group, int startIndex)
-        returns database:FcmTokenResponse|http:InternalServerError|http:NotFound {
+    # + payload - User or BulkUserRequest containing users to insert/update
+    # + return - `http:Created` on success or errors on failure
+    resource function post users(http:RequestContext ctx, db_userservice:User|db_userservice:User[] payload) 
+        returns http:Created|http:InternalServerError|http:BadRequest {
 
         authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
         if userInfo is error {
@@ -462,87 +540,125 @@ service http:InterceptableService / on new http:Listener(9090, config = {request
             };
         }
 
-        string[]|error memberEmails = scim:getGroupMemberEmails(group);
-        if memberEmails is error {
-            string customError = "Error occurred while calling SCIM operations service";
-            log:printError(customError, memberEmails);
-            return <http:InternalServerError>{
-                body: {message: customError}
-            };
+        error? result;
+        if payload is db_userservice:User[] {
+            result = db_userservice:upsertBulkUsersInfo(payload);
+        } else {
+            result = db_userservice:upsertUserInfo(payload);
         }
-        if memberEmails.length() == 0 {
-            string customError = string `No members found in the requested group or the group does not exist.`;
-            return <http:NotFound>{
-                body: {message: customError}
-            };
-        }
-
-        database:FcmTokenResponse|error fcmTokensResponse = database:getFcmTokens(memberEmails, startIndex);
-        if fcmTokensResponse is error {
-            string customError = "Error occurred while retrieving FCM tokens";
-            log:printError(customError, fcmTokensResponse);
-            return <http:InternalServerError>{
-                body: {message: customError}
-            };
-        }
-
-        return fcmTokensResponse;
-    }
-
-    # Adds a new FCM token.
-    #
-    # + ctx - Request context
-    # + fcmToken - The FCM token to be stored
-    # + return - `http:Ok` on success with a confirmation message, or `http:InternalServerError` if the operation fails
-    resource function post users/fcm\-tokens(http:RequestContext ctx, string fcmToken)
-        returns http:Ok|http:InternalServerError {
-
-        authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
-        if userInfo is error {
-            return <http:InternalServerError>{
-                body: {
-                    message: ERR_MSG_USER_HEADER_NOT_FOUND
-                }
-            };
-        }
-
-        database:ExecutionSuccessResult|error result = database:addFcmToken(userInfo.email, fcmToken);
+        
         if result is error {
-            string customError = "Error occurred while adding FCM token";
+            string customError = "Error occurred while creating/updating user information!";
             log:printError(customError, result);
             return <http:InternalServerError>{
                 body: {message: customError}
             };
         }
 
-        return <http:Ok>{body: {message: result}};
+        return http:CREATED;
     }
 
-    # Deletes the specified FCM token.
+    # Get all users.
     #
     # + ctx - Request context
-    # + fcmToken - The FCM token to be deleted
-    # + return - `http:Ok` on success with a confirmation message, or `http:InternalServerError` if the deletion fails
-    resource function delete users/fcm\-tokens(http:RequestContext ctx, string fcmToken)
-        returns http:Ok|http:InternalServerError {
+    # + return - Array of users or errors on failure
+    resource function get users(http:RequestContext ctx) returns db_userservice:User[]|http:InternalServerError|http:NoContent {
 
         authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
         if userInfo is error {
             return <http:InternalServerError>{
-                body: {
-                    message: ERR_MSG_USER_HEADER_NOT_FOUND
-                }
+                body: {message: ERR_MSG_USER_HEADER_NOT_FOUND}
             };
         }
 
-        database:ExecutionSuccessResult|error result = database:deleteFcmToken(fcmToken);
+       db_userservice:User[]|error? users = db_userservice:getAllUsers();
+
+        if users is () {
+            return http:NO_CONTENT;
+        }
+        
+        if users is error {
+            string customError = "Error occurred while fetching users!";
+            log:printError(customError, users);
+            return <http:InternalServerError>{
+                body: {message: customError}
+            };
+        }
+        
+        return users;
+    }
+
+    # Delete a user.
+    #
+    # + ctx - Request context
+    # + email - User's email address to delete
+    # + return - `http:NoContent` on success or errors on failure
+    resource function delete users/[string email](http:RequestContext ctx) 
+        returns http:NoContent|http:InternalServerError|http:NotFound {
+
+        authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
+        if userInfo is error {
+            return <http:InternalServerError>{
+                body: {message: ERR_MSG_USER_HEADER_NOT_FOUND}
+            };
+        }
+
+        error? result = db_userservice:deleteUser(email);
+        
         if result is error {
-            string customError = "Error occurred while deleting FCM token";
+            string errorMsg = result.message();
+            if errorMsg.includes("not found") {
+                return <http:NotFound>{
+                    body: {message: "User not found"}
+                };
+            }
+
+            string customError = "Error occurred while deleting user!";
             log:printError(customError, result);
             return <http:InternalServerError>{
                 body: {message: customError}
             };
         }
-        return <http:Ok>{body: {message: result}};
+
+        error? cacheError = userInfoCache.invalidate(email);
+        if cacheError is error {
+            log:printError("Error in invalidating the user cache!", cacheError);
+        }
+        
+        return http:NO_CONTENT;
+    }
+
+    # Request a JWT for authorization.
+    #
+    # + ctx - Request context
+    # + request - Token request payload
+    # + return - `TokenResponse` with the generated JWT token on success, or errors on failure
+    resource function post tokens(http:RequestContext ctx, token_exchange:TokenRequest request)
+        returns token_exchange:TokenResponse|http:InternalServerError|http:BadRequest {
+
+        authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
+        if userInfo is error {
+            return <http:InternalServerError>{
+                body: {message: ERR_MSG_USER_HEADER_NOT_FOUND}
+            };
+        }
+        
+        string[]? groups = ();
+        if userInfo.groups is string[] {
+            groups = userInfo.groups;
+        }
+
+        string|error token = token_exchange:issueJWT(userInfo.email, request.microAppId, groups);
+        if token is error {
+            string customError = "Error occurred while generating JWT token";
+            log:printError(customError, token);
+            return <http:InternalServerError>{
+                body: {message: customError}
+            };
+        }
+
+        return <token_exchange:TokenResponse>{
+            token: token
+        };
     }
 }
