@@ -15,4 +15,3 @@
 // under the License.
 
 public const string SUCCESS_FILE_UPLOADED = "File uploaded successfully.";
-public const string BASE_URL = "http://localhost:9090/";

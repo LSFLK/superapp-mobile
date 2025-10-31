@@ -14,11 +14,13 @@
 // specific language governing permissions and limitations
 // under the License.
 
+configurable string baseUrl = ?; 
+
 # Generate a download URL for the given file name.
 #
 # + fileName - Name of the file
 # + return - The download URL for the file
 public isolated function getDownloadUrl(string fileName) returns string {
-    string downloadUrl = BASE_URL + "micro-app-files/download/" + fileName;
+    string downloadUrl = baseUrl + "micro-app-files/download/" + fileName;
     return downloadUrl;
 }
