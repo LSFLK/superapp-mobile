@@ -106,26 +106,26 @@ const MicroApp = () => {
     }
   }, [response]);
 
-  useEffect(() => {
-    const fetchToken = async () => {
-      try {
-        const token = await tokenExchange(
-          dispatch,
-          clientId,
-          exchangedToken,
-          appId,
-          logout
-        );
-        if (!token) throw new Error("Token exchange failed");
-        setToken(token);
-        sendTokenToWebView(token);
-      } catch (error) {
-        console.error("Token exchange error:", error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchToken = async () => {
+  //     try {
+  //       const token = await tokenExchange(
+  //         dispatch,
+  //         clientId,
+  //         exchangedToken,
+  //         appId,
+  //         logout
+  //       );
+  //       if (!token) throw new Error("Token exchange failed");
+  //       setToken(token);
+  //       sendTokenToWebView(token);
+  //     } catch (error) {
+  //       console.error("Token exchange error:", error);
+  //     }
+  //   };
 
-    fetchToken();
-  }, [clientId]);
+  //   fetchToken();
+  // }, [clientId]);
 
   // Function to send token to WebView
   const sendTokenToWebView = (token: string) => {
