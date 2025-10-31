@@ -187,7 +187,8 @@ class ApiService {
       formData.append("file", file);
 
       const headers: Record<string, string> = {
-        "x-jwt-assertion": token,
+        // "x-jwt-assertion": token,
+        "Authorization": `Bearer ${token}`,
         // Don't set Content-Type for FormData - browser will set it with boundary
       };
 
