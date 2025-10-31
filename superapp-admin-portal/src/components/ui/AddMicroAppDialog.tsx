@@ -214,7 +214,7 @@ const AddMicroAppDialog = ({
     try {
       setUploadProgress((prev) => ({ ...prev, [type]: 0 }));
 
-      const result = await apiService.uploadFile(file);
+  const result = await apiService.uploadFile(file);
 
       setUploadProgress((prev) => ({ ...prev, [type]: 100 }));
 
