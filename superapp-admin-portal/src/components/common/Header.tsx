@@ -37,7 +37,7 @@ export default function Header() {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-  const username = state.username || "User";
+  const username = state.email || "User";
   const displayName = username.split("@")[0] || username;
   const initials = displayName.slice(0, 2).toUpperCase();
 
