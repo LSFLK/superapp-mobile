@@ -63,14 +63,14 @@ const SettingsScreen = () => {
 
   useEffect(() => {
     if (userInfo) {
-      const qualityEmployeeThumbnail = userInfo.employeeThumbnail
-        ? userInfo.employeeThumbnail.split("=s100")[0]
+      const qualityUserThumbnail = userInfo.userThumbnail
+        ? userInfo.userThumbnail.split("=s100")[0]
         : "";
       setBasicUserInfo({
         firstName: userInfo.firstName,
         lastName: userInfo.lastName,
         workEmail: userInfo.workEmail,
-        avatarUri: qualityEmployeeThumbnail,
+        avatarUri: qualityUserThumbnail,
       });
     }
   }, [userInfo]);
