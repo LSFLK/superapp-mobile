@@ -10,7 +10,7 @@
 
 This open source project provides a unified platform powered by **micro app architecture**, allowing you to seamlessly integrate multiple applications within a single container.
 
-With this approach, you can deploy multiple React apps inside one super app while customizing its functionalities to fit your specific requirements.
+With this approach, you can deploy multiple Web apps inside one super app while customizing its functionalities to fit your specific requirements.
 
 This repository serves as the foundation for hosting multiple micro-apps with seamless authentication, integration, and centralized management.
 
@@ -20,25 +20,31 @@ This repository serves as the foundation for hosting multiple micro-apps with se
 
 ```bash
 .
-├── backend                  # Ballerina backend service
-│   └── README.md            # Detailed backend documentation
-├── frontend                 # React Native Super App
-│   └── README.md            # Detailed frontend documentation
-├── README.md                # You're here
+├── backend/                  # Ballerina backend service for SuperApp
+│   └── README.md             # Backend setup and API docs
+├── frontend/                 # React Native (Expo) frontend for SuperApp
+│   └── README.md             # Frontend setup and usage docs
+├── superapp-admin-portal/    # React web portal for uploading and managing micro-apps
+│   └── README.md             # Admin portal documentation
+├── sample-microapps/         # Example micro-apps for demonstration
+│   └── government-calender/
+│       ├── frontend/         # React frontend
+│       └── README.md         # Micro-app documentation
+└── README.md                 # Project root documentation (you're here)
 ```
+
 
 ## ⚙️ Technologies Used
 
 ### Backend
 - **Language**: [Ballerina](https://ballerina.io/)
-- **Authentication**: Handled via [Asgardeo](https://wso2.com/asgardeo/)
-- **Deployment**: Hosted on [Choreo](https://wso2.com/choreo/)
 
 ### Frontend
 - **Framework**: React Native (Expo)
 - **State Management**: Redux with Thunk
-- Micro-app management, token exchange, and secure storage
 
+### Authentication
+- External identity provider (OIDC/OAuth2 compatible)
 
 ## 🧱 System Architecture
 
@@ -46,23 +52,54 @@ Here’s a high-level view of the flow:
 <br></br>
 <img src="./resources/architecture_diagram.png" alt="Architecture Diagram" width="700"/>
 
+## 🧱 Authentication Flow
+<img src="./resources/auth_flow.png?" alt="Authentication Flow Diagram" width="700"/> 
+
+### Key Concepts
+
+#### SuperApp vs MicroApps
+
+- **SuperApp**: The main container application that manages authentication, navigation, and micro-app lifecycle
+- **MicroApps**: Individual web applications loaded in WebViews, each serving specific functionality
+- **Bridge**: Communication layer between SuperApp and MicroApps (see `frontend/docs/BRIDGE_GUIDE.md`)
+
+#### How Micro-Apps Work
+
+1. Micro-apps are listed in the Super App Store.
+2. Users can download micro-apps from the store.
+3. Downloaded micro-apps are stored using AsyncStorage.
+4. (if required) When launched, microapp specific tokens are issued by the superapp for access.
+5. The micro-app uses micro-app specific access tokens to communicate with the respective backends.
+    
+
 ## 🚀 Getting Started
 
-Each part of this repository has its own setup guide:
 
-- [Frontend](./frontend/README.md)
-- [Backend](./backend/README.md)
+Each part of this repository has its own setup guide. Pick the guide that matches what you want to do:
 
+### End-to-End Setup
+- **[Super App Deployment Guide](./docs/DEPLOYMENT_GUIDE.md)**: Step-by-step instructions for setting up the entire SuperApp stack locally, including infrastructure (database, IdP), configuration. Ideal for new contributors or those working on the complete system.
+
+### Component-Specific Development
+- **SuperApp Core Deployer** (main app, backend, admin portal):
+  - [Frontend Setup](./frontend/README.md): React Native mobile app development and local testing
+  - [Backend Setup](./backend/README.md): Ballerina API service development
+  - [Admin Portal Setup](./superapp-admin-portal/README.md): Web portal for managing micro-apps
+
+- **Micro-App Developers** (third-party or in-house apps):
+  - [Micro-App Developer Guide](./frontend/docs/MICROAPP_DEVELOPER_GUIDE.md): Building, integrating, and deploying micro-apps within the SuperApp
+  - [Sample Micro-Apps](./sample_microapps/): Reference implementations and examples
+  
 ## 🐞 Reporting Issues
 
-###  1. Opening an issue
+###  Opening an issue
 
-All known issues of WSO2 Superapp Mobile are filed at: https://github.com/wso2-open-operations/superapp-mobile/issues. Please check this list before opening a new issue.
+All known issues of Open Super App Mobile are filed at: https://github.com/LSFLK/superapp-mobile/issues. Please check this list before opening a new issue.
 
-### 2.  Reporting security issues
+### Next steps & future improvements
 
-Please do not report security issues via GitHub issues. Instead, follow the [WSO2 Security Vulnerability Reporting Guidelines](https://security.docs.wso2.com/en/latest/security-reporting/vulnerability-reporting-guidelines/).
+Read the planned enhancements and longer-term tasks in [FUTURE_IMPROVEMENTS.md](./docs/FUTURE_IMPROVEMENTS.md).
 
 ## 🤝 Contributing
 
-If you are planning on contributing to the development efforts of WSO2 Superapp Mobile, you can do so by checking out the latest development version. The main branch holds the latest unreleased source code.
+If you are planning on contributing to the development efforts of Open Superapp Mobile, you can do so by checking out the latest development version. The main branch holds the latest unreleased source code.
