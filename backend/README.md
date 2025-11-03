@@ -152,7 +152,7 @@ Quick start:
   ```
 - Further reading: [Choreo secrets and file mounts guide](https://wso2.com/choreo/docs/devops-and-ci-cd/manage-configurations-and-secrets/)
 
-## 🛠️ Developer Guide: Adding a New Endpoint
+## Developer Guide: Adding a New Endpoint
 
 To add a new API endpoint to the backend:
 
