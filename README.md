@@ -1,11 +1,11 @@
 <h1 align="left">Super App Mobile</h1>
 
-<img src="./resources/snapshots.png" alt="Snapshot Image" width="700"/>
+<img src="./resources/snapshots.png?" alt="Snapshot Image" width="700"/>
 <p align="left">
   <a href="https://opensource.org/license/apache-2-0">
     <img alt="License: MIT" src="https://img.shields.io/badge/License-apache-red.svg">
   </a>
-  <a href="https://twitter.com/intent/follow?screen_name=wso2" rel="nofollow"><img src="https://img.shields.io/twitter/follow/wso2.svg?style=social&amp;label=Follow%20Us" style="max-width: 100%;"></a>
+  <!-- <a href="https://twitter.com/intent/follow?screen_name=wso2" rel="nofollow"><img src="https://img.shields.io/twitter/follow/wso2.svg?style=social&amp;label=Follow%20Us" style="max-width: 100%;"></a> -->
 </p>
 
 This open source project provides a unified platform powered by **micro app architecture**, allowing you to seamlessly integrate multiple applications within a single container.
@@ -50,7 +50,7 @@ This repository serves as the foundation for hosting multiple micro-apps with se
 
 Here’s a high-level view of the flow:
 <br></br>
-<img src="./resources/architecture_diagram.png" alt="Architecture Diagram" width="700"/>
+<img src="./resources/architecture_diagram.png?" alt="Architecture Diagram" width="700"/>
 
 ## 🧱 Authentication Flow
 <img src="./resources/auth_flow.png?" alt="Authentication Flow Diagram" width="700"/> 
