@@ -150,6 +150,7 @@ const createStyles = (colorScheme: "light" | "dark", tabBarHeight: number) =>
   StyleSheet.create({
     background: {
       backgroundColor: Colors[colorScheme].primaryBackgroundColor,
+      minHeight: useWindowDimensions().height - tabBarHeight,
     },
     image: {
       width: "100%",
