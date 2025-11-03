@@ -8,7 +8,7 @@ By the end of this guide, you'll have a fully functional super app running local
 
 Imagine Sigirialand, a developing nation modernizing its digital government services. Government Employees need access to:
 - **Government Calendar**: View public holidays, events, and important dates
-- **Payslip Viewer**: Access and view salary information securely
+<!-- - **Payslip Viewer**: Access and view salary information securely -->
 
 These services will be delivered through a single mobile super app, where each service is a modular "micro-app" that can be updated independently.
 
@@ -70,7 +70,7 @@ Micro-apps are the user-facing modular services. Let's deploy Sigirialand's gove
 This demonstrates the basic micro-app deployment flow.
 
 **Follow the README:**
-- [Government Calendar](../sample_microapps/government-calendar/frontend/README.md)
+- [Government Calendar](../sample-microapps/government-calendar/frontend/README.md)
 
 Build the frontend, zip the build files and upload it via the SuperApp Admin Portal. This creates Sigirialand's first citizen-facing service.
 
@@ -115,4 +115,4 @@ Congratulations! You now have a working super app for Sigirialand. To extend it:
 - Add monitoring and logging
 
 
-Note: For a quick overview of protections this repo already provides out-of-the-box, see the Appendix: [Built-in Safety Nets](./SAFETY_NETS.md).
+<!-- Note: For a quick overview of protections this repo already provides out-of-the-box, see the Appendix: [Built-in Safety Nets](./SAFETY_NETS.md). -->
