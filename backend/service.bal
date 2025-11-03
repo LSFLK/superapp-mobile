@@ -71,6 +71,41 @@ service /\.well\-known on httpListener {
     }
 }
 
+service /'public on httpListener {
+    
+    # Download Micro App file by name
+    # 
+    # + ctx - Request context
+    # + fileName - File name as a path parameter
+    # + return - byte[] of the MicroAppFile on success or error
+    resource function get micro\-app\-files/download/[string fileName](http:RequestContext ctx) 
+        returns byte[]|http:InternalServerError|http:NotFound {
+        
+        byte[]|error? microAppBlobContent = db_fileservice:getMicroAppBlobContentByName(fileName);
+        if microAppBlobContent is error {
+            string customError = "Error occurred while retrieving Micro App file for the given file name!";
+            log:printError(customError, microAppBlobContent);
+            return <http:InternalServerError>{
+                body: {
+                    message: customError
+                }
+            };
+        }
+
+        if microAppBlobContent is () {
+            string customError = "Micro App file not found for the given file name!";
+            log:printError(customError, fileName = fileName);
+            return <http:NotFound>{
+                body: {
+                    message: customError
+                }
+            };
+        }
+
+        return microAppBlobContent;
+    }
+}
+
 service http:InterceptableService / on httpListener {
 
     # + return - authorization:JwtInterceptor, ErrorInterceptor
@@ -145,47 +180,6 @@ service http:InterceptableService / on httpListener {
         }
 
         return <http:NoContent>{};
-    }
-
-    # Download Micro App file by name
-    # 
-    # + ctx - Request context
-    # + fileName - File name as a path parameter
-    # + return - byte[] of the MicroAppFile on success or error
-    resource function get micro\-app\-files/download/[string fileName](http:RequestContext ctx) 
-        returns byte[]|http:InternalServerError|http:NotFound {
-        
-        authorization:CustomJwtPayload|error userInfo = ctx.getWithType(authorization:HEADER_USER_INFO);
-        if userInfo is error {
-            return <http:InternalServerError>{
-                body: {
-                    message: ERR_MSG_USER_HEADER_NOT_FOUND
-                }
-            };
-        }
-
-        byte[]|error? microAppBlobContent = db_fileservice:getMicroAppBlobContentByName(fileName);
-        if microAppBlobContent is error {
-            string customError = "Error occurred while retrieving Micro App file for the given file name!";
-            log:printError(customError, microAppBlobContent);
-            return <http:InternalServerError>{
-                body: {
-                    message: customError
-                }
-            };
-        }
-
-        if microAppBlobContent is () {
-            string customError = "Micro App file not found for the given file name!";
-            log:printError(customError, fileName = fileName);
-            return <http:NotFound>{
-                body: {
-                    message: customError
-                }
-            };
-        }
-
-        return microAppBlobContent;
     }
 
     # Fetch user information of the logged in users.

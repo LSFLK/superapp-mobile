@@ -69,7 +69,7 @@ export const Colors = {
     secondaryTextColor: "#6B7280", // Secondary/description text
     ternaryTextColor: "#DCE0E6", // Minor/deemphasized text
 
-    primaryBackgroundColor: "#030712", // Main app background
+    primaryBackgroundColor: "#171717ff", // Main app background
     secondaryBackgroundColor: "#1F2937", // Card/section background
 
     profileFontColor: "#B6B6B6", // Font color for profile initials

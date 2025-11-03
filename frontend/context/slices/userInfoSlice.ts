@@ -22,7 +22,7 @@ export type UserInfo = {
   workEmail: string;
   firstName: string;
   lastName: string;
-  employeeThumbnail: string | null;
+  userThumbnail: string | null;
 };
 
 interface AppsState {

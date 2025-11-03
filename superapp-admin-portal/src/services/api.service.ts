@@ -85,7 +85,7 @@ class ApiService {
       };
 
       // Add token as x-jwt-assertion header for development
-      headers["x-jwt-assertion"] = token;
+      //headers["x-jwt-assertion"] = token;
       // for production
       headers["Authorization"] = `Bearer ${token}`;
 
@@ -187,7 +187,8 @@ class ApiService {
       formData.append("file", file);
 
       const headers: Record<string, string> = {
-        "x-jwt-assertion": token,
+        // "x-jwt-assertion": token,
+        "Authorization": `Bearer ${token}`,
         // Don't set Content-Type for FormData - browser will set it with boundary
       };
 
@@ -216,7 +217,8 @@ class ApiService {
         throw new Error(error.message || "Upload failed");
       }
 
-      return await response.json();
+      const result = await response.json();
+      return { url: result.downloadUrl };
     } catch (error) {
       console.error("Upload error:", error);
       throw error;
