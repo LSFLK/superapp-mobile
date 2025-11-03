@@ -3,7 +3,7 @@
 <img src="./resources/snapshots.png" alt="Snapshot Image" width="700"/>
 <p align="left">
   <a href="https://opensource.org/license/apache-2-0">
-    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-green.svg">
+    <img alt="License: MIT" src="https://img.shields.io/badge/License-apache-red.svg">
   </a>
   <a href="https://twitter.com/intent/follow?screen_name=wso2" rel="nofollow"><img src="https://img.shields.io/twitter/follow/wso2.svg?style=social&amp;label=Follow%20Us" style="max-width: 100%;"></a>
 </p>
