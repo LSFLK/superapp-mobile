@@ -95,6 +95,22 @@ sequenceDiagram
 - The Super App Store checks for updates.
 - If an update is available, the micro-app is re-downloaded and replaced.
 
+Additionally you can **configure the update checking behavior** for micro-apps through the database.
+
+- In the `app_config` table, use the following configuration values:
+
+| Configuration Key | Description | Example Value |
+|-------------------|-------------|----------------|
+| **isForceUpdate** | Defines whether the Super App should check for updates automatically when the user navigates to the **My Apps** screen. | `true` → Always check for updates when the user opens **My Apps**<br>`false` → Skip automatic update check |
+| **microappsUpdateCheckInterval** | Sets the time interval (in **seconds**) for periodic update checks of micro-apps. | `3600` (1 hour) |
+
+> **Example use case:**
+>
+> - Set `isForceUpdate = true` to trigger update checks every time the user opens **My Apps**.  
+> - Adjust `microappsUpdateCheckInterval` to define how frequently (in seconds) the app should check for new micro-app updates in the background.
+
+---
+
 ### Micro App Loading
 
 ```mermaid

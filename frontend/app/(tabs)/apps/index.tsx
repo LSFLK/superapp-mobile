@@ -18,7 +18,13 @@ import SearchBar from "@/components/SearchBar";
 import SyncingModal from "@/components/SyncingModal";
 import Widget from "@/components/Widget";
 import { Colors } from "@/constants/Colors";
-import { APP_LIST_CONFIG_KEY, DOWNLOADED } from "@/constants/Constants";
+import {
+  APP_LIST_CONFIG_KEY,
+  DOWNLOADED,
+  APP_UPDATE_CHECK_TIMESTAMP_KEY,
+  IS_FORCE_UPDATE,
+  MICRO_APPS_UPDATE_CHECK_INTERVAL,
+} from "@/constants/Constants";
 import { ScreenPaths } from "@/constants/ScreenPaths";
 import { MicroApp } from "@/context/slices/appSlice";
 import { getUserConfigurations } from "@/context/slices/userConfigSlice";
@@ -47,6 +53,7 @@ import {
   View,
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function HomeScreen() {
   const dispatch = useDispatch<AppDispatch>();
@@ -58,7 +65,7 @@ export default function HomeScreen() {
   const isForceUpdate = useSelector(
     (state: RootState) =>
       state.appConfig.configs.find(
-        (config) => config.configKey === "isForceUpdate"
+        (config) => config.configKey === IS_FORCE_UPDATE
       )?.value ?? false
   );
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -82,9 +89,17 @@ export default function HomeScreen() {
   });
   const [updatingApps, setUpdatingApps] = useState<string[]>([]);
   const isCheckingUpdates = useRef(false);
-
   useTrackActiveScreen(ScreenPaths.MY_APPS);
+  const updateCheckInterval = useSelector(
+    (state: RootState) =>
+      state.appConfig.configs.find(
+        (config) => config.configKey === MICRO_APPS_UPDATE_CHECK_INTERVAL
+      )?.value ?? 0
+  );
+  // Convert seconds to milliseconds (value from database is in seconds)
+  const updateCheckIntervalMs = Number(updateCheckInterval) * 1000;
 
+  // Main App Force Update Screen
   useEffect(() => {
     const checkVersion = () => {
       if (version && Array.isArray(versions) && versions.length > 0) {
@@ -99,7 +114,7 @@ export default function HomeScreen() {
     checkVersion();
   }, [versions, version]);
 
-  // Handle app updates when screen is focused
+  // Handle app updates when screen is focused with time based checking
   useFocusEffect(
     useCallback(() => {
       const checkForUpdates = async () => {
@@ -108,6 +123,18 @@ export default function HomeScreen() {
         }
 
         try {
+          // Get the last update check timestamp
+          const lastCheckTimestamp = await AsyncStorage.getItem(
+            APP_UPDATE_CHECK_TIMESTAMP_KEY
+          );
+          const now = Date.now();
+          // Check if enough time has passed since the last update check
+          if (
+            lastCheckTimestamp &&
+            now - parseInt(lastCheckTimestamp, 10) < updateCheckIntervalMs
+          ) {
+            return;
+          }
           isCheckingUpdates.current = true;
           await loadMicroAppDetails(
             dispatch,
@@ -119,6 +146,11 @@ export default function HomeScreen() {
               setUpdatingApps((prev) => prev.filter((id) => id !== appId));
             }
           );
+          // Store the current timestamp after successful check
+          await AsyncStorage.setItem(
+            APP_UPDATE_CHECK_TIMESTAMP_KEY,
+            now.toString()
+          );
         } catch (error) {
           console.error("Error checking for app updates:", error);
         } finally {
@@ -129,7 +161,7 @@ export default function HomeScreen() {
       return () => {
         isCheckingUpdates.current = false;
       };
-    }, [dispatch, email, isForceUpdate])
+    }, [dispatch, email, isForceUpdate, updateCheckIntervalMs])
   );
 
   // Load micro apps and user configurations if they haven't been initialized yet
