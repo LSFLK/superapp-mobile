@@ -33,12 +33,22 @@ function getConfigs() {
   const withoutAuthz = baseUrl.replace(/\/?oauth2\/?authorize$/, "");
   const withoutOauth2 = withoutAuthz.replace(/\/?oauth2\/?$/, "");
   const root = withoutOauth2.replace(/\/$/, "");
-  return { clientId, root, redirectUri, postLogoutRedirectUri };
+  const oauth2Base = `${root}/oauth2`;
+  const oidcBase = `${root}/oidc`;
+  return { clientId, root, oauth2Base, oidcBase, redirectUri, postLogoutRedirectUri };
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { clientId, root, redirectUri, postLogoutRedirectUri } = getConfigs();
+  const { clientId, root, oauth2Base, oidcBase, redirectUri, postLogoutRedirectUri } = getConfigs();
 
+  // Provide metadata directly (avoids relying on .well-known URL format)
+  const metadata = {
+    issuer: root,
+    authorization_endpoint: `${oauth2Base}/authorize`,
+    token_endpoint: `${oauth2Base}/token`,
+    userinfo_endpoint: `${oauth2Base}/userinfo`,
+    end_session_endpoint: `${oidcBase}/logout`,
+  } as const;
 
   const onSigninCallback = () => {
     const url = new URL(window.location.href);
@@ -51,10 +61,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <OidcProvider
       authority={root}
+      metadata={metadata}
       client_id={clientId}
       redirect_uri={redirectUri}
-      response_type="code"
       post_logout_redirect_uri={postLogoutRedirectUri}
+      response_type="code"
       scope="openid profile email groups"
   loadUserInfo={true}
   automaticSilentRenew={false}
