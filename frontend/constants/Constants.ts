@@ -41,6 +41,8 @@ export const LIBRARY_ARTICLE_FALLBACK_IMAGE =
   process.env.EXPO_PUBLIC_LIBRARY_ARTICLE_FALLBACK_IMAGE ?? "";
 export const DEVELOPER_APP_DEFAULT_URL =
   process.env.EXPO_PUBLIC_DEVELOPER_APP_DEFAULT_URL ?? "";
+export const USE_BACKEND_TOKEN_EXCHANGE =
+  process.env.EXPO_PUBLIC_USE_BACKEND_TOKEN_EXCHANGE === "true";
 // Authenticator Micro App ID
 export const AUTHENTICATOR_APP_ID =
   process.env.EXPO_PUBLIC_AUTHENTICATOR_APP_ID ?? "";
