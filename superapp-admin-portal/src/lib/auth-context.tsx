@@ -1,0 +1,112 @@
+import React, { useMemo } from "react";
+import { AuthProvider as OidcProvider, useAuth as useOidc } from "react-oidc-context";
+
+type AuthState = {
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  username?: string;
+  email?: string;
+};
+
+type AuthContextValue = {
+  state: AuthState;
+  signIn: () => void;
+  signOut: () => Promise<void>;
+  getAccessToken: () => Promise<string>;
+};
+
+function getConfigs() {
+  const c = window.configs ?? {};
+  const clientId = c.IDP_CLIENT_ID as string | undefined;
+  let baseUrl = c.IDP_BASE_URL as string | undefined;
+  const redirectUri = (c.SIGN_IN_REDIRECT_URL as string | undefined) ?? window.location.origin;
+  const postLogoutRedirectUri = (c.SIGN_OUT_REDIRECT_URL as string | undefined) ?? redirectUri;
+  if (!clientId || !baseUrl) {
+    throw new Error("Missing IDP_CLIENT_ID or IDP_BASE_URL in public/config.js");
+  }
+  // Normalize: accept base as either issuer root or oauth2 endpoint
+  // Examples:
+  //  - https://api.<your-idp>.io/t/org
+  //  - https://api.<your-idp>.io/t/org/
+  //  - https://api.<your-idp>.io/t/org/oauth2
+  //  - https://api.<your-idp>.io/t/org/oauth2/authorize
+  const withoutAuthz = baseUrl.replace(/\/?oauth2\/?authorize$/, "");
+  const withoutOauth2 = withoutAuthz.replace(/\/?oauth2\/?$/, "");
+  const root = withoutOauth2.replace(/\/$/, "");
+  return { clientId, root, redirectUri, postLogoutRedirectUri };
+}
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const { clientId, root, redirectUri, postLogoutRedirectUri } = getConfigs();
+
+
+  const onSigninCallback = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("code");
+    url.searchParams.delete("state");
+    url.searchParams.delete("session_state");
+    window.history.replaceState({}, document.title, url.toString());
+  };
+
+  return (
+    <OidcProvider
+      authority={root}
+      client_id={clientId}
+      redirect_uri={redirectUri}
+      response_type="code"
+      post_logout_redirect_uri={postLogoutRedirectUri}
+      scope="openid profile email groups"
+  loadUserInfo={true}
+  automaticSilentRenew={false}
+      onSigninCallback={onSigninCallback}
+    >
+      {children}
+    </OidcProvider>
+  );
+}
+
+export function useAuth(): AuthContextValue {
+  const auth = useOidc();
+  if (auth.error) {
+    // Surface any initialization or callback errors in console
+    // (kept lightweight to avoid UI changes)
+    // eslint-disable-next-line no-console
+    console.error("OIDC error:", auth.error);
+  }
+  const state: AuthState = {
+    isAuthenticated: !!auth.isAuthenticated,
+    isLoading: !!auth.isLoading,
+    username:
+      (auth.user?.profile as any)?.preferred_username ||
+      (auth.user?.profile as any)?.username ||
+      (auth.user?.profile as any)?.email,
+    email: (auth.user?.profile as any)?.email,
+  };
+
+  async function getAccessToken() {
+    // If user exists and token is expired, try silent renew
+    if (auth.user && auth.user.expired) {
+      try {
+        await auth.signinSilent();
+      } catch {
+        // fall through; token might still be present
+      }
+    }
+    return auth.user?.access_token || "";
+  }
+
+  const signIn = () => {
+    // library will build PKCE and redirect
+    auth.signinRedirect();
+  };
+
+  const signOut = async () => {
+    await auth.signoutRedirect();
+  };
+
+  return useMemo(
+    () => ({ state, signIn, signOut, getAccessToken }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [state.isAuthenticated, state.isLoading, state.username, state.email]
+  );
+}

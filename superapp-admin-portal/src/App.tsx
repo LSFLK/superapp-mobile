@@ -4,7 +4,7 @@
  * Main application entry point with authentication routing.
  */
 
-import { useAuthContext } from "@asgardeo/auth-react";
+import { useAuth } from "./lib/auth-context";
 import { useEffect, useRef } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout, Loading } from ".";
@@ -16,7 +16,7 @@ import { useNotification } from "./context";
 import { apiService } from "./services";
 
 function App() {
-  const { state, getAccessToken, signOut } = useAuthContext();
+  const { state, getAccessToken, signOut } = useAuth();
   const { showNotification } = useNotification();
   const hasShownLoginNotification = useRef(false);
 
