@@ -293,7 +293,7 @@ export const getBackendToken = async (
       }
     );
 
-    if (response.status === 200 && response.data) {
+    if (response.status === 201 && response.data) {
       return response.data;
     } else {
       console.error(
