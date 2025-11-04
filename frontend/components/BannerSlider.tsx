@@ -14,7 +14,14 @@
 // specific language governing permissions and limitations
 // under the License.
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Image, StyleSheet, View, Dimensions } from "react-native";
+import {
+  Animated,
+  Image,
+  StyleSheet,
+  View,
+  Dimensions,
+  PanResponder,
+} from "react-native";
 
 const screenWidth = Dimensions.get("window").width;
 const BANNER_HORIZONTAL_PADDING = 22; // Horizontal padding for the banner slider
@@ -32,32 +39,127 @@ const imageList = [...bannerImages, bannerImages[0]];
 export default function BannerSlider() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const slideAnim = useRef(new Animated.Value(0)).current;
+  const autoPlayRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const baseOffset = useRef(10); // current translateX base (negative)
+  const isInteracting = useRef(false);
+
+  const clearAutoPlay = () => {
+    if (autoPlayRef.current) {
+      clearInterval(autoPlayRef.current as any);
+      autoPlayRef.current = null;
+    }
+  };
+
+  const startAutoPlay = () => {
+    clearAutoPlay();
+    autoPlayRef.current = setInterval(() => {
+      goToNext();
+    }, 5000);
+  };
 
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      const nextIndex = currentIndex + 1;
+    // start autoplay on mount
+    startAutoPlay();
+    return () => clearAutoPlay();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-      Animated.timing(slideAnim, {
-        toValue: -adjustedWidth * nextIndex,
-        duration: 500,
-        useNativeDriver: true,
-      }).start(() => {
-        if (nextIndex === imageList.length - 1) {
-          // Jump back to first image instantly
-          slideAnim.setValue(0);
-          setCurrentIndex(0);
-        } else {
-          setCurrentIndex(nextIndex);
+  useEffect(() => {
+    // whenever currentIndex changes, update baseOffset so pan calculations stay consistent
+    baseOffset.current = -adjustedWidth * currentIndex;
+    slideAnim.setValue(baseOffset.current);
+    // restart autoplay timer when slide completes and not interacting
+    if (!isInteracting.current) {
+      startAutoPlay();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIndex]);
+
+  const goToIndex = (index: number) => {
+    Animated.timing(slideAnim, {
+      toValue: -adjustedWidth * index,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => {
+      if (index === imageList.length - 1) {
+        // Jump back to first image instantly
+        slideAnim.setValue(0);
+        setCurrentIndex(0);
+      } else if (index <= 0) {
+        setCurrentIndex(0);
+      } else {
+        setCurrentIndex(index);
+      }
+    });
+  };
+
+  const goToNext = () => {
+    const nextIndex = currentIndex + 1;
+    // animate to next
+    Animated.timing(slideAnim, {
+      toValue: -adjustedWidth * nextIndex,
+      duration: 500,
+      useNativeDriver: true,
+    }).start(() => {
+      if (nextIndex === imageList.length - 1) {
+        slideAnim.setValue(0);
+        setCurrentIndex(0);
+      } else {
+        setCurrentIndex(nextIndex);
+      }
+    });
+  };
+
+  // Pan responder for manual dragging
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        return Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
+      },
+      onPanResponderGrant: () => {
+        isInteracting.current = true;
+        clearAutoPlay();
+      },
+      onPanResponderMove: (_, gestureState) => {
+        // follow finger
+        const value = baseOffset.current + gestureState.dx;
+        slideAnim.setValue(value);
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        const dx = gestureState.dx;
+        const threshold = adjustedWidth * 0.2; // 20% swipe to change
+
+        let targetIndex = currentIndex;
+        if (dx < -threshold) {
+          targetIndex = currentIndex + 1;
+        } else if (dx > threshold) {
+          targetIndex = Math.max(0, currentIndex - 1);
         }
-      });
-    }, 5000);
 
-    return () => clearInterval(intervalId);
-  }, [currentIndex, slideAnim]);
+        // snap to target
+        isInteracting.current = false;
+        goToIndex(targetIndex);
+        // resume autoplay after short delay so the animation finishes
+        setTimeout(() => {
+          if (!isInteracting.current) startAutoPlay();
+        }, 600);
+      },
+      onPanResponderTerminate: () => {
+        // treat as release
+        isInteracting.current = false;
+        goToIndex(currentIndex);
+        setTimeout(() => {
+          if (!isInteracting.current) startAutoPlay();
+        }, 600);
+      },
+    })
+  ).current;
 
   return (
     <View style={styles.container}>
       <Animated.View
+        {...panResponder.panHandlers}
         style={[
           styles.slider,
           {
@@ -85,7 +187,7 @@ const styles = StyleSheet.create({
   },
   slider: {
     flexDirection: "row",
-    gap: 10,
+    gap:10,
   },
   image: {
     width: "100%",
