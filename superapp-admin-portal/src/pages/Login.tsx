@@ -13,13 +13,13 @@ import {
   Paper,
   ThemeProvider,
 } from "@mui/material";
-import { useAuthContext } from "@asgardeo/auth-react";
+import { useAuth } from "../lib/auth-context";
 import LoginIcon from "@mui/icons-material/Login";
 import loginBanner from "../assets/images/login-banner.png";
 import { createAppTheme } from "../theme";
 
 export default function Login() {
-  const { signIn } = useAuthContext();
+  const { signIn } = useAuth();
 
   // Always use light theme for login page
   const lightTheme = createAppTheme("light");
@@ -80,12 +80,8 @@ export default function Login() {
               Sign In
             </Button>
 
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ mt: 3, display: "block" }}
-            >
-              Powered by Asgardeo
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 3, display: "block" }}>
+              Secure sign-in enabled
             </Typography>
           </Paper>
         </Container>

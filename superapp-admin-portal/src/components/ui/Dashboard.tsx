@@ -12,14 +12,14 @@ import {
   ButtonBase,
   alpha,
 } from "@mui/material";
-import { useAuthContext } from "@asgardeo/auth-react";
+import { useAuth } from "../../lib/auth-context";
 import { useNavigate } from "react-router-dom";
 import AppsIcon from "@mui/icons-material/Apps";
 import PeopleIcon from "@mui/icons-material/People";
 import BarChartIcon from "@mui/icons-material/BarChart";
 
 export default function Dashboard() {
-  const { state } = useAuthContext();
+  const { state } = useAuth();
   const navigate = useNavigate();
   const username = state.username || "User";
   const displayName = username.split("@")[0] || username;

@@ -71,7 +71,7 @@ class ApiService {
       // Wait for token getter to be initialized
       await this.tokenGetterReady;
 
-      // Get the access token from Asgardeo
+      // Get the access token from IDP
       const token = this.getAccessToken ? await this.getAccessToken() : null;
 
       if (!token) {
