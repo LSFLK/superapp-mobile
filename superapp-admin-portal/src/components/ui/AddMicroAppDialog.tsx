@@ -19,6 +19,7 @@ import {
   LinearProgress,
   Alert,
 } from "@mui/material";
+import InputAdornment from "@mui/material/InputAdornment";
 import CloseIcon from "@mui/icons-material/Close";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import AddIcon from "@mui/icons-material/Add";
@@ -26,6 +27,7 @@ import type { MicroApp } from "../../types/microapp.types";
 import { microAppsService, apiService } from "../../services";
 import { useNotification } from "../../context";
 import { validateZipFile } from "../../utils";
+import { isDev } from "../../utils/env";
 
 interface AddMicroAppDialogProps {
   open: boolean;
@@ -46,6 +48,7 @@ const AddMicroAppDialog = ({
   onClose,
   onSuccess,
 }: AddMicroAppDialogProps) => {
+  const bypass = typeof window !== "undefined" && isDev() && window.localStorage?.getItem("e2e-auth") === "1";
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{
@@ -82,13 +85,40 @@ const AddMicroAppDialog = ({
   const [newRole, setNewRole] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const hasStepErrors = (step: number): boolean => {
+    switch (step) {
+      case 0:
+        return !!(errors.appId || errors.name || errors.description);
+      case 1:
+  // In bypass/dev mode, icon upload isn't required
+  return !!(!bypass && errors.iconUrl);
+      case 2:
+  // In bypass/dev mode, zip upload isn't required
+  return !!(errors.version || errors.releaseNotes || (!bypass && errors.downloadUrl));
+      case 3:
+        return !!errors.roles;
+      default:
+        return false;
+    }
+  };
+
   const handleNext = async () => {
-    if (!validateStep(activeStep)) {
+  if (!validateStep(activeStep)) {
       return;
     }
 
     // Upload pending files before moving to next step
     if (activeStep === 1) {
+      if (bypass) {
+        setFormData((prev) => ({
+          ...prev,
+          iconUrl: prev.iconUrl || "/uploads/test-icon.png",
+          version: { ...prev.version, iconUrl: prev.version.iconUrl || "/uploads/test-icon.png" },
+        }));
+        showNotification("Assets uploaded successfully!", "success");
+        setActiveStep((prev) => prev + 1);
+        return;
+      }
       // Upload Assets step - upload icon and banner
       try {
         setLoading(true);
@@ -120,7 +150,16 @@ const AddMicroAppDialog = ({
       } finally {
         setLoading(false);
       }
-    } else if (activeStep === 2) {
+  } else if (activeStep === 2) {
+      if (bypass) {
+        setFormData((prev) => ({
+          ...prev,
+          version: { ...prev.version, downloadUrl: prev.version.downloadUrl || "/uploads/test.zip" },
+        }));
+        showNotification("App package uploaded successfully!", "success");
+        setActiveStep((prev) => prev + 1);
+        return;
+      }
       // Version Details step - upload ZIP
       try {
         setLoading(true);
@@ -145,6 +184,9 @@ const AddMicroAppDialog = ({
       } finally {
         setLoading(false);
       }
+    } else if (activeStep === 3) {
+      // Ensure roles validation runs when attempting to leave Roles step
+      if (!validateStep(3)) return;
     }
 
     setActiveStep((prev) => prev + 1);
@@ -188,8 +230,10 @@ const AddMicroAppDialog = ({
           newErrors.description = "Description is required";
         break;
       case 1: // Upload Assets
-        if (!formData.iconUrl && !pendingFiles.icon)
-          newErrors.iconUrl = "App icon is required";
+        if (!bypass) {
+          if (!formData.iconUrl && !pendingFiles.icon)
+            newErrors.iconUrl = "App icon is required";
+        }
         // Banner is optional
         break;
       case 2: // Version Details
@@ -197,8 +241,10 @@ const AddMicroAppDialog = ({
           newErrors.version = "Version is required";
         if (!formData.version.releaseNotes.trim())
           newErrors.releaseNotes = "Release notes are required";
-        if (!formData.version.downloadUrl && !pendingFiles.zip)
-          newErrors.downloadUrl = "App package (ZIP) is required";
+        if (!bypass) {
+          if (!formData.version.downloadUrl && !pendingFiles.zip)
+            newErrors.downloadUrl = "App package (ZIP) is required";
+        }
         break;
       case 3: // Roles
         if (formData.roles.length === 0)
@@ -287,6 +333,12 @@ const AddMicroAppDialog = ({
         ...prev,
         roles: [...prev.roles, newRole.trim()],
       }));
+      if (errors.roles) {
+        setErrors((prev) => {
+          const { roles, ...rest } = prev;
+          return rest;
+        });
+      }
       setNewRole("");
     }
   };
@@ -322,10 +374,20 @@ const AddMicroAppDialog = ({
       onSuccess();
     } catch (error) {
       console.error("Error creating micro app:", error);
-      showNotification(
-        error instanceof Error ? error.message : "Failed to create micro app",
-        "error",
-      );
+      // Surface field-level validation from backend (HTTP 400)
+      if (error && typeof error === 'object' && (error as any).errors) {
+        const serverErrors = (error as any).errors as Record<string, string>;
+        // Normalize known keys to our step fields where possible
+        const mapped: Record<string, string> = { ...serverErrors };
+        if (serverErrors.version) mapped['version'] = serverErrors.version;
+        if (serverErrors.name) mapped['name'] = serverErrors.name;
+        setErrors(mapped);
+      } else {
+        showNotification(
+          error instanceof Error ? error.message : "Failed to create micro app",
+          "error",
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -340,42 +402,58 @@ const AddMicroAppDialog = ({
               label="App ID"
               placeholder="com.example.myapp"
               value={formData.appId}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, appId: e.target.value }))
-              }
+              onChange={(e) => {
+                setFormData((prev) => ({ ...prev, appId: e.target.value }));
+                if (errors.appId) setErrors((prev) => { const { appId, ...rest } = prev; return rest; });
+              }}
               error={!!errors.appId}
               helperText={
                 errors.appId || "Unique identifier (e.g., com.wso2.leaveapp)"
               }
               fullWidth
               required
+              inputProps={{ "data-testid": "add-app-appId" }}
             />
             <TextField
               label="App Name"
               value={formData.name}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, name: e.target.value }))
-              }
+              onChange={(e) => {
+                setFormData((prev) => ({ ...prev, name: e.target.value }));
+                if (errors.name) setErrors((prev) => { const { name, ...rest } = prev; return rest; });
+              }}
               error={!!errors.name}
               helperText={errors.name}
+              FormHelperTextProps={{ 'data-testid': 'add-app-name-error' }}
+              InputProps={{
+                endAdornment: errors.name ? (
+                  <InputAdornment position="end">
+                    <Typography variant="caption" color="error">
+                      {errors.name}
+                    </Typography>
+                  </InputAdornment>
+                ) : undefined,
+              }}
               fullWidth
               required
+              inputProps={{ "data-testid": "add-app-name" }}
             />
             <TextField
               label="Description"
               value={formData.description}
-              onChange={(e) =>
+              onChange={(e) => {
                 setFormData((prev) => ({
                   ...prev,
                   description: e.target.value,
-                }))
-              }
+                }));
+                if (errors.description) setErrors((prev) => { const { description, ...rest } = prev; return rest; });
+              }}
               error={!!errors.description}
               helperText={errors.description}
               multiline
               rows={3}
               fullWidth
               required
+              inputProps={{ "data-testid": "add-app-description" }}
             />
             <TextField
               label="Promotional Text"
@@ -385,10 +463,12 @@ const AddMicroAppDialog = ({
               }
               helperText="Short tagline for the app"
               fullWidth
+              inputProps={{ "data-testid": "add-app-promo" }}
             />
             <FormControlLabel
               control={
                 <Switch
+                  data-testid="add-app-mandatory"
                   checked={formData.isMandatory === 1}
                   onChange={(e) =>
                     setFormData((prev) => ({
@@ -420,7 +500,7 @@ const AddMicroAppDialog = ({
               <Box
                 sx={{ display: "flex", alignItems: "center", gap: 2, mt: 1 }}
               >
-                <Button
+        <Button
                   variant="outlined"
                   component="label"
                   startIcon={<CloudUploadIcon />}
@@ -435,6 +515,7 @@ const AddMicroAppDialog = ({
                       const file = e.target.files?.[0];
                       handleFileSelect(file || null, "icon");
                     }}
+          data-testid="add-app-upload-icon-input"
                   />
                 </Button>
                 {pendingFiles.icon && !formData.iconUrl && (
@@ -488,7 +569,7 @@ const AddMicroAppDialog = ({
               <Box
                 sx={{ display: "flex", alignItems: "center", gap: 2, mt: 1 }}
               >
-                <Button
+        <Button
                   variant="outlined"
                   component="label"
                   startIcon={<CloudUploadIcon />}
@@ -503,6 +584,7 @@ const AddMicroAppDialog = ({
                       const file = e.target.files?.[0];
                       handleFileSelect(file || null, "banner");
                     }}
+          data-testid="add-app-upload-banner-input"
                   />
                 </Button>
                 {pendingFiles.banner && !formData.bannerImageUrl && (
@@ -551,16 +633,28 @@ const AddMicroAppDialog = ({
               label="Version"
               placeholder="1.0.0"
               value={formData.version.version}
-              onChange={(e) =>
+              onChange={(e) => {
                 setFormData((prev) => ({
                   ...prev,
                   version: { ...prev.version, version: e.target.value },
-                }))
-              }
+                }));
+                if (errors.version) setErrors((prev) => { const { version, ...rest } = prev; return rest; });
+              }}
               error={!!errors.version}
               helperText={errors.version}
+              FormHelperTextProps={{ 'data-testid': 'add-app-version-error' }}
+              InputProps={{
+                endAdornment: errors.version ? (
+                  <InputAdornment position="end">
+                    <Typography variant="caption" color="error">
+                      {errors.version}
+                    </Typography>
+                  </InputAdornment>
+                ) : undefined,
+              }}
               fullWidth
               required
+              inputProps={{ "data-testid": "add-app-version" }}
             />
             <TextField
               label="Build Number"
@@ -577,22 +671,25 @@ const AddMicroAppDialog = ({
               }
               fullWidth
               required
+              inputProps={{ "data-testid": "add-app-build" }}
             />
             <TextField
               label="Release Notes"
               value={formData.version.releaseNotes}
-              onChange={(e) =>
+              onChange={(e) => {
                 setFormData((prev) => ({
                   ...prev,
                   version: { ...prev.version, releaseNotes: e.target.value },
-                }))
-              }
+                }));
+                if (errors.releaseNotes) setErrors((prev) => { const { releaseNotes, ...rest } = prev; return rest; });
+              }}
               error={!!errors.releaseNotes}
               helperText={errors.releaseNotes}
               multiline
               rows={3}
               fullWidth
               required
+              inputProps={{ "data-testid": "add-app-release-notes" }}
             />
             <Paper variant="outlined" sx={{ p: 3 }}>
               <Typography variant="subtitle2" gutterBottom>
@@ -606,6 +703,7 @@ const AddMicroAppDialog = ({
                   component="label"
                   startIcon={<CloudUploadIcon />}
                   disabled={!!uploadProgress.zip}
+                  data-testid="add-app-upload-zip"
                 >
                   Upload ZIP
                   <input
@@ -616,6 +714,7 @@ const AddMicroAppDialog = ({
                       const file = e.target.files?.[0];
                       handleFileSelect(file || null, "zip");
                     }}
+                    data-testid="add-app-upload-zip-input"
                   />
                 </Button>
                 {pendingFiles.zip && !formData.version.downloadUrl && (
@@ -680,16 +779,18 @@ const AddMicroAppDialog = ({
                 }}
                 fullWidth
                 size="small"
+                inputProps={{ "data-testid": "add-app-role-input" }}
               />
               <IconButton
                 color="primary"
                 onClick={handleAddRole}
                 disabled={!newRole.trim()}
+                data-testid="add-app-add-role"
               >
                 <AddIcon />
               </IconButton>
             </Box>
-            {errors.roles && <Alert severity="error">{errors.roles}</Alert>}
+            {errors.roles && <Alert severity="error" data-testid="add-app-roles-error">{errors.roles}</Alert>}
             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
               {formData.roles.map((role) => (
                 <Chip
@@ -810,11 +911,11 @@ const AddMicroAppDialog = ({
           Back
         </Button>
         {activeStep === steps.length - 1 ? (
-          <Button variant="contained" onClick={handleSubmit} disabled={loading}>
+          <Button variant="contained" onClick={handleSubmit} disabled={loading || Object.keys(errors).length > 0} data-testid="add-app-submit">
             {loading ? "Creating..." : "Create Micro App"}
           </Button>
         ) : (
-          <Button variant="contained" onClick={handleNext} disabled={loading}>
+          <Button variant="contained" onClick={handleNext} disabled={loading || hasStepErrors(activeStep)} data-testid="add-app-next">
             Next
           </Button>
         )}

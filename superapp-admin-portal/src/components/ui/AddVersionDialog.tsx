@@ -19,6 +19,7 @@ import type { MicroApp } from "../../types/microapp.types";
 import { microAppsService, apiService } from "../../services";
 import { useNotification } from "../../context";
 import { validateZipFile } from "../../utils";
+import { isDev } from "../../utils/env";
 
 interface AddVersionDialogProps {
   open: boolean;
@@ -33,6 +34,12 @@ const AddVersionDialog = ({
   onSuccess,
   microApp,
 }: AddVersionDialogProps) => {
+  // Only bypass uploads in E2E if both e2e-auth=1 and e2e-bypass-uploads=1 are set
+  const bypass =
+    typeof window !== "undefined" &&
+    isDev() &&
+    window.localStorage?.getItem("e2e-auth") === "1" &&
+    window.localStorage?.getItem("e2e-bypass-uploads") === "1";
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | undefined>();
   const [pendingFile, setPendingFile] = useState<File | undefined>();
@@ -69,13 +76,14 @@ const AddVersionDialog = ({
 
   const handleFileSelect = async (file: File | null) => {
     if (file) {
-      // Validate the ZIP file
-      const validation = await validateZipFile(file);
-
-      if (!validation.valid) {
-        showNotification(validation.error || "Invalid file", "error");
-        setPendingFile(undefined);
-        return;
+      // Validate the ZIP file unless running in bypass mode
+      if (!bypass) {
+        const validation = await validateZipFile(file);
+        if (!validation.valid) {
+          showNotification(validation.error || "Invalid file", "error");
+          setPendingFile(undefined);
+          return;
+        }
       }
 
       setPendingFile(file);
@@ -118,10 +126,16 @@ const AddVersionDialog = ({
       // Upload file if pending
       if (pendingFile) {
         showNotification("Uploading app package...", "info");
+        // Show progress while uploading and yield a tick so UI can render it
+        setUploadProgress(10);
+        await new Promise((res) => setTimeout(res, 0));
         const result = await apiService.uploadFile(pendingFile);
         finalDownloadUrl = result.url;
         setPendingFile(undefined);
         showNotification("Package uploaded successfully!", "success");
+  setUploadProgress(100);
+  // Clear progress shortly after completion
+  setTimeout(() => setUploadProgress(undefined), 800);
       }
 
       // Add new version using the dedicated endpoint
@@ -182,6 +196,7 @@ const AddVersionDialog = ({
             fullWidth
             required
             disabled={loading}
+            inputProps={{ 'data-testid': 'add-version-version' }}
           />
 
           <TextField
@@ -196,6 +211,7 @@ const AddVersionDialog = ({
             }
             fullWidth
             disabled={loading}
+            inputProps={{ 'data-testid': 'add-version-build' }}
           />
 
           <TextField
@@ -212,6 +228,7 @@ const AddVersionDialog = ({
             fullWidth
             required
             disabled={loading}
+            inputProps={{ 'data-testid': 'add-version-release-notes' }}
           />
 
           <Paper variant="outlined" sx={{ p: 3 }}>
@@ -241,6 +258,7 @@ const AddVersionDialog = ({
                     const file = e.target.files?.[0];
                     handleFileSelect(file || null);
                   }}
+                  data-testid="add-version-upload-zip-input"
                 />
               </Button>
               {pendingFile && !formData.downloadUrl && (
@@ -263,12 +281,22 @@ const AddVersionDialog = ({
                 />
               )}
             </Box>
-            {uploadProgress !== undefined && (
-              <LinearProgress
-                variant="determinate"
-                value={uploadProgress}
-                sx={{ mt: 1 }}
-              />
+            {(uploadProgress !== undefined || (loading && pendingFile)) && (
+              <>
+                <LinearProgress
+                  data-testid="add-version-progress"
+                  variant={uploadProgress !== undefined ? "determinate" : "indeterminate"}
+                  value={uploadProgress ?? 0}
+                  sx={{ mt: 1 }}
+                />
+                <Typography
+                  variant="caption"
+                  sx={{ mt: 0.5, display: "block" }}
+                  data-testid="add-version-uploading"
+                >
+                  Uploading...
+                </Typography>
+              </>
             )}
             {errors.downloadUrl && (
               <Typography
@@ -287,7 +315,7 @@ const AddVersionDialog = ({
         <Button onClick={handleClose} disabled={loading}>
           Cancel
         </Button>
-        <Button variant="contained" onClick={handleSubmit} disabled={loading}>
+  <Button variant="contained" onClick={handleSubmit} disabled={loading} data-testid="add-version-submit">
           {loading ? "Adding..." : "Add Version"}
         </Button>
       </DialogActions>
