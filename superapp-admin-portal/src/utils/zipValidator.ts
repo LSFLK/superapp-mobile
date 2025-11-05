@@ -7,9 +7,11 @@
 
 // Configuration
 const DEFAULT_MAX_SIZE_MB = 10;
-const MAX_SIZE_MB = Number(
-  import.meta.env.VITE_MAX_UPLOAD_MB ?? DEFAULT_MAX_SIZE_MB,
-);
+// Guard import.meta for environments where it may be undefined (e.g., Cypress unit runner)
+const __env: any = (typeof import.meta !== 'undefined' && (import.meta as any) && (import.meta as any).env)
+  ? (import.meta as any).env
+  : {};
+const MAX_SIZE_MB = Number((__env as any).VITE_MAX_UPLOAD_MB ?? DEFAULT_MAX_SIZE_MB);
 const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
 const MIN_SIZE_BYTES = 22; // Minimum size for a valid (empty) ZIP file
 

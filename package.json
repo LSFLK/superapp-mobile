@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "husky",
-    "lint:frontend:ci": "npm -C frontend run lint:ci"
+  "lint:frontend:ci": "npm -C frontend run lint:ci",
+  "test:ci": "npm -C superapp-admin-portal run test:ci"
   },
   "repository": {
     "type": "git",

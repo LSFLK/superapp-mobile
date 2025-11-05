@@ -20,7 +20,7 @@ import { useNotification } from "../../context";
 interface EditMicroAppDialogProps {
   open: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (updated: MicroApp) => void;
   microApp: MicroApp;
 }
 
@@ -78,10 +78,10 @@ const EditMicroAppDialog = ({
         isMandatory: formData.isMandatory,
       };
 
-      await microAppsService.upsert(updatedMicroApp);
+  await microAppsService.upsert(updatedMicroApp);
       showNotification("Micro app updated successfully", "success");
       handleClose();
-      onSuccess();
+  onSuccess(updatedMicroApp);
     } catch (error) {
       console.error("Error updating micro app:", error);
       showNotification(
@@ -124,6 +124,7 @@ const EditMicroAppDialog = ({
             fullWidth
             required
             disabled={loading}
+      inputProps={{ 'data-testid': 'edit-app-name' }}
           />
           <TextField
             label="Description"
@@ -138,6 +139,7 @@ const EditMicroAppDialog = ({
             fullWidth
             required
             disabled={loading}
+      inputProps={{ 'data-testid': 'edit-app-description' }}
           />
           <TextField
             label="Promo Text"
@@ -147,10 +149,12 @@ const EditMicroAppDialog = ({
             }
             fullWidth
             disabled={loading}
+      inputProps={{ 'data-testid': 'edit-app-promo' }}
           />
           <FormControlLabel
             control={
               <Switch
+                data-testid="edit-app-mandatory"
                 checked={formData.isMandatory === 1}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -170,7 +174,7 @@ const EditMicroAppDialog = ({
         <Button onClick={handleClose} disabled={loading}>
           Cancel
         </Button>
-        <Button variant="contained" onClick={handleSubmit} disabled={loading}>
+  <Button variant="contained" onClick={handleSubmit} disabled={loading} data-testid="edit-app-update">
           {loading ? "Updating..." : "Update"}
         </Button>
       </DialogActions>

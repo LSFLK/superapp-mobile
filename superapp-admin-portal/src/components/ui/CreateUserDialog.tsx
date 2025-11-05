@@ -77,6 +77,10 @@ const CreateUserDialog = ({
       location: "",
     },
   ]);
+  // Track file-driven loads to show a succinct summary in UI/tests
+  const [bulkLoadedCount, setBulkLoadedCount] = useState<number | null>(null);
+  // Invalid rows captured during parsing (line numbers start at 2 for data row)
+  const [bulkInvalidRows, setBulkInvalidRows] = useState<Array<{ line: number; reason: string }>>([]);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -109,12 +113,14 @@ const CreateUserDialog = ({
         location: "",
       },
     ]);
+  setBulkLoadedCount(null);
   };
 
   const removeBulkUser = (index: number) => {
     if (bulkUsers.length > 1) {
       setBulkUsers((prev) => prev.filter((_, i) => i !== index));
     }
+  setBulkLoadedCount(null);
   };
 
   const validateSingleUser = (): boolean => {
@@ -161,6 +167,108 @@ const CreateUserDialog = ({
     return true;
   };
 
+  // Basic CSV parser for simple, comma-separated values without embedded commas
+  // Expected headers: workEmail,firstName,lastName,userThumbnail?,location?
+  const parseCsvToUsers = (csvText: string): { valid: User[]; errors: Array<{ line: number; reason: string }> } => {
+    const lines = csvText
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0);
+    if (lines.length === 0) return { valid: [], errors: [] };
+    const headers = lines[0].split(",").map((h) => h.trim());
+    const idx = (name: string) => headers.findIndex((h) => h.toLowerCase() === name.toLowerCase());
+    const iEmail = idx("workEmail");
+    const iFirst = idx("firstName");
+    const iLast = idx("lastName");
+    const iThumb = idx("userThumbnail");
+    const iLoc = idx("location");
+    if (iEmail < 0 || iFirst < 0 || iLast < 0) return { valid: [], errors: [{ line: 1, reason: "Missing required headers: workEmail, firstName, lastName" }] };
+    const users: User[] = [];
+    const errors: Array<{ line: number; reason: string }> = [];
+    for (let li = 1; li < lines.length; li++) {
+      const cols = lines[li].split(",").map((c) => c.replace(/^"|"$/g, "").trim());
+      const workEmail = cols[iEmail] || "";
+      const firstName = cols[iFirst] || "";
+      const lastName = cols[iLast] || "";
+      const userThumbnail = iThumb >= 0 ? cols[iThumb] || "" : "";
+      const location = iLoc >= 0 ? cols[iLoc] || "" : "";
+      // Per-row validation
+      if (!workEmail || !firstName || !lastName) {
+        errors.push({ line: li + 1, reason: "Missing required fields" });
+        continue;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(workEmail)) {
+        errors.push({ line: li + 1, reason: "Invalid email" });
+        continue;
+      }
+      users.push({ workEmail, firstName, lastName, userThumbnail, location });
+    }
+    return { valid: users, errors };
+  };
+
+  const handleBulkFile = async (file: File) => {
+    try {
+      const text = await file.text();
+      let parsed: User[] = [];
+      let parseErrors: Array<{ line: number; reason: string }> = [];
+      if (file.name.toLowerCase().endsWith(".json")) {
+        const json = JSON.parse(text);
+        if (Array.isArray(json)) {
+          parsed = json as User[];
+        }
+      } else if (file.name.toLowerCase().endsWith(".csv")) {
+        const result = parseCsvToUsers(text);
+        parsed = result.valid;
+        parseErrors = result.errors;
+      } else {
+        showNotification("Unsupported file type. Use .csv or .json.", "error");
+        return;
+      }
+
+      // Basic sanitation: remove falsy or missing required
+      parsed = (parsed || []).filter(
+        (u) => !!u && !!u.workEmail && !!u.firstName && !!u.lastName,
+      );
+
+      // Deduplicate by email
+      const seen = new Set<string>();
+      const unique = parsed.filter((u) => {
+        const key = u.workEmail.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      // Show parsing issues and duplicate lines if any
+      const dupErrors: Array<{ line: number; reason: string }> = [];
+      // We can't determine original line of duplicates from JSON; for CSV we already filtered earlier
+      // So only general duplicate report here
+      if (parsed.length !== unique.length) {
+        dupErrors.push({ line: -1, reason: "Duplicate email addresses found" });
+      }
+
+      setBulkInvalidRows([...(parseErrors ?? []), ...dupErrors]);
+
+      if (unique.length === 0) {
+        showNotification("No valid users found in file", "error");
+        return;
+      }
+
+      setBulkUsers(unique.map((u) => ({
+        workEmail: u.workEmail || "",
+        firstName: u.firstName || "",
+        lastName: u.lastName || "",
+        userThumbnail: u.userThumbnail || "",
+        location: u.location || "",
+      })));
+  setBulkLoadedCount(unique.length);
+      showNotification(`Loaded ${unique.length} users from file`, "success");
+    } catch (e) {
+      console.error("Bulk file parse error:", e);
+      showNotification("Failed to parse file. Check format.", "error");
+    }
+  };
+
   const handleSubmit = async () => {
     try {
       setLoading(true);
@@ -177,11 +285,23 @@ const CreateUserDialog = ({
         if (!validateBulkUsers()) {
           return;
         }
-        await usersService.createBulkUsers(bulkUsers);
-        showNotification(
-          `${bulkUsers.length} users created successfully`,
-          "success",
-        );
+        const result = await usersService.createBulkUsers(bulkUsers);
+        if (result && (result.failed?.length ?? 0) > 0) {
+          // Partial success: show summary and keep dialog open for user to fix
+          const ok = result.success?.length ?? 0;
+          const failed = result.failed?.length ?? 0;
+          showNotification(`Created ${ok} users. ${failed} failed.`, "warning");
+          // Map failed reasons to an inline list
+          const inline = result.failed.map((f) => ({ line: -1, reason: `${f.workEmail}: ${f.reason}` }));
+          setBulkInvalidRows(inline);
+          setLoading(false);
+          return; // do not close dialog; user can correct and resubmit
+        } else {
+          showNotification(
+            `${bulkUsers.length} users created successfully`,
+            "success",
+          );
+        }
       }
 
       onSuccess();
@@ -204,7 +324,7 @@ const CreateUserDialog = ({
         userThumbnail: "",
         location: "",
       });
-      setBulkUsers([
+  setBulkUsers([
         {
           workEmail: "",
           firstName: "",
@@ -213,6 +333,8 @@ const CreateUserDialog = ({
           location: "",
         },
       ]);
+  setBulkLoadedCount(null);
+  setBulkInvalidRows([]);
       setTabValue(0);
       onClose();
     }
@@ -225,16 +347,18 @@ const CreateUserDialog = ({
           <Typography variant="h6" sx={{ mb: 2 }}>
             Add Users
           </Typography>
-          <Tabs value={tabValue} onChange={handleTabChange}>
+      <Tabs value={tabValue} onChange={handleTabChange}>
             <Tab
               icon={<PersonAddIcon />}
               label="Single User"
               iconPosition="start"
+        data-testid="create-user-tab-single"
             />
             <Tab
               icon={<GroupAddIcon />}
               label="Bulk Add"
               iconPosition="start"
+        data-testid="create-user-tab-bulk"
             />
           </Tabs>
         </Box>
@@ -252,6 +376,7 @@ const CreateUserDialog = ({
               }
               fullWidth
               required
+              inputProps={{ 'data-testid': 'create-user-email' }}
             />
             <Box sx={{ display: "flex", gap: 2 }}>
               <TextField
@@ -262,6 +387,7 @@ const CreateUserDialog = ({
                 }
                 fullWidth
                 required
+                inputProps={{ 'data-testid': 'create-user-first-name' }}
               />
               <TextField
                 label="Last Name"
@@ -271,6 +397,7 @@ const CreateUserDialog = ({
                 }
                 fullWidth
                 required
+                inputProps={{ 'data-testid': 'create-user-last-name' }}
               />
             </Box>
             <TextField
@@ -280,6 +407,7 @@ const CreateUserDialog = ({
                 handleSingleUserChange("userThumbnail", e.target.value)
               }
               fullWidth
+              inputProps={{ 'data-testid': 'create-user-avatar' }}
             />
             <TextField
               label="Location"
@@ -288,12 +416,57 @@ const CreateUserDialog = ({
                 handleSingleUserChange("location", e.target.value)
               }
               fullWidth
+              inputProps={{ 'data-testid': 'create-user-location' }}
             />
           </Stack>
         </TabPanel>
 
         <TabPanel value={tabValue} index={1}>
           <Stack spacing={3}>
+            {/* File uploader for CSV/JSON */}
+            <Box>
+              <Button
+                variant="outlined"
+                component="label"
+                startIcon={<GroupAddIcon />}
+                data-testid="bulk-upload-button"
+              >
+                Upload CSV/JSON
+                <input
+                  type="file"
+                  accept=".csv,.json"
+                  hidden
+                  data-testid="bulk-upload-input"
+                  onChange={(e) => {
+                    const file = e.currentTarget.files?.[0];
+                    if (file) {
+                      void handleBulkFile(file);
+                      // reset the input so same file can be re-selected if needed
+                      e.currentTarget.value = "";
+                    }
+                  }}
+                />
+              </Button>
+              {bulkLoadedCount !== null && (
+                <Typography variant="body2" sx={{ mt: 1 }} data-testid="bulk-upload-summary">
+                  Loaded {bulkLoadedCount} users from file
+                </Typography>
+              )}
+              {bulkInvalidRows.length > 0 && (
+                <Box sx={{ mt: 1 }}>
+                  <Typography variant="body2" color="error" data-testid="bulk-invalid-title">
+                    Issues found:
+                  </Typography>
+                  <ul data-testid="bulk-invalid-list" style={{ marginTop: 4, paddingLeft: 16 }}>
+                    {bulkInvalidRows.map((e, idx) => (
+                      <li key={idx} data-testid={`bulk-invalid-item-${idx}`}>
+                        {e.line > 0 ? `Line ${e.line}: ${e.reason}` : e.reason}
+                      </li>
+                    ))}
+                  </ul>
+                </Box>
+              )}
+            </Box>
             {bulkUsers.map((user, index) => (
               <Box
                 key={index}
@@ -399,10 +572,10 @@ const CreateUserDialog = ({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={handleClose} disabled={loading}>
+  <Button onClick={handleClose} disabled={loading}>
           Cancel
         </Button>
-        <Button onClick={handleSubmit} variant="contained" disabled={loading}>
+  <Button onClick={handleSubmit} variant="contained" disabled={loading} data-testid="create-user-submit">
           {loading
             ? "Creating..."
             : tabValue === 0

@@ -114,13 +114,26 @@ Refer to `vite.config.ts` for usage.
 
 ## Testing
 
-This project uses [Vitest](https://vitest.dev/) for unit and integration tests.
+Unit and integration tests use Jest + React Testing Library, and end-to-end tests use Cypress.
+
+Unit tests:
 
 ```bash
-npm run test
+npm test              # run once
+npm run test:watch    # watch mode
+npm run test:ci       # CI-friendly, runInBand
 ```
 
-Test files are located in `src/__tests__/`.
+E2E tests with Cypress:
+
+```bash
+npm run cy:open       # open Cypress app
+npm run test:e2e      # start Vite and run Cypress headless
+```
+
+Notes:
+- E2E base URL is http://localhost:5173 and a smoke test lives in `cypress/e2e/smoke.cy.ts`.
+- If Cypress binary download is skipped (CI), the first `cy:open` will download it locally.
 
 ## Linting & Formatting
 

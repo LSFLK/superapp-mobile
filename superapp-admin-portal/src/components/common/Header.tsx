@@ -130,6 +130,7 @@ export default function Header() {
             onClick={toggleTheme}
             size="small"
             sx={{ color: "text.primary" }}
+            data-testid="theme-toggle"
           >
             {mode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}
           </IconButton>

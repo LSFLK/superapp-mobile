@@ -6,12 +6,13 @@
 
 import { useAuth } from "./lib/auth-context";
 import { useEffect, useRef } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout, Loading } from ".";
 import Login from "./pages/Login";
 import MicroApps from "./pages/MicroApps";
 import Users from "./pages/Users";
 import ComingSoon from "./pages/ComingSoon";
+import NotFound from "./pages/NotFound";
 import { useNotification } from "./context";
 import { apiService } from "./services";
 
@@ -81,7 +82,7 @@ function App() {
           <Route path="/" element={<MicroApps />} />
           <Route path="/users" element={<Users />} />
           <Route path="/analytics" element={<ComingSoon />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Layout>
     </BrowserRouter>
