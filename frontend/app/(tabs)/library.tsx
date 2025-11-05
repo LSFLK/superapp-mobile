@@ -16,19 +16,15 @@
 import RemoteFallbackImage from "@/components/RemoteFallbackImage";
 import SearchBar from "@/components/SearchBar";
 import { Colors } from "@/constants/Colors";
-import {
-  ARTICLE_BASE_URL,
-  LIBRARY_ARTICLE_FETCH_LIMIT,
-} from "@/constants/Constants";
+import { ARTICLE_BASE_URL } from "@/constants/Constants";
 import { ScreenPaths } from "@/constants/ScreenPaths";
-import useDebounce from "@/hooks/useDebounce";
+import { useLibrary } from "@/hooks/useLibrary";
 import { useTrackActiveScreen } from "@/hooks/useTrackActiveScreen";
-import { fetchLibraryArticles } from "@/services/libraryService";
 import { LibraryArticle } from "@/types/library.types";
 import { capitalizeName } from "@/utils/capitalizeName";
 import { Ionicons } from "@expo/vector-icons";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -47,74 +43,20 @@ const screenWidth = Dimensions.get("window").width;
 const WEBINAR = "Webinar";
 
 const Library = () => {
-  const [articles, setArticles] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [fetchingMore, setFetchingMore] = useState<boolean>(false);
-  const [start, setStart] = useState<number>(0);
-  const [hasMore, setHasMore] = useState<boolean>(true);
-  const [searchQuery, setSearchQuery] = useState<string>("");
-
-  const debouncedQuery = useDebounce(searchQuery, 500);
   const tabBarHeight: number = useBottomTabBarHeight();
   const colorScheme = useColorScheme();
   const styles = createStyles(colorScheme ?? "light", tabBarHeight);
 
   useTrackActiveScreen(ScreenPaths.LIBRARY);
 
-  const fetchArticles = async (
-    isInitial: boolean = false,
-    debouncedQuery: string = ""
-  ) => {
-    if (!hasMore && !isInitial) return;
-
-    if (isInitial) {
-      setLoading(true);
-      setStart(0);
-    } else {
-      setFetchingMore(true);
-    }
-
-    try {
-      const data = await fetchLibraryArticles(isInitial, start, debouncedQuery);
-      const newArticles: LibraryArticle[] = data;
-      if (isInitial) {
-        setArticles(newArticles);
-      } else {
-        setArticles((prev) => [...prev, ...newArticles]);
-      }
-
-      if (newArticles.length < LIBRARY_ARTICLE_FETCH_LIMIT) {
-        setHasMore(false);
-      } else {
-        setStart((prev) => prev + LIBRARY_ARTICLE_FETCH_LIMIT);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      if (isInitial) {
-        setLoading(false);
-      } else {
-        setFetchingMore(false);
-      }
-    }
-  };
-
-  useEffect(() => {
-    const handleQuery = async () => {
-      const trimmedQuery = debouncedQuery.trim();
-
-      if (trimmedQuery.length === 0) {
-        fetchArticles(true);
-        return;
-      }
-
-      if (trimmedQuery.length < 3) return;
-
-      fetchArticles(true, trimmedQuery);
-    };
-
-    handleQuery();
-  }, [debouncedQuery]);
+  const {
+    articles,
+    loading,
+    fetchingMore,
+    searchQuery,
+    setSearchQuery,
+    loadMore,
+  } = useLibrary();
 
   const renderArticle = ({
     item: article,
@@ -220,7 +162,7 @@ const Library = () => {
           data={articles}
           keyExtractor={(_, index) => index.toString()}
           renderItem={({ item, index }) => renderArticle({ item, index })}
-          onEndReached={() => fetchArticles(false)}
+          onEndReached={loadMore}
           onEndReachedThreshold={0.5}
           ListFooterComponent={
             fetchingMore ? (
