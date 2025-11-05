@@ -37,6 +37,7 @@ import SplashModal from "@/components/SplashModal";
 import { performLogout } from "@/utils/performLogout";
 import { lockAsync, OrientationLock } from "expo-screen-orientation";
 import * as SplashScreen from "expo-splash-screen";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 // Component to handle app initialization
 function AppInitializer({ onReady }: { onReady: () => void }) {
@@ -67,6 +68,7 @@ function AppInitializer({ onReady }: { onReady: () => void }) {
     };
 
     initialize();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
   return null; // No UI rendering needed
@@ -125,24 +127,26 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <>
-        <Provider store={store}>
-          <PersistGate loading={null} persistor={persistor}>
-            <AppInitializer onReady={onAppLoadComplete} />
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="update" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="micro-app"
-                options={{ headerBackTitle: "Back" }}
-              />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-          </PersistGate>
-        </Provider>
-        <StatusBar style="auto" />
-      </>
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <>
+          <Provider store={store}>
+            <PersistGate loading={null} persistor={persistor}>
+              <AppInitializer onReady={onAppLoadComplete} />
+              <Stack>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="update" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="micro-app"
+                  options={{ headerBackTitle: "Back" }}
+                />
+                <Stack.Screen name="+not-found" />
+              </Stack>
+            </PersistGate>
+          </Provider>
+          <StatusBar style="auto" />
+        </>
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }

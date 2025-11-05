@@ -16,7 +16,6 @@
 
 import {
   Text,
-  SafeAreaView,
   View,
   FlatList,
   useColorScheme,
@@ -25,6 +24,7 @@ import {
   useWindowDimensions,
   Keyboard,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/context/store";
 import { useEffect, useState } from "react";
@@ -46,7 +46,6 @@ import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import SearchBar from "@/components/SearchBar";
 import { useTrackActiveScreen } from "@/hooks/useTrackActiveScreen";
 import { ScreenPaths } from "@/constants/ScreenPaths";
-import { Ionicons } from "@expo/vector-icons";
 
 export default function HomeScreen() {
   const dispatch = useDispatch<AppDispatch>();
@@ -86,6 +85,7 @@ export default function HomeScreen() {
     };
 
     checkVersion();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [versions, loading]);
 
   // Load micro apps and user configurations if they haven't been initialized yet
@@ -108,6 +108,7 @@ export default function HomeScreen() {
     };
 
     initializeApp();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [email]);
 
   // Load saved app order from AsyncStorage on mount
@@ -178,6 +179,7 @@ export default function HomeScreen() {
     };
 
     if (userConfigurations && userConfigurations.length > 0) syncApps();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, userConfigurations]);
 
   // Filter apps based on search query
@@ -195,6 +197,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView
+      edges={['top', 'left', 'right']}
       style={{
         flex: 1,
         backgroundColor: Colors[colorScheme ?? "light"].primaryBackgroundColor,

@@ -14,7 +14,6 @@
 // specific language governing permissions and limitations
 // under the License.
 import {
-  SafeAreaView,
   View,
   Text,
   TouchableOpacity,
@@ -23,6 +22,7 @@ import {
   Alert,
   Image,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import React, { useCallback, useEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
@@ -91,6 +91,7 @@ const SettingsScreen = () => {
         console.error("Error decoding token", error);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken, dispatch]);
 
   /**
@@ -115,7 +116,7 @@ const SettingsScreen = () => {
 
   if (!accessToken) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <View style={styles.signInContainer}>
           <View style={styles.overlay}>
             <View style={styles.modal}>
@@ -133,7 +134,7 @@ const SettingsScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {/* User info */}
       <View style={styles.topContainer}>
         <View style={styles.avatarWrapper}>

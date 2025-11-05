@@ -33,12 +33,12 @@ import {
   Alert,
   FlatList,
   Keyboard,
-  SafeAreaView,
   StyleSheet,
   Text,
   useColorScheme,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
 
 const Store = () => {
@@ -175,7 +175,7 @@ const Store = () => {
   // When default apps added need to remove this logic
   if (!accessToken) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <View style={styles.signInContainer}>
           <View style={styles.overlay}>
             <View style={styles.modal}>
@@ -189,6 +189,7 @@ const Store = () => {
 
   return (
     <SafeAreaView
+      edges={['top', 'left', 'right']}
       style={{
         backgroundColor: Colors[colorScheme ?? "light"].primaryBackgroundColor,
         flex: 1,
