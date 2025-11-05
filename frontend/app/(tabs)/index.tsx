@@ -39,16 +39,12 @@ import { Ionicons } from "@expo/vector-icons";
 const screenWidth = Dimensions.get("window").width;
 const windowHeight = Dimensions.get("window").height;
 
-const bannerImages = [
-  require("../../assets/images/banner1.png"),
-  require("../../assets/images/banner2.png"),
-  require("../../assets/images/banner3.png"),
-];
 
 const Discovery = () => {
   const tabBarHeight: number = useBottomTabBarHeight();
   const colorScheme = useColorScheme();
-  const styles = createStyles(colorScheme ?? "light", tabBarHeight);
+  const { height: windowHeightDynamic } = useWindowDimensions();
+  const styles = createStyles(colorScheme ?? "light", tabBarHeight, windowHeightDynamic);
   const [isMinTimeElapsed, setIsMinTimeElapsed] = useState(false);
 
   useTrackActiveScreen(ScreenPaths.FEED);
@@ -69,15 +65,6 @@ const Discovery = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % bannerImages.length);
-    }, 10000); // 10 seconds
-
-    return () => clearInterval(intervalId); // Clean up on unmount
-  }, []);
 
   return (
     <View style={styles.background}>
@@ -146,11 +133,11 @@ const Discovery = () => {
 
 export default Discovery;
 
-const createStyles = (colorScheme: "light" | "dark", tabBarHeight: number) =>
+const createStyles = (colorScheme: "light" | "dark", tabBarHeight: number, windowHeightDynamic: number) =>
   StyleSheet.create({
     background: {
       backgroundColor: Colors[colorScheme].primaryBackgroundColor,
-      minHeight: useWindowDimensions().height - tabBarHeight,
+      minHeight: windowHeightDynamic - tabBarHeight,
     },
     image: {
       width: "100%",

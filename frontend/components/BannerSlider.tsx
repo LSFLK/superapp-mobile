@@ -24,8 +24,10 @@ import {
 } from "react-native";
 
 const screenWidth = Dimensions.get("window").width;
-const BANNER_HORIZONTAL_PADDING = 22; // Horizontal padding for the banner slider
-const adjustedWidth = screenWidth - BANNER_HORIZONTAL_PADDING;
+const BANNER_PADDING = 32; // 16px on each side
+const BANNER_GAP = 16; // Gap between banners
+const BANNER_WIDTH = screenWidth - BANNER_PADDING;
+const AUTO_PLAY_INTERVAL = 5000; // 5 seconds
 
 const bannerImages = [
   require("../assets/images/banner1.png"),
@@ -33,125 +35,87 @@ const bannerImages = [
   require("../assets/images/banner3.png"),
 ];
 
-// Duplicate first image at end for smooth transition
-const imageList = [...bannerImages, bannerImages[0]];
-
 export default function BannerSlider() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const slideAnim = useRef(new Animated.Value(0)).current;
-  const autoPlayRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const baseOffset = useRef(10); // current translateX base (negative)
-  const isInteracting = useRef(false);
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const autoPlayTimer = useRef<NodeJS.Timeout | null>(null);
+  const startPositionRef = useRef(0);
+  const currentIndexRef = useRef(0);
 
-  const clearAutoPlay = () => {
-    if (autoPlayRef.current) {
-      clearInterval(autoPlayRef.current as any);
-      autoPlayRef.current = null;
-    }
-  };
-
-  const startAutoPlay = () => {
-    clearAutoPlay();
-    autoPlayRef.current = setInterval(() => {
-      goToNext();
-    }, 5000);
-  };
-
+  // Keep ref in sync with state
   useEffect(() => {
-    // start autoplay on mount
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
+
+  // Auto-play logic
+  useEffect(() => {
     startAutoPlay();
-    return () => clearAutoPlay();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    // whenever currentIndex changes, update baseOffset so pan calculations stay consistent
-    baseOffset.current = -adjustedWidth * currentIndex;
-    slideAnim.setValue(baseOffset.current);
-    // restart autoplay timer when slide completes and not interacting
-    if (!isInteracting.current) {
-      startAutoPlay();
-    }
+    return () => stopAutoPlay();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex]);
 
-  const goToIndex = (index: number) => {
-    Animated.timing(slideAnim, {
-      toValue: -adjustedWidth * index,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => {
-      if (index === imageList.length - 1) {
-        // Jump back to first image instantly
-        slideAnim.setValue(0);
-        setCurrentIndex(0);
-      } else if (index <= 0) {
-        setCurrentIndex(0);
-      } else {
-        setCurrentIndex(index);
-      }
-    });
+  const startAutoPlay = () => {
+    stopAutoPlay();
+    autoPlayTimer.current = setTimeout(() => {
+      goToNext();
+    }, AUTO_PLAY_INTERVAL);
+  };
+
+  const stopAutoPlay = () => {
+    if (autoPlayTimer.current) {
+      clearTimeout(autoPlayTimer.current);
+      autoPlayTimer.current = null;
+    }
   };
 
   const goToNext = () => {
-    const nextIndex = currentIndex + 1;
-    // animate to next
-    Animated.timing(slideAnim, {
-      toValue: -adjustedWidth * nextIndex,
-      duration: 500,
-      useNativeDriver: true,
-    }).start(() => {
-      if (nextIndex === imageList.length - 1) {
-        slideAnim.setValue(0);
-        setCurrentIndex(0);
-      } else {
-        setCurrentIndex(nextIndex);
-      }
-    });
+    const nextIndex = (currentIndexRef.current + 1) % bannerImages.length;
+    goToIndex(nextIndex);
   };
 
-  // Pan responder for manual dragging
+  const goToIndex = (index: number) => {
+    setCurrentIndex(index);
+    const targetPosition = -index * (BANNER_WIDTH + BANNER_GAP);
+    startPositionRef.current = targetPosition;
+    Animated.spring(scrollX, {
+      toValue: targetPosition,
+      useNativeDriver: true,
+      tension: 50,
+      friction: 8,
+    }).start();
+  };
+
+  // Pan responder for manual swiping
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: (_, gestureState) => {
-        return Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
+        return Math.abs(gestureState.dx) > 5;
       },
       onPanResponderGrant: () => {
-        isInteracting.current = true;
-        clearAutoPlay();
+        stopAutoPlay();
+        // Store the current scroll position when touch starts
+        const index = currentIndexRef.current;
+        startPositionRef.current = -index * (BANNER_WIDTH + BANNER_GAP);
       },
       onPanResponderMove: (_, gestureState) => {
-        // follow finger
-        const value = baseOffset.current + gestureState.dx;
-        slideAnim.setValue(value);
+        const newValue = startPositionRef.current + gestureState.dx;
+        scrollX.setValue(newValue);
       },
       onPanResponderRelease: (_, gestureState) => {
-        const dx = gestureState.dx;
-        const threshold = adjustedWidth * 0.2; // 20% swipe to change
+        const index = currentIndexRef.current;
+        const threshold = BANNER_WIDTH * 0.25;
+        let targetIndex = index;
 
-        let targetIndex = currentIndex;
-        if (dx < -threshold) {
-          targetIndex = currentIndex + 1;
-        } else if (dx > threshold) {
-          targetIndex = Math.max(0, currentIndex - 1);
-        }
-
-        // snap to target
-        isInteracting.current = false;
+        // Simple logic: just check swipe distance
+        if (gestureState.dx < -threshold && index < bannerImages.length - 1) {
+          // Swiped left enough - go to next
+          targetIndex = index + 1;
+        } else if (gestureState.dx > threshold && index > 0) {
+          // Swiped right enough - go to previous
+          targetIndex = index - 1;
+        } 
         goToIndex(targetIndex);
-        // resume autoplay after short delay so the animation finishes
-        setTimeout(() => {
-          if (!isInteracting.current) startAutoPlay();
-        }, 600);
-      },
-      onPanResponderTerminate: () => {
-        // treat as release
-        isInteracting.current = false;
-        goToIndex(currentIndex);
-        setTimeout(() => {
-          if (!isInteracting.current) startAutoPlay();
-        }, 600);
       },
     })
   ).current;
@@ -163,19 +127,33 @@ export default function BannerSlider() {
         style={[
           styles.slider,
           {
-            transform: [{ translateX: slideAnim }],
+            transform: [{ translateX: scrollX }],
           },
         ]}
       >
-        {imageList.map((image, index) => (
-          <Image
-            key={index}
-            source={image}
-            style={styles.image}
-            resizeMode="cover"
-          />
+        {bannerImages.map((image, index) => (
+          <View key={index} style={styles.imageContainer}>
+            <Image
+              source={image}
+              style={styles.image}
+              resizeMode="cover"
+            />
+          </View>
         ))}
       </Animated.View>
+
+      {/* Dots indicator */}
+      <View style={styles.dotsContainer}>
+        {bannerImages.map((_, index) => (
+          <View
+            key={index}
+            style={[
+              styles.dot,
+              currentIndex === index && styles.activeDot,
+            ]}
+          />
+        ))}
+      </View>
     </View>
   );
 }
@@ -187,11 +165,31 @@ const styles = StyleSheet.create({
   },
   slider: {
     flexDirection: "row",
-    gap:10,
+    gap: BANNER_GAP,
+  },
+  imageContainer: {
+    width: BANNER_WIDTH,
   },
   image: {
-    width: "100%",
-    height: (screenWidth - 32) * (22 / 35),
+    width: BANNER_WIDTH,
+    height: BANNER_WIDTH * (22 / 35),
     borderRadius: 12,
+  },
+  dotsContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 12,
+    gap: 6,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#D1D5DB",
+  },
+  activeDot: {
+    backgroundColor: "#F97316",
+    width: 24,
   },
 });
