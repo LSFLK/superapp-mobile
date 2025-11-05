@@ -19,6 +19,7 @@ import { resetAll } from "@/context/slices/authSlice";
 import { persistor } from "@/context/store";
 import { logout } from "@/services/authService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import SecureStorage from "@/utils/secureStorage";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { router } from "expo-router";
 import { Alert } from "react-native";
@@ -32,9 +33,12 @@ export const performLogout = createAsyncThunk(
       await persistor.purge(); // Clear redux-persist storage
       dispatch(resetAll()); // Reset Redux state completely
 
-      await AsyncStorage.removeItem(AUTH_DATA);
+      // Clear sensitive data from SecureStorage
+      await SecureStorage.removeItem(AUTH_DATA);
+      await SecureStorage.removeItem(USER_INFO);
+      
+      // Clear non-sensitive data from AsyncStorage
       await AsyncStorage.removeItem(APPS);
-      await AsyncStorage.removeItem(USER_INFO);
 
       Alert.alert(
         "Logout Successful",
