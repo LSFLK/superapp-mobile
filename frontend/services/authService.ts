@@ -30,7 +30,7 @@ import {
 import { updateExchangedToken } from "@/context/slices/appSlice";
 import { AppDispatch } from "@/context/store";
 import createAuthRequestBody from "@/utils/authBody";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import SecureStorage from "@/utils/secureStorage";
 import axios from "axios";
 import dayjs from "dayjs";
 import { jwtDecode } from "jwt-decode";
@@ -101,7 +101,7 @@ export const getAccessToken = async (
           expiresAt: exp * MILLISECONDS_IN_A_SECOND,
         };
 
-        await AsyncStorage.setItem(AUTH_DATA, JSON.stringify(authData)); // Persist data
+        await SecureStorage.setItem(AUTH_DATA, JSON.stringify(authData)); // Persist data
         return authData;
       }
     } catch (err) {
@@ -121,7 +121,7 @@ export const refreshAccessToken = async (
 
   refreshPromise = (async () => {
     try {
-      const storedData = await AsyncStorage.getItem(AUTH_DATA);
+      const storedData = await SecureStorage.getItem(AUTH_DATA);
       if (!storedData) {
         refreshPromise = null;
         return null;
@@ -177,7 +177,7 @@ export const refreshAccessToken = async (
           expiresAt: exp * MILLISECONDS_IN_A_SECOND,
         };
 
-        await AsyncStorage.setItem(AUTH_DATA, JSON.stringify(updatedAuthData));
+        await SecureStorage.setItem(AUTH_DATA, JSON.stringify(updatedAuthData));
 
         refreshPromise = null;
         return updatedAuthData;
@@ -209,7 +209,7 @@ export const refreshAccessToken = async (
 export const logout = async () => {
   try {
     // Retrieve stored authentication data
-    const storedData = await AsyncStorage.getItem(AUTH_DATA);
+    const storedData = await SecureStorage.getItem(AUTH_DATA);
     if (!storedData) {
       console.error("No stored authentication data found.");
       return;
@@ -225,9 +225,9 @@ export const logout = async () => {
     // If idToken is missing, proceed with local logout
     if (!idToken) {
       console.warn("No idToken found. Performing local logout only.");
-      await AsyncStorage.removeItem(AUTH_DATA);
-      await AsyncStorage.removeItem(APPS);
-      await AsyncStorage.removeItem(USER_INFO);
+      await SecureStorage.removeItem(AUTH_DATA);
+      await SecureStorage.removeItem(APPS);
+      await SecureStorage.removeItem(USER_INFO);
       return;
     }
 
@@ -237,9 +237,9 @@ export const logout = async () => {
       postLogoutRedirectUrl: REDIRECT_URI,
     });
 
-    await AsyncStorage.removeItem(AUTH_DATA);
-    await AsyncStorage.removeItem(APPS);
-    await AsyncStorage.removeItem(USER_INFO);
+    await SecureStorage.removeItem(AUTH_DATA);
+    await SecureStorage.removeItem(APPS);
+    await SecureStorage.removeItem(USER_INFO);
   } catch (error) {
     console.error("Error logging out from Asgardeo:", error);
     Alert.alert(
@@ -252,7 +252,7 @@ export const logout = async () => {
 
 // Restore auth data form secure storage
 export const loadAuthData = async (): Promise<AuthData | null> => {
-  const storedData = await AsyncStorage.getItem(AUTH_DATA);
+  const storedData = await SecureStorage.getItem(AUTH_DATA);
   return storedData ? JSON.parse(storedData) : null;
 };
 
@@ -261,7 +261,7 @@ export const getBackendToken = async (
   onLogout: () => Promise<void>
 ): Promise<string | null> => {
   try {
-    const storedData = await AsyncStorage.getItem(AUTH_DATA);
+    const storedData = await SecureStorage.getItem(AUTH_DATA);
     if (!storedData) {
       console.error("No stored authentication data found.");
       return null;
@@ -337,7 +337,7 @@ export const tokenExchange = async (
     }
 
     // Retrieve stored authentication data
-    const storedData = await AsyncStorage.getItem(AUTH_DATA);
+    const storedData = await SecureStorage.getItem(AUTH_DATA);
     if (!storedData) {
       console.error("No stored authentication data found.");
       return null;
@@ -473,7 +473,7 @@ export const processNativeAuthResult = async (
         expiresAt: exp * MILLISECONDS_IN_A_SECOND,
       };
 
-      await AsyncStorage.setItem(AUTH_DATA, JSON.stringify(authData));
+      await SecureStorage.setItem(AUTH_DATA, JSON.stringify(authData));
       return authData;
     } else {
       console.error("Missing required tokens in auth result");
