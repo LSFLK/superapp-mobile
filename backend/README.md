@@ -22,7 +22,7 @@ backend/
 
 ## Prerequisites
 - Ballerina distribution 2201.10.4 or compatible
-- SQL database and credentials (See the "Database Schema Expectations" for the schema definition)
+- SQL database and credentials (See the [Schema Definitions](#schema-definitions) for the schema definition)
 - RS256 private key (.pem) for signing micro-app JWTs
 - config.toml filled with appropriate values before running for testing
 
@@ -54,6 +54,24 @@ Most API endpoints require JWT-based authentication. Incoming JWTs are validated
 - **Public Endpoint**: `/.well-known/jwks` - Serves the JSON Web Key Set for token verification (no authentication required).
 - **Protected Endpoints**: All other endpoints require a valid JWT in the Authorization header.
 
+## Schema Definitions
+
+<img src="../resources/database_schema.png" alt="Database Schema" width="700"/>
+
+To create the database schema, run the `schema.sql` script located in the `scripts` folder.
+
+| Table Name             | Description                                                                                           |
+|------------------------|-------------------------------------------------------------------------------------------------------|
+| **micro_app**          | Stores micro app details, including micro app ID, name, description, promo text, icon URL, and banner image URL. |
+| **micro_app_role**     | Manages micro app accessibility based on specific user groups (e.g., Asgardeo groups), allowing apps to be specialized for certain groups. |
+| **micro_app_version**  | Stores release versions, release notes, and other details about micro-apps.                           |
+| **superapp_version**   | Stores release versions, release notes, and other details about the Super App.                        |
+| **user_config**        | Stores user details and configurations for the Super App.                                             |
+| **users_**             | Stores user information including email, name, thumbnail, and location.                               |
+| **micro_apps_storage** | Stores micro app files as binary data with file names.                                                |
+
+---
+
 ## API Endpoints
 The following is a summary of the backend API routes, including their purpose and return types.
 
@@ -77,24 +95,6 @@ The following is a summary of the backend API routes, including their purpose an
 | `/users`                 | GET    | Get all users                                         | `User[]` |
 | `/users/{email}`         | DELETE | Delete a user by email                                | `204 No Content` |
 | `/tokens`                | POST   | Request a JWT for authorization                        | `string` |
-
-## 📦 Schema Definitions
-
-<img src="../resources/database_schema.png" alt="Database Schema" width="700"/>
-
-To create the database schema, run the `schema.sql` script located in the `scripts` folder.
-
-| Table Name             | Description                                                                                           |
-|------------------------|-------------------------------------------------------------------------------------------------------|
-| **micro_app**          | Stores micro app details, including micro app ID, name, description, promo text, icon URL, and banner image URL. |
-| **micro_app_role**     | Manages micro app accessibility based on specific user groups (e.g., Asgardeo groups), allowing apps to be specialized for certain groups. |
-| **micro_app_version**  | Stores release versions, release notes, and other details about micro-apps.                           |
-| **superapp_version**   | Stores release versions, release notes, and other details about the Super App.                        |
-| **user_config**        | Stores user details and configurations for the Super App.                                             |
-| **users_**             | Stores user information including email, name, thumbnail, and location.                               |
-| **micro_apps_storage** | Stores micro app files as binary data with file names.                                                |
-
----
 
 ## Deployment Notes
 - Build the JAR via `bal build` and deploy in a JVM environment that can access `config.toml` and key material.
