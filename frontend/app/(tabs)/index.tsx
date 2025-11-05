@@ -22,15 +22,14 @@ import {
   Dimensions,
   useWindowDimensions
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import FeedSkeleton from "@/components/FeedSkeleton";
 import { Colors } from "@/constants/Colors";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { ScreenPaths } from "@/constants/ScreenPaths";
 import { useTrackActiveScreen } from "@/hooks/useTrackActiveScreen";
-import useNewsFeed from "@/hooks/useNewsFeed";
+import { useFeed } from "@/hooks/useFeed";
 import News from "@/components/News";
-import useEventsFeed from "@/hooks/useEventsFeed";
 import Event from "@/components/Event";
 import BannerSlider from "@/components/BannerSlider";
 import { router } from "expo-router";
@@ -45,30 +44,15 @@ const Discovery = () => {
   const colorScheme = useColorScheme();
   const { height: windowHeightDynamic } = useWindowDimensions();
   const styles = createStyles(colorScheme ?? "light", tabBarHeight, windowHeightDynamic);
-  const [isMinTimeElapsed, setIsMinTimeElapsed] = useState(false);
 
   useTrackActiveScreen(ScreenPaths.FEED);
-  const { newsItems, loading } = useNewsFeed();
-  const { eventItems } = useEventsFeed();
 
-  useEffect(() => {
-    /**
-     * Delays rendering of the main content for a minimum of 1 second to ensure that
-     * the skeleton UI is displayed briefly. This helps prevent the issue where the
-     * index page content flashes too quickly and causes a poor visual experience
-     * (especially when the app initially loads on the default screen).
-     */
-    const timer = setTimeout(() => {
-      setIsMinTimeElapsed(true);
-    }, 1000); // 1 second
-
-    return () => clearTimeout(timer);
-  }, []);
+  const { newsItems, eventItems, shouldShowSkeleton, isEmpty } = useFeed();
 
 
   return (
     <View style={styles.background}>
-      {!isMinTimeElapsed || loading ? (
+      {shouldShowSkeleton ? (
         <FeedSkeleton />
       ) : (
         <ScrollView style={{ padding: 16, marginTop: 5 }}>
@@ -103,7 +87,7 @@ const Discovery = () => {
           )}
 
           {/* if no events or news items are available  visit my app tab for microapps*/}
-          {(!eventItems || eventItems.length === 0) && (!newsItems || newsItems.length === 0) && (
+          {isEmpty && (
             // should be in center of screen with disabled text color 
                 <View style={styles.emptyNewsEventsContainer}>
                   <Ionicons 

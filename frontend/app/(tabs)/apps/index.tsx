@@ -19,181 +19,37 @@ import {
   View,
   FlatList,
   useColorScheme,
-  Alert,
   StyleSheet,
   useWindowDimensions,
   Keyboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "@/context/store";
-import { useEffect, useState } from "react";
 import Widget from "@/components/Widget";
 import { router } from "expo-router";
-import { APP_LIST_CONFIG_KEY, DOWNLOADED } from "@/constants/Constants";
-import { MicroApp } from "@/context/slices/appSlice";
-import {
-  downloadMicroApp,
-  loadMicroAppDetails,
-  removeMicroApp,
-} from "@/services/appStoreService";
-import { logout } from "@/services/authService";
 import SyncingModal from "@/components/SyncingModal";
 import { Colors } from "@/constants/Colors";
-import { getUserConfigurations } from "@/context/slices/userConfigSlice";
-import Constants from "expo-constants";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import SearchBar from "@/components/SearchBar";
 import { useTrackActiveScreen } from "@/hooks/useTrackActiveScreen";
 import { ScreenPaths } from "@/constants/ScreenPaths";
+import { useMyApps } from "@/hooks/useMyApps";
 
 export default function HomeScreen() {
-  const dispatch = useDispatch<AppDispatch>();
-  const apps = useSelector((state: RootState) => state.apps.apps);
-  const { email } = useSelector((state: RootState) => state.auth);
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [filteredApps, setFilteredApps] = useState(apps);
-  const { versions, loading } = useSelector(
-    (state: RootState) => state.version
-  );
-  const userConfigurations = useSelector(
-    (state: RootState) => state.userConfig.configurations
-  );
-  const [syncing, setSyncing] = useState(false);
   const colorScheme = useColorScheme();
   const styles = createStyles(colorScheme ?? "light");
-  const version = Constants.expoConfig?.version;
   const { height: windowHeight } = useWindowDimensions();
   const tabBarHeight: number = useBottomTabBarHeight();
-  const [currentAction, setCurrentAction] = useState<string | null>(null);
-  const [progress, setProgress] = useState<{ done: number; total: number }>({
-    done: 0,
-    total: 0,
-  });
 
   useTrackActiveScreen(ScreenPaths.MY_APPS);
 
-  // Check versions
-  useEffect(() => {
-    const checkVersion = () => {
-      if (version && Array.isArray(versions) && versions.length > 0) {
-        if (versions[0]?.version > version) {
-          // If update available redirect to update screen
-          router.replace(ScreenPaths.UPDATE);
-        }
-      }
-    };
-
-    checkVersion();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [versions, loading]);
-
-  // Load micro apps and user configurations if they haven't been initialized yet
-  useEffect(() => {
-    const initializeApp = async () => {
-      try {
-        if (!apps || apps.length === 0) {
-          await loadMicroAppDetails(dispatch, logout);
-        }
-        if (!userConfigurations || userConfigurations.length === 0) {
-          dispatch(getUserConfigurations(logout));
-        }
-      } catch (error) {
-        console.error("Error during app initialization:", error);
-        Alert.alert(
-          "Initialization Error",
-          "An error occurred while setting up the app. Please restart and try again."
-        );
-      }
-    };
-
-    initializeApp();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [email]);
-
-  // Load saved app order from AsyncStorage on mount
-  useEffect(() => {
-    const syncApps = async () => {
-      setSyncing(true);
-      setProgress({ done: 0, total: 0 });
-      setCurrentAction(null);
-
-      try {
-        const userConfigAppIds = userConfigurations.find(
-          (config) => config.configKey === APP_LIST_CONFIG_KEY
-        );
-
-        const allowedApps = (userConfigAppIds?.configValue as string[]) || [];
-
-        const localApps: MicroApp[] = apps.filter(
-          (app) => app?.status === DOWNLOADED
-        );
-
-        const localAppIds = localApps.map((app) => app.appId);
-        const appsToRemove = localAppIds.filter(
-          (appId) => !allowedApps.includes(appId)
-        );
-        const appsToInstall = allowedApps.filter(
-          (appId) => !localAppIds.includes(appId)
-        );
-
-        const totalSteps = appsToRemove.length + appsToInstall.length;
-        setProgress({ done: 0, total: totalSteps });
-
-        // Remove apps
-        for (const appId of appsToRemove) {
-          const appData = apps.find((app) => app.appId === appId);
-          setCurrentAction(`Removing ${appData?.name || appId}`);
-          await removeMicroApp(dispatch, appId, logout);
-          setProgress((prev) => ({ ...prev, done: prev.done + 1 }));
-        }
-
-        let updatedApps = localApps.filter(
-          (app) => !appsToRemove.includes(app.appId)
-        );
-
-        // Install apps
-        for (const appId of appsToInstall) {
-          const appData = apps.find((app) => app.appId === appId);
-          if (appData) {
-            setCurrentAction(`Downloading ${appData.name}`);
-            await downloadMicroApp(
-              dispatch,
-              appId,
-              appData.versions?.[0]?.downloadUrl,
-              logout
-            );
-            updatedApps.push({
-              ...appData,
-              status: DOWNLOADED,
-            });
-            setProgress((prev) => ({ ...prev, done: prev.done + 1 }));
-          }
-        }
-      } catch (error) {
-        console.error("App sync failed:", error);
-      } finally {
-        setCurrentAction(null);
-        setSyncing(false);
-      }
-    };
-
-    if (userConfigurations && userConfigurations.length > 0) syncApps();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, userConfigurations]);
-
-  // Filter apps based on search query
-  useEffect(() => {
-    const downloadedApps = apps.filter((app) => app?.status === DOWNLOADED);
-    if (searchQuery.trim() === "") {
-      setFilteredApps(downloadedApps);
-    } else {
-      const filtered = downloadedApps.filter((app) =>
-        app.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredApps(filtered);
-    }
-  }, [searchQuery, apps]);
+  const {
+    filteredApps,
+    searchQuery,
+    setSearchQuery,
+    syncing,
+    currentAction,
+    progress,
+  } = useMyApps();
 
   return (
     <SafeAreaView

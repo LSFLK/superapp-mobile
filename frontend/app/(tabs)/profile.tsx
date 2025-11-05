@@ -19,100 +19,32 @@ import {
   TouchableOpacity,
   useColorScheme,
   StyleSheet,
-  Alert,
   Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import React, { useCallback, useEffect, useState } from "react";
+import React from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "@/context/store";
 import { Colors } from "@/constants/Colors";
 import Constants from "expo-constants";
 import ProfileListItem from "@/components/ProfileListItem";
-import { getUserInfo } from "@/context/slices/userInfoSlice";
-import { logout } from "@/services/authService";
 import Avatar from "@/components/Avatar";
-import { jwtDecode } from "jwt-decode";
-import { DecodedAccessToken } from "@/types/decodeAccessToken.types";
-import { BasicUserInfo } from "@/types/basicUserInfo.types";
 import { useTrackActiveScreen } from "@/hooks/useTrackActiveScreen";
 import { ScreenPaths } from "@/constants/ScreenPaths";
 import SignInMessage from "@/components/SignInMessage";
-import { performLogout } from "@/utils/performLogout";
+import { useProfile } from "@/hooks/useProfile";
 
 /**
  * Settings screen displays user profile information when authenticated,
  * otherwise prompts user to sign in. Also allows user to log out.
  */
 const SettingsScreen = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const { accessToken } = useSelector((state: RootState) => state.auth);
-  const { userInfo } = useSelector((state: RootState) => state.userInfo);
   const colorScheme = useColorScheme();
   const styles = createStyles(colorScheme ?? "light");
   const version = Constants.expoConfig?.version;
-  const [basicUserInfo, setBasicUserInfo] = useState<BasicUserInfo>({
-    firstName: "",
-    lastName: "",
-    workEmail: "",
-    avatarUri: "",
-  });
 
   useTrackActiveScreen(ScreenPaths.PROFILE);
 
-  useEffect(() => {
-    if (userInfo) {
-      const qualityUserThumbnail = userInfo.userThumbnail
-        ? userInfo.userThumbnail.split("=s100")[0]
-        : "";
-      setBasicUserInfo({
-        firstName: userInfo.firstName,
-        lastName: userInfo.lastName,
-        workEmail: userInfo.workEmail,
-        avatarUri: qualityUserThumbnail,
-      });
-    }
-  }, [userInfo]);
-
-  useEffect(() => {
-    if (accessToken && !userInfo) {
-      dispatch(getUserInfo(logout));
-
-      try {
-        const decoded = jwtDecode<DecodedAccessToken>(accessToken);
-        setBasicUserInfo({
-          firstName: decoded.given_name || "",
-          lastName: decoded.family_name || "",
-          workEmail: decoded.email || "",
-          avatarUri: "",
-        });
-      } catch (error) {
-        console.error("Error decoding token", error);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessToken, dispatch]);
-
-  /**
-   * Handles user sign out with confirmation dialog.
-   */
-  const handleLogout = useCallback(() => {
-    Alert.alert(
-      "Confirm Sign Out",
-      "Are you sure you want to sign out from this app?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Sign Out",
-          style: "destructive",
-          onPress: async () => {
-            await dispatch(performLogout());
-          },
-        },
-      ]
-    );
-  }, [dispatch]);
+  const { accessToken, basicUserInfo, handleLogout } = useProfile();
 
   if (!accessToken) {
     return (
