@@ -135,11 +135,39 @@ npm run type-check
 - **Navigation**: Expo Router (file-based routing)
 - **State Management**: Redux Toolkit + Redux Persist
 - **Authentication**: OAuth 2.0 / OIDC via External IdP
-- **Storage**: AsyncStorage (general), SecureStore (sensitive data)
+- **Storage**: 
+  - `expo-secure-store` - Encrypted storage for sensitive data (auth tokens, user configs)
+  - `@react-native-async-storage/async-storage` - General storage for non-sensitive data
 - **Styling**: React Native StyleSheet + Custom components
 - **HTTP Client**: Axios
 - **Testing**: Jest + React Native Testing Library
 - **E2E Testing**: Maestro
+
+---
+
+## 🔒 Security & Data Storage
+
+### Storage Strategy
+
+The app uses a **dual-storage approach** for optimal security and performance:
+
+**🔐 SecureStore (Encrypted Storage)**
+- **Authentication tokens**: Access tokens, refresh tokens, ID tokens
+- **User configurations**: Settings that may contain sensitive preferences
+- **Implementation**: `utils/secureStorage.ts` wrapper that automatically routes sensitive keys to `expo-secure-store`
+
+**📦 AsyncStorage (General Storage)**
+- **App catalog**: Micro-app metadata (names, descriptions, icons)
+- **User display info**: Read-only user info for UI display (name, email)
+- **Cache data**: News feed, events (non-sensitive, temporary data)
+
+### Security Features
+
+- ✅ **Token-based authentication** with automatic refresh
+- ✅ **Encrypted storage** for authentication credentials
+- ✅ **Secure token exchange** for micro-app access
+- ✅ **Automatic token expiration handling**
+- ✅ **Secure logout** with complete token cleanup
 
 ---
 
@@ -315,7 +343,9 @@ For detailed testing guidelines, see [`__tests__/README.md`](./__tests__/README.
 - **Navigation**: Expo Router (file-based routing)
 - **State Management**: Redux Toolkit + Redux Persist
 - **Authentication**: IAM (OAuth 2.0 / OIDC)
-- **Storage**: AsyncStorage for local persistence
+- **Storage**: 
+  - SecureStore (encrypted) - Auth tokens, user configs
+  - AsyncStorage - App catalog, display data, cache
 - **Styling**: React Native Paper + Custom components
 - **HTTP Client**: Axios
 ---
