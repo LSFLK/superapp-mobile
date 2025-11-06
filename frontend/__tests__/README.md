@@ -2,14 +2,13 @@
 
 ## Overview
 
-This document provides comprehensive guidelines for testing the SuperApp Mobile frontend. We follow industry-standard testing practices with a focus on maintainability, coverage, and reliability.
+This document provides guidelines for testing the SuperApp Mobile frontend.
 
 ## Testing Stack
 
 - **Test Runner**: Jest (v29+)
 - **Testing Library**: @testing-library/react-native (v12.4+)
 - **Test Environment**: jest-expo preset for React Native/Expo
-- **Mocking**: Jest mocks for external dependencies
 - **Coverage**: Jest coverage with configurable thresholds
 
 ## Test Structure
@@ -22,7 +21,6 @@ frontend/
 │   ├── services/        # Service layer tests
 │   ├── utils/           # Utility function tests
 │   └── integration/     # Integration tests
-├── __mocks__/           # Manual mocks
 └── jest.setup.js        # Global test configuration
 ```
 
@@ -379,10 +377,6 @@ Tests run automatically on:
 # Runs automatically via lint-staged
 jest --bail --findRelatedTests --passWithNoTests
 ```
-
-## E2E Testing
-
-E2E tests are located in `.maestro/` directory. See Maestro documentation for details.
 
 ## Contributing
 

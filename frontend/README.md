@@ -102,16 +102,25 @@ npm run web
 npm test
 
 # Run tests in watch mode
-npm test -- --watch
+npm run test:watch
 
 # Run tests with coverage
-npm test -- --coverage
+npm run test:coverage
+
+# Run tests in CI mode
+npm run test:ci
+
+# Update test snapshots
+npm run test:update
 
 # Lint code
 npm run lint
 
 # Fix linting issues
 npm run lint:fix
+
+# Type check
+npm run type-check
 ```
 
 ---
@@ -120,14 +129,17 @@ npm run lint:fix
 
 ### Technology Stack
 
-- **Framework**: React Native with Expo
+- **Framework**: React Native with Expo (SDK 52+)
 - **Language**: TypeScript
+- **Architecture**: MVVM (Model-View-ViewModel)
 - **Navigation**: Expo Router (file-based routing)
 - **State Management**: Redux Toolkit + Redux Persist
-- **Authentication**: IAM (OAuth 2.0 / OIDC)
-- **Storage**: AsyncStorage for local persistence
-- **Styling**: React Native Paper + Custom components
+- **Authentication**: OAuth 2.0 / OIDC via External IdP
+- **Storage**: AsyncStorage (general), SecureStore (sensitive data)
+- **Styling**: React Native StyleSheet + Custom components
 - **HTTP Client**: Axios
+- **Testing**: Jest + React Native Testing Library
+- **E2E Testing**: Maestro
 
 ---
 
@@ -151,6 +163,8 @@ npm run lint:fix
 ├── hooks                     # Custom React hooks
 ├── services                  # API service handlers
 ├── utils                     # Utility functions
+├── __tests__                 # Unit tests
+├── docs                      # Frontend related Documentations
 ```
 
 
@@ -216,21 +230,81 @@ sequenceDiagram
 
 ### Folder Descriptions
 
-- `app/` → Contains screens and navigation logic.
-- `components/` → Reusable UI components (widgets, buttons, etc.).
-- `context/` → Manages global state using Redux.
-- `services/` → Handles API requests (authentication, app store, etc.).
-- `utils/` → Utility functions (encryption, request handlers, etc.).
+- **`app/`** → Screen components (Views) using Expo Router file-based routing
+- **`hooks/`** → Custom React hooks (ViewModels) containing business logic
+- **`components/`** → Reusable presentational UI components (Views)
+- **`context/`** → Redux store and slices (Model - State Management)
+- **`services/`** → API service layer (Model - Data Access)
+- **`utils/`** → Utility functions (helpers, bridge, storage)
+- **`constants/`** → Configuration constants and theme definitions
+- **`types/`** → TypeScript type definitions
+- **`__tests__/`** → Unit and integration tests
+- **`docs/`** → Project documentation
+
+### MVVM Architecture Breakdown
+
+**Model Layer:**
+- `context/slices/` - Redux state management
+- `services/` - API communication
+- `types/` - Data models and interfaces
+
+**View Layer:**
+- `app/` - Screen components
+- `components/` - Reusable UI components
+
+**ViewModel Layer:**
+- `hooks/` - Custom hooks containing business logic
+- Connects Models to Views
+- Handles user interactions and data transformations
 
 ### File Naming Conventions
 
-- Components: `PascalCase.tsx` (e.g., `ListItem.tsx`, `Widget.tsx`)
-- Screens/Pages: `kebab-case.tsx` (e.g., `app-store.tsx`, `micro-app.tsx`)
-- Hooks: `camelCase.ts` (e.g., `useThemeColor.ts`)
-- Services & Utils: `camelCase.ts` (e.g., `authService.ts`, `requestHandler.ts`)
-- Redux Slices: `camelCaseSlice.ts` (e.g., `authSlice.ts`)
-- Constants: `PascalCase.ts` (e.g., `Colors.ts`, `Constants.ts`)
+- **Components**: `PascalCase.tsx` (e.g., `ListItem.tsx`, `Widget.tsx`)
+- **Screens**: File-based routing in `app/` directory (e.g., `index.tsx`, `library.tsx`)
+- **Hooks**: `camelCase.ts` with `use` prefix (e.g., `useThemeColor.ts`, `useFeed.ts`)
+- **Services**: `camelCase.ts` with `Service` suffix (e.g., `authService.ts`)
+- **Utils**: `camelCase.ts` (e.g., `requestHandler.ts`, `utilities.ts`)
+- **Redux Slices**: `camelCaseSlice.ts` (e.g., `authSlice.ts`, `appSlice.ts`)
+- **Constants**: `PascalCase.ts` (e.g., `Colors.ts`, `Constants.ts`)
+- **Types**: `camelCase.ts` or `index.ts` (e.g., `types/index.ts`)
+- **Tests**: `*.test.ts` or `*.test.tsx` (e.g., `useFeed.test.ts`)
 
+## 🧪 Testing
+
+This project includes comprehensive unit and integration tests following industry best practices.
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage report
+npm run test:coverage
+
+# Run tests in CI mode
+npm run test:ci
+
+# Update test snapshots
+npm run test:update
+```
+
+### Test Structure
+
+- **Unit Tests**: Test individual functions, hooks, and components
+
+### Coverage
+
+Minimum coverage thresholds:
+- Branches: 70%
+- Functions: 70%
+- Lines: 70%
+- Statements: 70%
+
+For detailed testing guidelines, see [`__tests__/README.md`](./__tests__/README.md).
 
 ## 🏗️ Architecture Overview
 
@@ -249,17 +323,20 @@ sequenceDiagram
 ## 📚 Additional Resources
 
 ### Documentation
+- **[Testing Guide](./docs/TESTING_GUIDE.md)** - Comprehensive testing documentation
+- **[Bridge Guide](./docs/BRIDGE_GUIDE.md)** - MicroApp communication bridge
+- **[MicroApp Developer Guide](./docs/MICROAPP_DEVELOPER_GUIDE.md)** - Guide for MicroApp developers
 - [Expo Documentation](https://docs.expo.dev/)
 - [React Native Documentation](https://reactnative.dev/docs)
 - [Redux Toolkit Documentation](https://redux-toolkit.js.org/)
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/)
 
 ### Key Files to Review
-- `docs/BRIDGE_GUIDE.md`: MicroApp communication
-- `services/authService.ts`: Authentication logic
-- `context/slices/appSlice.ts`: State management
-- `utils/bridge.ts`: Bridge implementation
-- `constants/Constants.ts`: App configuration
+- `hooks/` - ViewModels containing business logic
+- `services/authService.ts` - Authentication logic
+- `context/slices/` - Redux state management
+- `utils/bridge.ts` - MicroApp bridge implementation
+- `constants/Constants.ts` - App configuration
 
 <!-- ## 🛠️ Debugging & Common Issues
 
