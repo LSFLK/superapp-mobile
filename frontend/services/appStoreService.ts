@@ -44,7 +44,7 @@ import {
   DEFAULT_VIEWING_MODE,
 } from "@/constants/Constants";
 import { UpdateUserConfiguration } from "./userConfigService";
-
+import { getAccessToken } from "@/utils/requestHandler";
 // File handle services
 export const downloadMicroApp = async (
   dispatch: AppDispatch,
@@ -78,12 +78,17 @@ const downloadAndSaveFile = async (appId: string, downloadUrl: string) => {
   if (!(await getInfoAsync(customDir)).exists) {
     await makeDirectoryAsync(customDir, { intermediates: true });
   }
+  let accessToken = await getAccessToken();
+
+  if (!accessToken) {
+    throw new Error("Access token not found");
+  }
 
   const fileUri = `${customDir}${fileName}`;
   const headers = {
-    // "Authorization": `Bearer ${await Sec.getItem("accessToken") || ""}`
+    "Authorization": `Bearer ${accessToken}`,
+    // "x-jwt-assertion": `${accessToken}`, // for local development only
   };
-
   await downloadAsync(downloadUrl, fileUri, { headers });
 };
 
