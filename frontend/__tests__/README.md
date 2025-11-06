@@ -18,9 +18,9 @@ frontend/
 ├── __tests__/
 │   ├── hooks/           # Unit tests for custom hooks (ViewModels)
 │   ├── components/      # Component tests
+│   ├── context/slices   # Redux Slices tests
 │   ├── services/        # Service layer tests
 │   ├── utils/           # Utility function tests
-│   └── integration/     # Integration tests
 └── jest.setup.js        # Global test configuration
 ```
 
