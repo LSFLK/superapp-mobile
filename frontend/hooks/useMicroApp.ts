@@ -33,6 +33,7 @@ import {
   GOOGLE_WEB_CLIENT_ID,
   GOOGLE_SCOPES,
   DEVELOPER_APP_DEFAULT_URL,
+  ALLOWED_BRIDGE_METHODS_CONFIG_KEY,
 } from "@/constants/Constants";
 
 interface MicroAppParams {
@@ -54,10 +55,17 @@ export const useMicroApp = (params: MicroAppParams) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   
-  // Get allowed bridge methods from Redux store
-  const allowedBridgeMethods = useSelector((state: RootState) => 
-    state.apps.apps.find((app) => app.appId === appId)?.allowedBridgeMethods
-  );
+  // Get allowed bridge methods from Redux store configs
+  const allowedBridgeMethods = useSelector((state: RootState) => {
+    const app = state.apps.apps.find((app) => app.appId === appId);
+    if (!app?.configs) return undefined;
+    
+    const bridgeMethodsConfig = app.configs.find(
+      (config) => config.configKey === ALLOWED_BRIDGE_METHODS_CONFIG_KEY && config.isActive === 1
+    );
+    
+    return bridgeMethodsConfig?.configValue as string[] | undefined;
+  });
   
   const [isScannerVisible, setScannerVisible] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -139,10 +147,14 @@ export const useMicroApp = (params: MicroAppParams) => {
   };
 
   const isBridgeMethodAllowed = (topic: string): boolean => {
-    if (allowedBridgeMethods && allowedBridgeMethods.length > 0) {
-      return allowedBridgeMethods.includes(topic);
-    }
-    return false;
+    // If allowedBridgeMethods is undefined or null, block all methods (restrictive by default)
+    if (!allowedBridgeMethods) return false;
+    
+    // If it's an empty array, block all methods
+    if (allowedBridgeMethods.length === 0) return false;
+    
+    // Check if topic is in the allowed list
+    return allowedBridgeMethods.includes(topic);
   }
 
   // Handle WebView messages
