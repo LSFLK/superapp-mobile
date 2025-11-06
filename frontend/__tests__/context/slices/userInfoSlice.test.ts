@@ -19,6 +19,7 @@ import userInfoReducer, {
   UserInfo,
 } from "@/context/slices/userInfoSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { USER_INFO } from "@/constants/Constants";
 
 jest.mock("@/utils/requestHandler");
 
@@ -55,7 +56,7 @@ describe("userInfoSlice", () => {
       expect(nextState.loading).toBe(false);
       expect(nextState.userInfo).toEqual(mockUserInfo);
       expect(AsyncStorage.setItem).toHaveBeenCalledWith(
-        "user-info",
+        USER_INFO,
         JSON.stringify(mockUserInfo)
       );
     });

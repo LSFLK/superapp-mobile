@@ -15,7 +15,7 @@
 // under the License.
 import { BASE_URL, USER_CONFIGURATIONS } from "@/constants/Constants";
 import { apiRequest } from "@/utils/requestHandler";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as secureStorage from "@/utils/secureStorage";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 interface AppArrangement {
@@ -52,7 +52,7 @@ export const getUserConfigurations = createAsyncThunk(
       );
 
       if (response?.status === 200 && response?.data) {
-        await AsyncStorage.setItem(
+        await secureStorage.setItem(
           USER_CONFIGURATIONS,
           JSON.stringify(response.data)
         );

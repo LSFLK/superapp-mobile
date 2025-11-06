@@ -18,9 +18,10 @@ import userConfigReducer, {
   UserConfig,
 } from "@/context/slices/userConfigSlice";
 import * as requestHandler from "@/utils/requestHandler";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as secureStorage from "@/utils/secureStorage";
 
 jest.mock("@/utils/requestHandler");
+jest.mock("@/utils/secureStorage");
 
 const initialState = {
   configurations: [],
@@ -54,7 +55,7 @@ describe("userConfigSlice", () => {
       const dispatch = jest.fn();
       await thunk(dispatch, () => ({}), undefined);
 
-      expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+      expect(secureStorage.setItem).toHaveBeenCalledWith(
         "user-configurations",
         JSON.stringify(mockUserConfig)
       );

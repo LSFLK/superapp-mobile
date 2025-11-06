@@ -18,7 +18,7 @@ import { refreshAccessToken } from "@/services/authService";
 import axios, { AxiosRequestConfig } from "axios";
 import { jwtDecode } from "jwt-decode";
 import dayjs from "dayjs";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as secureStorage from "@/utils/secureStorage";
 
 // General API request handler
 export const apiRequest = async (
@@ -44,7 +44,7 @@ export const apiRequest = async (
   config.headers = {
     ...config.headers,
     Authorization: `Bearer ${accessToken}`,
-    "x-jwt-assertion": `${accessToken}`,
+    // "x-jwt-assertion": `${accessToken}`,
   };
 
   try {
@@ -81,7 +81,7 @@ const isAccessTokenExpired = (accessToken: string): boolean => {
 
 // Helper function to get the stored access token
 const getAccessToken = async (): Promise<string> => {
-  const storedData = await AsyncStorage.getItem(AUTH_DATA);
+  const storedData = await secureStorage.getItem(AUTH_DATA);
   if (!storedData) return "";
   return JSON.parse(storedData)?.accessToken || "";
 };

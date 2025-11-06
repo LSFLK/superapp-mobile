@@ -14,10 +14,10 @@
 // specific language governing permissions and limitations
 // under the License.
 import { UpdateUserConfiguration } from '@/services/userConfigService';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as secureStorage from '@/utils/secureStorage';
 import { store } from '@/context/store';
 
-jest.mock('@react-native-async-storage/async-storage');
+jest.mock('@/utils/secureStorage');
 jest.mock('@/utils/requestHandler');
 jest.mock('@/context/store', () => ({
   store: {
@@ -41,10 +41,10 @@ describe('userConfigService', () => {
         },
       ];
 
-      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(
+      (secureStorage.getItem as jest.Mock).mockResolvedValue(
         JSON.stringify(mockUserConfigs)
       );
-      (AsyncStorage.setItem as jest.Mock).mockResolvedValue(undefined);
+      (secureStorage.setItem as jest.Mock).mockResolvedValue(undefined);
       (store.getState as jest.Mock).mockReturnValue({
         auth: { email: 'test@example.com' },
       });
@@ -53,7 +53,7 @@ describe('userConfigService', () => {
         UpdateUserConfiguration('test-app-id', 'downloaded', mockLogout)
       ).resolves.not.toThrow();
 
-      expect(AsyncStorage.getItem).toHaveBeenCalled();
+      expect(secureStorage.getItem).toHaveBeenCalled();
     });
 
     it('should handle not-downloaded action', async () => {
@@ -64,10 +64,10 @@ describe('userConfigService', () => {
         },
       ];
 
-      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(
+      (secureStorage.getItem as jest.Mock).mockResolvedValue(
         JSON.stringify(mockUserConfigs)
       );
-      (AsyncStorage.setItem as jest.Mock).mockResolvedValue(undefined);
+      (secureStorage.setItem as jest.Mock).mockResolvedValue(undefined);
       (store.getState as jest.Mock).mockReturnValue({
         auth: { email: 'test@example.com' },
       });
@@ -76,12 +76,12 @@ describe('userConfigService', () => {
         UpdateUserConfiguration('test-app-id', 'not-downloaded', mockLogout)
       ).resolves.not.toThrow();
 
-      expect(AsyncStorage.getItem).toHaveBeenCalled();
+      expect(secureStorage.getItem).toHaveBeenCalled();
     });
 
     it('should handle empty user configs', async () => {
-      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
-      (AsyncStorage.setItem as jest.Mock).mockResolvedValue(undefined);
+      (secureStorage.getItem as jest.Mock).mockResolvedValue(null);
+      (secureStorage.setItem as jest.Mock).mockResolvedValue(undefined);
       (store.getState as jest.Mock).mockReturnValue({
         auth: { email: 'test@example.com' },
       });
@@ -92,7 +92,7 @@ describe('userConfigService', () => {
     });
 
     it('should handle errors gracefully', async () => {
-      (AsyncStorage.getItem as jest.Mock).mockRejectedValue(
+      (secureStorage.getItem as jest.Mock).mockRejectedValue(
         new Error('Storage error')
       );
 

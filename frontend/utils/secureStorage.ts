@@ -16,7 +16,7 @@
 
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { AUTH_DATA, USER_CONFIGURATIONS } from '@/constants/Constants';
 /**
  * Secure Storage Wrapper
  * 
@@ -27,12 +27,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Keys that should use SecureStore (sensitive data)
 const SECURE_KEYS = [
-  'accessToken',
-  'refreshToken',
-  'idToken',
+  AUTH_DATA,                // AUTH_DATA constant - contains tokens
   'GOOGLE_ACCESS_TOKEN',
   'GOOGLE_REFRESH_TOKEN',
-  'USER_INFO',
+  USER_CONFIGURATIONS,      // User settings/preferences
+  'persist:auth',           // Redux persist key for auth slice (tokens)
+  'persist:user-config',    // Redux persist key for user config slice
+  // Note: USER_INFO, persist:user-info, persist:apps use AsyncStorage - read-only display data
 ];
 
 // Check if a key should use secure storage

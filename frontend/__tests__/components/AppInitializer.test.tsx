@@ -56,7 +56,8 @@ describe("AppInitializer", () => {
 
   it("should dispatch actions and call onReady", async () => {
     const mockApps = [{ appId: "app1" }];
-    const mockUserInfo = { email: "test@example.com" };
+    const mockUserInfo = { workEmail: "test@example.com", firstName: "Test", lastName: "User", userThumbnail: null };
+    
     (AsyncStorage.getItem as jest.Mock)
       .mockResolvedValueOnce(JSON.stringify(mockApps))
       .mockResolvedValueOnce(JSON.stringify(mockUserInfo));
