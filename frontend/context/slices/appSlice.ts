@@ -35,6 +35,7 @@ export type MicroApp = {
   bannerImageUrl: string;
   isMandatory: number;
   versions: Version[];
+  allowedBridgeMethods?: string[];
   status?: string | "";
   webViewUri?: string | "";
   clientId?: string | "";

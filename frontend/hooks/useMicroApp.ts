@@ -15,7 +15,7 @@
 // under the License.
 
 import { useEffect, useRef, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "expo-router";
 import { WebView, WebViewMessageEvent } from "react-native-webview";
 import * as Google from "expo-auth-session/providers/google";
@@ -26,6 +26,7 @@ import googleAuthenticationService from "@/services/googleService";
 import { getBridgeHandler, getResolveMethod, getRejectMethod } from "@/utils/bridgeRegistry";
 import { BridgeContext } from "@/types/bridge.types";
 import { BRIDGE_FUNCTION as QR_REQUEST_BRIDGE_FUNCTION } from "@/utils/bridgeHandlers/qrRequest";
+import { RootState } from "@/context/store";
 import {
   GOOGLE_ANDROID_CLIENT_ID,
   GOOGLE_IOS_CLIENT_ID,
@@ -52,6 +53,11 @@ export const useMicroApp = (params: MicroAppParams) => {
   const dispatch = useDispatch();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  
+  // Get allowed bridge methods from Redux store
+  const allowedBridgeMethods = useSelector((state: RootState) => 
+    state.apps.apps.find((app) => app.appId === appId)?.allowedBridgeMethods
+  );
   
   const [isScannerVisible, setScannerVisible] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -132,11 +138,24 @@ export const useMicroApp = (params: MicroAppParams) => {
     }
   };
 
+  const isBridgeMethodAllowed = (topic: string): boolean => {
+    if (allowedBridgeMethods && allowedBridgeMethods.length > 0) {
+      return allowedBridgeMethods.includes(topic);
+    }
+    return false;
+  }
+
   // Handle WebView messages
   const onMessage = async (event: WebViewMessageEvent) => {
     try {
       const { topic, data, requestId } = JSON.parse(event.nativeEvent.data);
       if (!topic) throw new Error("Invalid message format: Missing topic");
+
+      // Check if bridge method is allowed
+      if (!isBridgeMethodAllowed(topic)) {
+        console.error("Bridge method not allowed:", topic);
+        return;
+      }
 
       const handler = getBridgeHandler(topic);
       if (!handler) {

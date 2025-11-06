@@ -22,4 +22,5 @@ export interface MicroApp {
   isActive?: number;
   versions: MicroAppVersion[];
   roles: MicroAppRole[];
+  allowedBridgeMethods?: string[];
 }
