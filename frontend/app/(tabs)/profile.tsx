@@ -48,7 +48,7 @@ const SettingsScreen = () => {
 
   if (!accessToken) {
     return (
-      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <SafeAreaView style={styles.container} edges={['left', 'right']}>
         <View style={styles.signInContainer}>
           <View style={styles.overlay}>
             <View style={styles.modal}>
@@ -66,7 +66,7 @@ const SettingsScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.container} edges={['left', 'right']}>
       {/* User info */}
       <View style={styles.topContainer}>
         <View style={styles.avatarWrapper}>

@@ -16,21 +16,22 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import secureStorage from "@/utils/secureStorage";
 import appReducer from "./slices/appSlice";
 import authReducer from "./slices/authSlice";
 import userConfigReducer from "./slices/userConfigSlice";
 import versionReducer from "./slices/versionSlice";
 import userInfoReducer from "./slices/userInfoSlice";
 
-// Use secure storage for sensitive data (auth, userConfig)
+// Note: Redux persist uses AsyncStorage for all slices due to SecureStore's 2048 byte limit
+// Individual sensitive values (AUTH_DATA, USER_CONFIGURATIONS) are stored separately in SecureStore
+// via the secureStorage wrapper in utils/secureStorage.ts
+
 const authPersistConfig = {
   key: "auth",
-  storage: secureStorage,
+  storage: AsyncStorage,
   whitelist: ["accessToken", "refreshToken", "idToken", "expiresAt", "email"],
 };
 
-// Apps and user info are read-only display data - can use AsyncStorage
 const appsPersistConfig = {
   key: "apps",
   storage: AsyncStorage,
@@ -39,7 +40,7 @@ const appsPersistConfig = {
 
 const userConfigPersistConfig = {
   key: "user-config",
-  storage: secureStorage,
+  storage: AsyncStorage,
   whitelist: ["configurations"],
 };
 

@@ -53,7 +53,7 @@ const Store = () => {
   // When default apps added need to remove this logic
   if (!accessToken) {
     return (
-      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <SafeAreaView style={styles.container} edges={['left', 'right']}>
         <View style={styles.signInContainer}>
           <View style={styles.overlay}>
             <View style={styles.modal}>
@@ -67,7 +67,7 @@ const Store = () => {
 
   return (
     <SafeAreaView
-      edges={['top', 'left', 'right']}
+      edges={['left', 'right']}
       style={{
         backgroundColor: Colors[colorScheme ?? "light"].primaryBackgroundColor,
         flex: 1,

@@ -26,14 +26,13 @@ import { AUTH_DATA, USER_CONFIGURATIONS } from '@/constants/Constants';
  */
 
 // Keys that should use SecureStore (sensitive data)
+// Note: Redux persist keys are NOT included here because SecureStore has a 2048 byte limit
+// Redux persist uses AsyncStorage, but individual sensitive values are stored here
 const SECURE_KEYS = [
   AUTH_DATA,                // AUTH_DATA constant - contains tokens
   'GOOGLE_ACCESS_TOKEN',
   'GOOGLE_REFRESH_TOKEN',
   USER_CONFIGURATIONS,      // User settings/preferences
-  'persist:auth',           // Redux persist key for auth slice (tokens)
-  'persist:user-config',    // Redux persist key for user config slice
-  // Note: USER_INFO, persist:user-info, persist:apps use AsyncStorage - read-only display data
 ];
 
 // Check if a key should use secure storage

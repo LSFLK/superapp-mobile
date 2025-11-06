@@ -56,7 +56,7 @@ describe("performLogout", () => {
     expect(persistor.purge).toHaveBeenCalled();
     expect(dispatch).toHaveBeenCalledWith(resetAll());
     expect(SecureStorage.removeItem).toHaveBeenCalledWith("authData");
-    expect(SecureStorage.removeItem).toHaveBeenCalledWith("user-info");
+    expect(AsyncStorage.removeItem).toHaveBeenCalledWith("user-info");
     expect(AsyncStorage.removeItem).toHaveBeenCalledWith("apps");
     expect(Alert.alert).toHaveBeenCalledWith(
       "Logout Successful",

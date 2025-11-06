@@ -63,7 +63,7 @@ export const downloadMicroApp = async (
     await downloadAndSaveFile(appId, downloadUrl); // Download react production build
     await unzipFile(dispatch, appId); // Unzip downloaded zip file
     await UpdateUserConfiguration(appId, DOWNLOADED, onLogout); // Update user configurations
-  } catch (error) {
+  } catch {
     await UpdateUserConfiguration(appId, NOT_DOWNLOADED, onLogout); // Update user configurations
     Alert.alert("Error", "Failed to download or save the file.");
   } finally {
@@ -80,7 +80,11 @@ const downloadAndSaveFile = async (appId: string, downloadUrl: string) => {
   }
 
   const fileUri = `${customDir}${fileName}`;
-  await downloadAsync(downloadUrl, fileUri);
+  const headers = {
+    // "Authorization": `Bearer ${await Sec.getItem("accessToken") || ""}`
+  };
+
+  await downloadAsync(downloadUrl, fileUri, { headers });
 };
 
 const unzipFile = async (dispatch: AppDispatch, appId: string) => {
@@ -251,7 +255,7 @@ export const removeMicroApp = async (
       })
     );
     await UpdateUserConfiguration(appId, NOT_DOWNLOADED, onLogout); // Update user configurations
-  } catch (error) {
+  } catch {
     Alert.alert("Error", "Failed to remove the app.");
   }
 };

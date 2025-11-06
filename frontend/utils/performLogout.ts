@@ -33,11 +33,8 @@ export const performLogout = createAsyncThunk(
       await persistor.purge(); // Clear redux-persist storage
       dispatch(resetAll()); // Reset Redux state completely
 
-      // Clear sensitive data from SecureStorage
       await SecureStorage.removeItem(AUTH_DATA);
-      await SecureStorage.removeItem(USER_INFO);
-      
-      // Clear non-sensitive data from AsyncStorage
+      await AsyncStorage.removeItem(USER_INFO);
       await AsyncStorage.removeItem(APPS);
 
       Alert.alert(
