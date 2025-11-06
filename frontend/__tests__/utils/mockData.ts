@@ -13,11 +13,6 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
-
-/**
- * Mock factory for creating test data
- */
-
 export const createMockMicroApp = (overrides = {}) => ({
   appId: 'test-app-1',
   appName: 'Test App',

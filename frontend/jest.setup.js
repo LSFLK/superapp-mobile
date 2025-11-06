@@ -1,20 +1,7 @@
-// Copyright (c) 2025 WSO2 LLC. (https://www.wso2.com).
-//
-// WSO2 LLC. licenses this file to you under the Apache License,
-// Version 2.0 (the "License"); you may not use this file except
-// in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,
-// software distributed under the License is distributed on an
-// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied.  See the License for the
-// specific language governing permissions and limitations
-// under the License.
-
-// Testing library built-in matchers are automatically available in v12.4+
+jest.mock('react-native/Libraries/Utilities/Platform', () => ({
+    OS: 'ios',
+    select: jest.fn(),
+}));
 
 // Mock AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () =>
@@ -50,6 +37,7 @@ jest.mock('expo-router', () => ({
 jest.mock('expo-font', () => ({
   loadAsync: jest.fn(() => Promise.resolve()),
   isLoaded: jest.fn(() => true),
+  useFonts: jest.fn(() => [true, null]),
 }));
 
 // Mock expo-splash-screen
@@ -87,6 +75,13 @@ jest.mock('expo-secure-store', () => ({
   deleteItemAsync: jest.fn(),
 }));
 
+// Mock react-native-app-auth
+jest.mock('react-native-app-auth', () => ({
+  authorize: jest.fn(() => Promise.resolve()),
+  refresh: jest.fn(() => Promise.resolve()),
+  logout: jest.fn(() => Promise.resolve()),
+}));
+
 // Mock react-native-safe-area-context
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: jest.fn(() => ({ top: 0, bottom: 0, left: 0, right: 0 })),
@@ -100,6 +95,33 @@ jest.mock('@expo/vector-icons', () => ({
   MaterialIcons: 'MaterialIcons',
   FontAwesome: 'FontAwesome',
 }));
+
+// Mock react-native Platform
+jest.mock('react-native/Libraries/Utilities/Platform', () => ({
+    OS: 'ios',
+    select: jest.fn(select => select.ios),
+}));
+
+// Mock react-native Alert
+jest.mock('react-native/Libraries/Alert/Alert', () => ({
+    alert: jest.fn(),
+}));
+
+// Mock expo-constants
+jest.mock('expo-constants', () => ({
+    manifest: {
+        extra: {
+            ASGARDEO_CONFIG: {
+                CLIENT_ID: 'test-client-id',
+                REDIRECT_URI: 'test-redirect-uri',
+                SIGN_OUT_REDIRECT_URI: 'test-sign-out-redirect-uri',
+                BASE_URL: 'test-base-url',
+                SCOPE: 'test-scope',
+            },
+        },
+    },
+}));
+
 
 // Mock console methods to reduce noise in tests
 global.console = {

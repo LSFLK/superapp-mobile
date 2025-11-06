@@ -13,7 +13,6 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
-
 import React, { ReactElement } from 'react';
 import { render, RenderOptions } from '@testing-library/react-native';
 import { Provider } from 'react-redux';

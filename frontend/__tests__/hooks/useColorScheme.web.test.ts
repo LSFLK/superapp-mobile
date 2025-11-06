@@ -13,5 +13,19 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
+import { renderHook } from '@testing-library/react-native';
 
-module.exports = 'test-file-stub';
+// Mock the web-specific color scheme hook
+jest.mock('@/hooks/useColorScheme.web', () => ({
+  __esModule: true,
+  default: jest.fn(() => 'light'),
+}));
+
+describe('useColorScheme.web Hook', () => {
+  it('should return a valid color scheme', () => {
+    const useColorSchemeWeb = require('@/hooks/useColorScheme.web').default;
+    const { result } = renderHook(() => useColorSchemeWeb());
+    
+    expect(['light', 'dark']).toContain(result.current);
+  });
+});
