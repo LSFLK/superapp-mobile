@@ -71,6 +71,37 @@ isolated function getAllMicroAppVersionsQuery(string appId) returns sql:Paramete
         build DESC
 `;
 
+# Query to get MicroApp roles by appId.
+#
+# + appId - MicroApp Id
+# + return - Generated Query to get MicroApp roles
+isolated function getAllMicroAppRolesQuery(string appId) returns sql:ParameterizedQuery => `
+    SELECT
+        role
+    FROM
+        micro_app_role
+    WHERE
+        micro_app_id = ${appId}
+    AND
+        active = 1
+`;
+
+# Query to get MicroApp configs by appId.
+#
+# + appId - MicroApp Id
+# + return - Generated Query to get MicroApp configs
+isolated function getAllMicroAppConfigsQuery(string appId) returns sql:ParameterizedQuery => `
+    SELECT
+        config_key,
+        config_value
+    FROM
+        micro_app_config
+    WHERE
+        micro_app_id = ${appId}
+    AND
+        active = 1
+`;
+
 # Query to get MicroApp by appId.
 #
 # + appId - MicroApp Id
@@ -209,6 +240,29 @@ isolated function upsertMicroAppRoleQuery(string appId, MicroAppRole appRole, st
         updated_at = CURRENT_TIMESTAMP
 `;
 
+isolated function upsertMicroAppConfigQuery(string appId, string configKey, string configValue, string createdBy)
+    returns sql:ParameterizedQuery => `
+    INSERT INTO micro_app_config (
+        micro_app_id,
+        config_key,
+        config_value,
+        active,
+        created_by,
+        updated_by
+    ) VALUES (
+        ${appId},
+        ${configKey},
+        ${configValue},
+        1,
+        ${createdBy},
+        ${createdBy}
+    )
+    ON DUPLICATE KEY UPDATE
+        config_value = ${configValue},
+        active = 1,
+        updated_by = ${createdBy}
+`;
+
 # Query to deactivate (soft delete) a micro app by setting active = 0.
 #
 # + appId - The micro app ID to be deactivated
@@ -242,6 +296,19 @@ isolated function deactivateMicroAppVersionQuery(string appId, string updatedBy)
 # + return - Generated query to deactivate all role mappings from the `micro_app_role` table
 isolated function deactivateMicroAppRoleQuery(string appId, string updatedBy) returns sql:ParameterizedQuery =>
     `UPDATE micro_app_role SET 
+        active = 0, 
+        updated_at = CURRENT_TIMESTAMP, 
+        updated_by = ${updatedBy} 
+    WHERE micro_app_id = ${appId}
+`;
+
+# Query to deactivate (soft delete) all config entries of a micro app by setting active = 0.
+#
+# + appId - The micro app ID whose config entries should be deactivated
+# + updatedBy - User who performs the deactivation (used for updated_by)
+# + return - Generated query to deactivate all config entries from the `micro_app_config` table
+isolated function deactivateMicroAppConfigQuery(string appId, string updatedBy) returns sql:ParameterizedQuery =>
+    `UPDATE micro_app_config SET 
         active = 0, 
         updated_at = CURRENT_TIMESTAMP, 
         updated_by = ${updatedBy} 
