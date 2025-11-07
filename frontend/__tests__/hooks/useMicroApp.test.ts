@@ -16,9 +16,25 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useMicroApp } from '@/hooks/useMicroApp';
 import { WebViewMessageEvent } from 'react-native-webview';
+import { ALLOWED_BRIDGE_METHODS_CONFIG_KEY } from '@/constants/Constants';
 
 jest.mock('react-redux', () => ({
   useDispatch: () => jest.fn(),
+  useSelector: jest.fn((selector) => selector({
+    apps: {
+      apps: [{
+        appId: 'test-app-id',
+        configs: [
+          {
+            microAppId: 'test-app-id',
+            configKey: require('@/constants/Constants').ALLOWED_BRIDGE_METHODS_CONFIG_KEY,
+            configValue: ['test-topic', 'token', 'qrRequest'],
+            isActive: 1,
+          }
+        ],
+      }],
+    },
+  })),
 }));
 
 jest.mock('expo-router', () => ({
@@ -61,6 +77,10 @@ describe('useMicroApp', () => {
     appId: 'test-app-id',
   };
 
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should initialize with the correct state', () => {
     const { result } = renderHook(() => useMicroApp(params));
 
@@ -84,5 +104,149 @@ describe('useMicroApp', () => {
     });
 
     expect(require('@/utils/bridgeRegistry').getBridgeHandler).toHaveBeenCalledWith('test-topic');
+  });
+
+  it('should block bridge methods not in allowedBridgeMethods list', async () => {
+    const { result } = renderHook(() => useMicroApp(params));
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    const bridgeRegistry = require('@/utils/bridgeRegistry');
+    
+    const event = {
+      nativeEvent: {
+        data: JSON.stringify({ topic: 'unauthorized-method', data: { foo: 'bar' }, requestId: '123' }),
+      },
+    } as WebViewMessageEvent;
+
+    await act(async () => {
+      await result.current.onMessage(event);
+    });
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Bridge method not allowed:', 'unauthorized-method');
+    expect(bridgeRegistry.getBridgeHandler).not.toHaveBeenCalled();
+    
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('should allow bridge methods in allowedBridgeMethods list', async () => {
+    const { result } = renderHook(() => useMicroApp(params));
+    const bridgeRegistry = require('@/utils/bridgeRegistry');
+    const mockHandler = jest.fn();
+    bridgeRegistry.getBridgeHandler.mockReturnValue(mockHandler);
+    
+    const event = {
+      nativeEvent: {
+        data: JSON.stringify({ topic: 'token', data: { foo: 'bar' }, requestId: '123' }),
+      },
+    } as WebViewMessageEvent;
+
+    await act(async () => {
+      await result.current.onMessage(event);
+    });
+
+    expect(bridgeRegistry.getBridgeHandler).toHaveBeenCalledWith('token');
+    expect(mockHandler).toHaveBeenCalled();
+  });
+
+  it('should block all methods when allowedBridgeMethods is empty array', async () => {
+    const useSelector = require('react-redux').useSelector;
+    useSelector.mockImplementation((selector: any) => selector({
+      apps: {
+        apps: [{
+          appId: 'test-app-id',
+          configs: [
+            {
+              microAppId: 'test-app-id',
+              configKey: ALLOWED_BRIDGE_METHODS_CONFIG_KEY,
+              configValue: [],
+              isActive: 1,
+            }
+          ],
+        }],
+      },
+    }));
+
+    const { result } = renderHook(() => useMicroApp(params));
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    const bridgeRegistry = require('@/utils/bridgeRegistry');
+    
+    const event = {
+      nativeEvent: {
+        data: JSON.stringify({ topic: 'token', data: { foo: 'bar' }, requestId: '123' }),
+      },
+    } as WebViewMessageEvent;
+
+    await act(async () => {
+      await result.current.onMessage(event);
+    });
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Bridge method not allowed:', 'token');
+    expect(bridgeRegistry.getBridgeHandler).not.toHaveBeenCalled();
+    
+    consoleErrorSpy.mockRestore();
+    
+    // Reset mock for other tests
+    useSelector.mockImplementation((selector: any) => selector({
+      apps: {
+        apps: [{
+          appId: 'test-app-id',
+          configs: [
+            {
+              microAppId: 'test-app-id',
+              configKey: ALLOWED_BRIDGE_METHODS_CONFIG_KEY,
+              configValue: ['test-topic', 'token', 'qrRequest'],
+              isActive: 1,
+            }
+          ],
+        }],
+      },
+    }));
+  });
+  
+  it('should block all methods when allowedBridgeMethods config is not found (undefined)', async () => {
+    const useSelector = require('react-redux').useSelector;
+    useSelector.mockImplementation((selector: any) => selector({
+      apps: {
+        apps: [{
+          appId: 'test-app-id',
+          configs: [], // No config for allowedBridgeMethods
+        }],
+      },
+    }));
+
+    const { result } = renderHook(() => useMicroApp(params));
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    const bridgeRegistry = require('@/utils/bridgeRegistry');
+    
+    const event = {
+      nativeEvent: {
+        data: JSON.stringify({ topic: 'token', data: { foo: 'bar' }, requestId: '123' }),
+      },
+    } as WebViewMessageEvent;
+
+    await act(async () => {
+      await result.current.onMessage(event);
+    });
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Bridge method not allowed:', 'token');
+    expect(bridgeRegistry.getBridgeHandler).not.toHaveBeenCalled();
+    
+    consoleErrorSpy.mockRestore();
+    
+    // Reset mock for other tests
+    useSelector.mockImplementation((selector: any) => selector({
+      apps: {
+        apps: [{
+          appId: 'test-app-id',
+          configs: [
+            {
+              microAppId: 'test-app-id',
+              configKey: ALLOWED_BRIDGE_METHODS_CONFIG_KEY,
+              configValue: ['test-topic', 'token', 'qrRequest'],
+              isActive: 1,
+            }
+          ],
+        }],
+      },
+    }));
   });
 });

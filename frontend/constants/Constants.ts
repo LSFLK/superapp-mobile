@@ -84,6 +84,7 @@ export const EVENTS_TIMESTAMP_KEY = "cached_events_timestamp";
 export const NEWS_URL = process.env.EXPO_PUBLIC_NEWS_URL ?? "";
 export const NEWS_STORAGE_KEY = "cached_news_feed";
 export const NEWS_TIMESTAMP_KEY = "cached_news_timestamp";
+export const ALLOWED_BRIDGE_METHODS_CONFIG_KEY = "allowedBridgeMethods";
 export const isAndroid = Platform.OS === "android";
 export const isIos = Platform.OS === "ios";
 export const FULL_SCREEN_VIEWING_MODE = "fullscreen";

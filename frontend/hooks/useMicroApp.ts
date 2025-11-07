@@ -15,7 +15,7 @@
 // under the License.
 
 import { useEffect, useRef, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "expo-router";
 import { WebView, WebViewMessageEvent } from "react-native-webview";
 import * as Google from "expo-auth-session/providers/google";
@@ -26,12 +26,14 @@ import googleAuthenticationService from "@/services/googleService";
 import { getBridgeHandler, getResolveMethod, getRejectMethod } from "@/utils/bridgeRegistry";
 import { BridgeContext } from "@/types/bridge.types";
 import { BRIDGE_FUNCTION as QR_REQUEST_BRIDGE_FUNCTION } from "@/utils/bridgeHandlers/qrRequest";
+import { RootState } from "@/context/store";
 import {
   GOOGLE_ANDROID_CLIENT_ID,
   GOOGLE_IOS_CLIENT_ID,
   GOOGLE_WEB_CLIENT_ID,
   GOOGLE_SCOPES,
   DEVELOPER_APP_DEFAULT_URL,
+  ALLOWED_BRIDGE_METHODS_CONFIG_KEY,
 } from "@/constants/Constants";
 
 interface MicroAppParams {
@@ -52,6 +54,18 @@ export const useMicroApp = (params: MicroAppParams) => {
   const dispatch = useDispatch();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  
+  // Get allowed bridge methods from Redux store configs
+  const allowedBridgeMethods = useSelector((state: RootState) => {
+    const app = state.apps.apps.find((app) => app.appId === appId);
+    if (!app?.configs) return undefined;
+    
+    const bridgeMethodsConfig = app.configs.find(
+      (config) => config.configKey === ALLOWED_BRIDGE_METHODS_CONFIG_KEY && config.isActive === 1
+    );
+    
+    return bridgeMethodsConfig?.configValue as string[] | undefined;
+  });
   
   const [isScannerVisible, setScannerVisible] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -132,11 +146,28 @@ export const useMicroApp = (params: MicroAppParams) => {
     }
   };
 
+  const isBridgeMethodAllowed = (topic: string): boolean => {
+    // If allowedBridgeMethods is undefined or null, block all methods (restrictive by default)
+    if (!allowedBridgeMethods) return false;
+    
+    // If it's an empty array, block all methods
+    if (allowedBridgeMethods.length === 0) return false;
+    
+    // Check if topic is in the allowed list
+    return allowedBridgeMethods.includes(topic);
+  }
+
   // Handle WebView messages
   const onMessage = async (event: WebViewMessageEvent) => {
     try {
       const { topic, data, requestId } = JSON.parse(event.nativeEvent.data);
       if (!topic) throw new Error("Invalid message format: Missing topic");
+
+      // Check if bridge method is allowed
+      if (!isBridgeMethodAllowed(topic)) {
+        console.error("Bridge method not allowed:", topic);
+        return;
+      }
 
       const handler = getBridgeHandler(topic);
       if (!handler) {
