@@ -183,6 +183,40 @@ CREATE TABLE `user_config` (
   COMMENT='User-specific configuration settings';
 
 -- ========================================
+-- TABLE: micro_app_config
+-- Description: Stores configuration settings for each micro application
+-- ========================================
+
+CREATE TABLE `micro_app_config` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Internal auto-increment ID',
+  `micro_app_id` VARCHAR(255) NOT NULL COMMENT 'Reference to micro_app.micro_app_id',
+  `config_key` VARCHAR(191) NOT NULL COMMENT 'Configuration key name',
+  `config_value` JSON NOT NULL COMMENT 'Configuration value (JSON format)',
+  `active` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Active status (1=active, 0=inactive)',
+  `created_by` VARCHAR(319) NOT NULL COMMENT 'Email of creator',
+  `updated_by` VARCHAR(319) DEFAULT NULL COMMENT 'Email of last updater',
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Creation timestamp',
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Last update timestamp',
+
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_micro_app_config` (`micro_app_id`, `config_key`),
+
+  INDEX `idx_mac_app` (`micro_app_id`),
+  INDEX `idx_mac_key` (`config_key`),
+  INDEX `idx_mac_active` (`active`),
+
+  CONSTRAINT `fk_mac_micro_app`
+    FOREIGN KEY (`micro_app_id`)
+    REFERENCES `micro_app` (`micro_app_id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB
+  AUTO_INCREMENT=1
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_0900_ai_ci
+  COMMENT='Per-micro-app configuration (JSON)';
+
+-- ========================================
 -- ADDITIONAL CONSTRAINTS & NOTES
 -- ========================================
 
