@@ -113,26 +113,27 @@ export const useMicroApp = (params: MicroAppParams) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response]);
 
-  // Token exchange
-  useEffect(() => {
-    const fetchToken = async () => {
-      try {
-        const token = await tokenExchange(
-          dispatch,
-          clientId,
-          exchangedToken,
-          appId,
-          logout
-        );
-        if (!token) throw new Error("Token exchange failed");
-        setToken(token);
-        sendTokenToWebView(token);
-      } catch (error) {
-        console.error("Token exchange error:", error);
-      }
-    };
+  // Token exchange and refresh logic
+  const fetchAndSetToken = async () => {
+    try {
+      const newToken = await tokenExchange(
+        dispatch,
+        clientId,
+        exchangedToken,
+        appId,
+        logout
+      );
+      if (!newToken) throw new Error("Token exchange failed");
+      setToken(newToken);
+      sendTokenToWebView(newToken);
+    } catch (error) {
+      console.error("Token exchange error:", error);
+    }
+  };
 
-    fetchToken();
+  // Initial token exchange
+  useEffect(() => {
+    fetchAndSetToken();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId]);
 
@@ -187,6 +188,7 @@ export const useMicroApp = (params: MicroAppParams) => {
           );
         },
         pendingTokenRequests: pendingTokenRequestsRef.current,
+        refreshToken: fetchAndSetToken,
         resolve: (data?: any, reqId?: string) => {
           const methodName = getResolveMethod(topic);
           const idToUse = reqId || requestId;
