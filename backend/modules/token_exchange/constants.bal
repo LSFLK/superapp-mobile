@@ -17,3 +17,4 @@
 public const string SUPERAPP_ISSUER = "superapp-backend";
 public const string KEY_ID = "superapp-backend-publicKey_1";
 public const string JWKS_FILE_PATH = "modules/token_exchange/jwks.json";
+public const string SUPERAPP_ADMIN_ROLE = "superapp_admin";
