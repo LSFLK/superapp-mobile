@@ -14,9 +14,9 @@
 // specific language governing permissions and limitations
 // under the License.
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL, USER_INFO } from "@/constants/Constants";
 import { apiRequest } from "@/utils/requestHandler";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export type UserInfo = {
   workEmail: string;

@@ -41,6 +41,8 @@ export const LIBRARY_ARTICLE_FALLBACK_IMAGE =
   process.env.EXPO_PUBLIC_LIBRARY_ARTICLE_FALLBACK_IMAGE ?? "";
 export const DEVELOPER_APP_DEFAULT_URL =
   process.env.EXPO_PUBLIC_DEVELOPER_APP_DEFAULT_URL ?? "";
+export const USE_BACKEND_TOKEN_EXCHANGE =
+  process.env.EXPO_PUBLIC_USE_BACKEND_TOKEN_EXCHANGE ?? "true";
 // Authenticator Micro App ID
 export const AUTHENTICATOR_APP_ID =
   process.env.EXPO_PUBLIC_AUTHENTICATOR_APP_ID ?? "";
@@ -82,6 +84,7 @@ export const EVENTS_TIMESTAMP_KEY = "cached_events_timestamp";
 export const NEWS_URL = process.env.EXPO_PUBLIC_NEWS_URL ?? "";
 export const NEWS_STORAGE_KEY = "cached_news_feed";
 export const NEWS_TIMESTAMP_KEY = "cached_news_timestamp";
+export const ALLOWED_BRIDGE_METHODS_CONFIG_KEY = "allowedBridgeMethods";
 export const isAndroid = Platform.OS === "android";
 export const isIos = Platform.OS === "ios";
 export const FULL_SCREEN_VIEWING_MODE = "fullscreen";

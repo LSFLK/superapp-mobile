@@ -21,7 +21,7 @@ import {
 } from "@/constants/Constants";
 import { UserConfig } from "@/context/slices/userConfigSlice";
 import { apiRequest } from "@/utils/requestHandler";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as secureStorage from "@/utils/secureStorage";
 import { store } from "@/context/store";
 
 // Send downloaded appId to backend (user configurations)
@@ -31,8 +31,8 @@ export const UpdateUserConfiguration = async (
   onLogout: () => Promise<void>
 ) => {
   try {
-    // Get the latest state directly from AsyncStorage each time
-    const storedUserConfigsJson = await AsyncStorage.getItem(
+    // Get the latest state directly from secure storage each time
+    const storedUserConfigsJson = await secureStorage.getItem(
       USER_CONFIGURATIONS
     );
     let storedUserConfigs: UserConfig[] = storedUserConfigsJson
@@ -85,7 +85,7 @@ export const UpdateUserConfiguration = async (
         : { ...config }
     );
 
-    await AsyncStorage.setItem(
+    await secureStorage.setItem(
       USER_CONFIGURATIONS,
       JSON.stringify(updatedUserConfigs)
     );
@@ -110,7 +110,7 @@ export const UpdateUserConfiguration = async (
         response?.status
       );
 
-      await AsyncStorage.setItem(
+      await secureStorage.setItem(
         USER_CONFIGURATIONS,
         JSON.stringify(storedUserConfigs)
       );

@@ -26,6 +26,13 @@ export type Version = {
   iconUrl: string;
 };
 
+export type MicroAppConfig = {
+  microAppId: string;
+  configKey: string;
+  configValue: any;
+  isActive: number;
+};
+
 export type MicroApp = {
   name: string;
   description: string;
@@ -35,6 +42,7 @@ export type MicroApp = {
   bannerImageUrl: string;
   isMandatory: number;
   versions: Version[];
+  configs?: MicroAppConfig[];
   status?: string | "";
   webViewUri?: string | "";
   clientId?: string | "";

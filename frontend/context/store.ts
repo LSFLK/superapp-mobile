@@ -14,36 +14,40 @@
 // specific language governing permissions and limitations
 // under the License.
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { persistStore, persistReducer } from "redux-persist";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import appReducer from "./slices/appSlice";
 import authReducer from "./slices/authSlice";
 import userConfigReducer from "./slices/userConfigSlice";
 import versionReducer from "./slices/versionSlice";
 import userInfoReducer from "./slices/userInfoSlice";
 
+// Note: Redux persist uses AsyncStorage for all slices due to SecureStore's 2048 byte limit
+// Individual sensitive values (AUTH_DATA, USER_CONFIGURATIONS) are stored separately in SecureStore
+// via the secureStorage wrapper in utils/secureStorage.ts
+
 const authPersistConfig = {
   key: "auth",
   storage: AsyncStorage,
-  whitelist: ["auth"],
+  whitelist: ["accessToken", "refreshToken", "idToken", "expiresAt", "email"],
 };
 
 const appsPersistConfig = {
   key: "apps",
   storage: AsyncStorage,
-  whitelist: ["apps"],
+  whitelist: ["installedApps"],
 };
 
 const userConfigPersistConfig = {
   key: "user-config",
   storage: AsyncStorage,
-  whitelist: ["user-config"],
+  whitelist: ["configurations"],
 };
 
 const userInfoPersistConfig = {
   key: "user-info",
   storage: AsyncStorage,
-  whitelist: ["user-info"],
+  whitelist: ["userInfo"],
 };
 
 const appReducerCombined = combineReducers({

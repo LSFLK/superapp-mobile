@@ -18,6 +18,9 @@ export interface MicroApp {
   iconUrl: string;
   bannerImageUrl: string;
   isMandatory: number;
+  // 1 = active, 0 = inactive (optional for backward compat)
+  isActive?: number;
   versions: MicroAppVersion[];
   roles: MicroAppRole[];
+  allowedBridgeMethods?: string[];
 }

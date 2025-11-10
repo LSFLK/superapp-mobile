@@ -13,7 +13,8 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
-import { Text, SafeAreaView, useColorScheme } from "react-native";
+import { Text, useColorScheme } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Link } from "expo-router";
 import { Colors } from "@/constants/Colors";
 
@@ -23,6 +24,7 @@ const NotFound = () => {
   return (
     <>
       <SafeAreaView
+        edges={['top', 'bottom', 'left', 'right']}
         style={{
           backgroundColor:
             Colors[colorScheme ?? "light"].primaryBackgroundColor,

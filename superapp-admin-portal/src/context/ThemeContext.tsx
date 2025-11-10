@@ -42,6 +42,15 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   // Save to localStorage whenever mode changes
   useEffect(() => {
     localStorage.setItem(THEME_STORAGE_KEY, mode);
+    // Reflect mode on document element for global styling/testing
+    try {
+      const root = document.documentElement;
+      root.setAttribute("data-theme", mode);
+      root.classList.remove("theme-light", "theme-dark");
+      root.classList.add(mode === "dark" ? "theme-dark" : "theme-light");
+    } catch {
+      // no-op for non-browser envs
+    }
   }, [mode]);
 
   const toggleTheme = () => {

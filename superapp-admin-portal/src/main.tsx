@@ -1,8 +1,8 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { AuthProvider } from "@asgardeo/auth-react";
+import { AuthProvider } from "./lib/auth-context";
 import { CssBaseline } from "@mui/material";
-import { authConfig } from "./config/authConfig";
+// Config is now read by the custom AuthProvider via window.configs
 import { ThemeProvider, NotificationProvider } from "./context";
 import App from "./App";
 
@@ -11,7 +11,7 @@ createRoot(document.getElementById("root")!).render(
     <ThemeProvider>
       <CssBaseline />
       <NotificationProvider>
-        <AuthProvider config={authConfig}>
+  <AuthProvider>
           <App />
         </AuthProvider>
       </NotificationProvider>

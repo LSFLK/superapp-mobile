@@ -22,6 +22,7 @@ import { Tabs } from "expo-router";
 import { Platform } from "react-native";
 import { Href } from "expo-router";
 import { LIBRARY_URL } from "@/constants/Constants";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type TabType = {
   name: string;
@@ -52,7 +53,7 @@ const tabs: TabType[] = [
       title: "Library",
       icon: "book-outline",
       iconFocused: "book",
-      href: LIBRARY_URL != ""? "/library" : null,
+      href: LIBRARY_URL !== ""? "/library" : null,
     },
   },
   {
@@ -80,6 +81,7 @@ const tabs: TabType[] = [
 export default function TabLayout() {
   // Load last active tab and navigate to it
   useRestoreLastTab();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
@@ -94,9 +96,15 @@ export default function TabLayout() {
             paddingTop: 5,
           },
           android: {
-            height: 70,
+            height: 60 + insets.bottom,
             paddingTop: 5,
-            paddingBottom: 5,
+            paddingBottom: insets.bottom,
+            borderTopWidth: 0,
+            elevation: 0,
+          },
+          default: {
+            height: 60,
+            paddingTop: 5,
           },
         }),
       }}

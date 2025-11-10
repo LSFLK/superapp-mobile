@@ -18,9 +18,9 @@ import {
   Text,
   TouchableOpacity,
   Linking,
-  SafeAreaView,
   useColorScheme,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
 import { useSelector } from "react-redux";
@@ -37,6 +37,7 @@ const UpdateScreen = () => {
 
   return (
     <SafeAreaView
+      edges={['top', 'bottom', 'left', 'right']}
       style={{
         flex: 1,
         backgroundColor: Colors[colorScheme ?? "light"].primaryBackgroundColor,
@@ -65,7 +66,7 @@ const UpdateScreen = () => {
             lineHeight: 32,
             fontWeight: 700,
             textAlign: "center",
-            color: colorScheme == "dark" ? "#e5e7eb" : "#1f2937",
+            color: colorScheme === "dark" ? "#e5e7eb" : "#1f2937",
           }}
           allowFontScaling={false}
         >
@@ -76,7 +77,7 @@ const UpdateScreen = () => {
         <Text
           style={{
             textAlign: "center",
-            color: colorScheme == "dark" ? "#9ca3af" : "#4b5563",
+            color: colorScheme === "dark" ? "#9ca3af" : "#4b5563",
             marginTop: 16,
           }}
           allowFontScaling={false}
@@ -99,7 +100,7 @@ const UpdateScreen = () => {
         >
           <Text
             style={{
-              color: colorScheme == "dark" ? "#d1d5db" : "#f9fafb",
+              color: colorScheme === "dark" ? "#d1d5db" : "#f9fafb",
               textAlign: "center",
               fontWeight: 600,
               fontSize: 15,

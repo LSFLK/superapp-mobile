@@ -71,7 +71,7 @@ class ApiService {
       // Wait for token getter to be initialized
       await this.tokenGetterReady;
 
-      // Get the access token from Asgardeo
+      // Get the access token from IDP
       const token = this.getAccessToken ? await this.getAccessToken() : null;
 
       if (!token) {
@@ -85,7 +85,7 @@ class ApiService {
       };
 
       // Add token as x-jwt-assertion header for development
-      //headers["x-jwt-assertion"] = token;
+      headers["x-jwt-assertion"] = token;
       // for production
       headers["Authorization"] = `Bearer ${token}`;
 
@@ -95,11 +95,29 @@ class ApiService {
         credentials: "include",
       });
 
+      if (response.status === 401) {
+        if (this.signOut) {
+          try { await this.signOut(); } catch { /* ignore */ }
+        }
+        const err401: any = new Error("Unauthorized");
+        err401.status = 401;
+        throw err401;
+      }
+      if (response.status === 403) {
+        const err403: any = new Error("Not authorized");
+        err403.status = 403;
+        throw err403;
+      }
+
       if (!response.ok) {
-        const error = await response.json().catch(() => ({
+        const parsed = await response.json().catch(() => ({
           message: `HTTP ${response.status}: ${response.statusText}`,
         }));
-        throw new Error(error.message || "Request failed");
+        const err: any = new Error(parsed.message || "Request failed");
+        if (parsed && typeof parsed === 'object' && 'errors' in parsed) {
+          err.errors = (parsed as any).errors;
+        }
+        throw err;
       }
 
       // Handle empty responses (204 No Content, 201 Created, or empty body)
@@ -163,6 +181,16 @@ class ApiService {
    */
   async uploadFile(file: File): Promise<{ url: string }> {
     try {
+      // E2E/dev bypass: if running tests and auth bypass is enabled, avoid real network
+  const bypass =
+        typeof window !== "undefined" &&
+        (import.meta as any).env?.DEV &&
+        window.localStorage?.getItem("e2e-auth") === "1" &&
+        window.localStorage?.getItem("e2e-bypass-uploads") === "1";
+  if (bypass) {
+        return { url: `/uploads/${encodeURIComponent(file.name)}` };
+      }
+
       console.log(
         "uploadFile called, getAccessToken exists?",
         !!this.getAccessToken,
@@ -202,12 +230,19 @@ class ApiService {
         },
       );
 
-      if (response.status === 401 || response.status === 403) {
+      if (response.status === 401) {
         console.warn("Authentication failed. Logging out...");
         if (this.signOut) {
           await this.signOut();
         }
-        throw new Error("Session expired. Please sign in again.");
+        const err401: any = new Error("Unauthorized");
+        err401.status = 401;
+        throw err401;
+      }
+      if (response.status === 403) {
+        const err403: any = new Error("Not authorized");
+        err403.status = 403;
+        throw err403;
       }
 
       if (!response.ok) {

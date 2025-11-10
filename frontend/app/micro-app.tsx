@@ -17,27 +17,15 @@ import NotFound from "@/components/NotFound";
 import Scanner from "@/components/Scanner";
 import { Colors } from "@/constants/Colors";
 import {
-  DEVELOPER_APP_DEFAULT_URL,
   FULL_SCREEN_VIEWING_MODE,
-  GOOGLE_ANDROID_CLIENT_ID,
-  GOOGLE_IOS_CLIENT_ID,
-  GOOGLE_SCOPES,
-  GOOGLE_WEB_CLIENT_ID,
-  isAndroid,
   isIos,
 } from "@/constants/Constants";
-import { logout, tokenExchange } from "@/services/authService";
-import googleAuthenticationService from "@/services/googleService";
 import { MicroAppParams } from "@/types/navigation";
 import { injectedJavaScript } from "@/utils/bridge";
-import { getBridgeHandler, getResolveMethod, getRejectMethod } from "@/utils/bridgeRegistry";
-import { BridgeContext } from "@/types/bridge.types";
-import * as Google from "expo-auth-session/providers/google";
 import { documentDirectory } from "expo-file-system";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as WebBrowser from "expo-web-browser";
-import { useEffect, useRef, useState } from "react";
 import {
   Alert,
   StyleSheet,
@@ -47,174 +35,33 @@ import {
   View,
 } from "react-native";
 import prompt from "react-native-prompt-android";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { WebView, WebViewMessageEvent } from "react-native-webview";
-import { useDispatch, useSelector } from "react-redux";
+import { WebView } from "react-native-webview";
+import { useMicroApp } from "@/hooks/useMicroApp";
 
 WebBrowser.maybeCompleteAuthSession();
-import { BRIDGE_FUNCTION as QR_REQUEST_BRIDGE_FUNCTION } from "@/utils/bridgeHandlers/qrRequest";
 
 const MicroApp = () => {
-  const [isScannerVisible, setScannerVisible] = useState(false);
-
-  const { webViewUri, appName, clientId, exchangedToken, appId, displayMode } =
-    useLocalSearchParams<MicroAppParams>();
-  const [hasError, setHasError] = useState(false);
-  const webviewRef = useRef<WebView>(null);
-  const [token, setToken] = useState<string | null>();
-  const dispatch = useDispatch();
-  const router = useRouter();
-  const pendingTokenRequestsRef = useRef<((token: string) => void)[]>([]);
-  const qrScanCallbackRef = useRef<((qrCode: string) => void) | null>(null);
-  const [webUri, setWebUri] = useState<string>(DEVELOPER_APP_DEFAULT_URL);
+  const params = useLocalSearchParams<MicroAppParams>();
+  const { webViewUri, appName, displayMode } = params;
+  
   const colorScheme = useColorScheme();
   const styles = createStyles(colorScheme ?? "light");
-  const isDeveloper: boolean = appId.includes("developer");
-  const isTotp: boolean = appId.includes("totp");
-  const insets = useSafeAreaInsets();
   const shouldShowHeader: boolean = displayMode !== FULL_SCREEN_VIEWING_MODE;
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    iosClientId: GOOGLE_IOS_CLIENT_ID,
-    webClientId: GOOGLE_WEB_CLIENT_ID,
-    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
-    scopes: GOOGLE_SCOPES,
-  });
-
-  // Function to send response to micro app
-  const sendResponseToWeb = (method: string, data?: any) => {
-    webviewRef.current?.injectJavaScript(
-      `window.nativebridge.${method}(${JSON.stringify(data)});`
-    );
-  };
-
-  // Handle Google authentication response
-  useEffect(() => {
-    if (response) {
-      googleAuthenticationService(response)
-        .then((res) => {
-          if (res.status) {
-            sendResponseToWeb("resolveGoogleLogin", res.userInfo);
-          } else {
-            sendResponseToWeb("rejectGoogleLogin", res.error);
-          }
-        })
-        .catch((err) => {
-          console.error("Google authentication error:", err);
-          sendResponseToWeb("rejectGoogleLogin", err.message);
-        });
-    }
-  }, [response]);
-
-  // useEffect(() => {
-  //   const fetchToken = async () => {
-  //     try {
-  //       const token = await tokenExchange(
-  //         dispatch,
-  //         clientId,
-  //         exchangedToken,
-  //         appId,
-  //         logout
-  //       );
-  //       if (!token) throw new Error("Token exchange failed");
-  //       setToken(token);
-  //       sendTokenToWebView(token);
-  //     } catch (error) {
-  //       console.error("Token exchange error:", error);
-  //     }
-  //   };
-
-  //   fetchToken();
-  // }, [clientId]);
-
-  // Function to send token to WebView
-  const sendTokenToWebView = (token: string) => {
-    if (!token) return;
-    sendResponseToWeb("resolveToken", token);
-
-    // Resolve any pending token requests
-    while (pendingTokenRequestsRef.current.length > 0) {
-      const resolve = pendingTokenRequestsRef.current.shift();
-      resolve?.(token);
-    }
-  };
-
-  // Handle messages from WebView
-  const onMessage = async (event: WebViewMessageEvent) => {
-   try {
-      const { topic, data, requestId } = JSON.parse(event.nativeEvent.data);
-      if (!topic) throw new Error("Invalid message format: Missing topic");
-
-      // Get handler from registry
-      const handler = getBridgeHandler(topic);
-      if (!handler) {
-        console.error("Unknown topic:", topic);
-        return;
-      }
-
-      // Create bridge context for passing data
-      const bridgeContext: BridgeContext = {
-        topic,
-        appID: appId as string,
-        token: token || null, // exchanged token
-        setScannerVisible,
-
-        sendResponseToWeb: (method: string, data?: any, reqId?: string) => {
-          const idToUse = reqId || requestId;
-          webviewRef.current?.injectJavaScript(
-            `window.nativebridge.${method}(${JSON.stringify(data)}, "${idToUse}");`
-          );
-        },
-        pendingTokenRequests: pendingTokenRequestsRef.current,
-
-        resolve: (data?: any, reqId?: string) => {
-          const methodName = getResolveMethod(topic);
-          const idToUse = reqId || requestId;
-          webviewRef.current?.injectJavaScript(
-            `window.nativebridge.${methodName}(${JSON.stringify(data)}, "${idToUse}");`
-          );
-        },
-        reject: (error: string, reqId?: string) => {
-          const methodName = getRejectMethod(topic);
-          const idToUse = reqId || requestId;
-          webviewRef.current?.injectJavaScript(
-            `window.nativebridge.${methodName}("${error}", "${idToUse}");`
-          );
-        },
-        // Google authentication
-        promptAsync,
-        // Navigation
-        router,
-        // Device info
-        insets: {
-          top: insets.top,
-          bottom: insets.bottom,
-          left: insets.left,
-          right: insets.right,
-        },
-        // QR scanner callback
-        qrScanCallback: qrScanCallbackRef.current || undefined,
-      };
-      await handler(data, bridgeContext);
-
-      // Update the ref with any callback set by the handler
-      if (topic === QR_REQUEST_BRIDGE_FUNCTION.topic) {
-        qrScanCallbackRef.current = bridgeContext.qrScanCallback || null;
-      }
-    } catch (error) {
-      console.error("Error handling WebView message:", error);
-    }
-  };
-
-  const handleError = (syntheticEvent: any) => {
-    setHasError(true);
-    console.error("WebView error:", syntheticEvent.nativeEvent);
-  };
-
-  const reloadWebView = () => {
-    setHasError(false);
-    webviewRef.current?.reload();
-  };
+  const {
+    isScannerVisible,
+    hasError,
+    webUri,
+    isDeveloper,
+    isTotp,
+    insets,
+    webviewRef,
+    onMessage,
+    handleError,
+    reloadWebView,
+    handleQRScan,
+    handleChangeWebUri,
+  } = useMicroApp(params);
 
   const renderWebView = (webViewUri: string) => {
     // Check if web view uri is available
@@ -286,75 +133,66 @@ const MicroApp = () => {
           title: shouldShowHeader ? appName : "",
           headerShown: shouldShowHeader,
           headerRight: () =>
-            isDeveloper ? (
-            shouldShowHeader && (
+            isDeveloper && shouldShowHeader ? (
               <TouchableOpacity
                 onPressIn={() => {
-                  isIos
-                    ? Alert.prompt(
-                        "App URL",
-                        "Enter App URL",
-                        [
-                          {
-                            text: "Cancel",
-                            style: "cancel",
-                          },
-                          {
-                            text: "OK",
-                            onPress: (value) => {
-                              if (value) {
-                                setWebUri(value);
-                              }
-                            },
-                          },
-                        ],
-                        "plain-text",
-                        webUri
-                      )
-                    : prompt(
-                        "App URL",
-                        "Enter App URL",
-                        [
-                          {
-                            text: "Cancel",
-                            onPress: () => console.log("Cancel Pressed"),
-                            style: "cancel",
-                          },
-                          {
-                            text: "OK",
-                            onPress: (value) => {
-                              if (value) {
-                                setWebUri(value);
-                              }
-                            },
-                            style: "default",
-                          },
-                        ],
+                  if (isIos) {
+                    Alert.prompt(
+                      "App URL",
+                      "Enter App URL",
+                      [
                         {
-                          type: "plain-text",
-                          cancelable: false,
-                          defaultValue: webUri,
-                        }
-                      );
+                          text: "Cancel",
+                          style: "cancel",
+                        },
+                        {
+                          text: "OK",
+                          onPress: (value) => {
+                            handleChangeWebUri(value);
+                          },
+                        },
+                      ],
+                      "plain-text",
+                      webUri
+                    );
+                  } else {
+                    prompt(
+                      "App URL",
+                      "Enter App URL",
+                      [
+                        {
+                          text: "Cancel",
+                          onPress: () => console.log("Cancel Pressed"),
+                          style: "cancel",
+                        },
+                        {
+                          text: "OK",
+                          onPress: (value) => {
+                            handleChangeWebUri(value);
+                          },
+                          style: "default",
+                        },
+                      ],
+                      {
+                        type: "plain-text",
+                        cancelable: false,
+                        defaultValue: webUri,
+                      }
+                    );
+                  }
                 }}
                 hitSlop={20}
               >
                 <Text style={styles.headerText}>App URL</Text>
               </TouchableOpacity>
-            )) : null,
+            ) : null,
         }}
       />
       <View style={styles.container}>
         {isScannerVisible && (
           <View style={styles.scannerOverlay}>
             <Scanner
-              onScan={(qrCode) => {
-                // Call the stored callback from the bridge handler
-                if (qrScanCallbackRef.current) {
-                  qrScanCallbackRef.current(qrCode);
-                }
-                setScannerVisible(false);
-              }}
+              onScan={handleQRScan}
               message={
                 isTotp
                   ? "We need access to your camera to scan QR codes for generating one-time passwords (TOTP) for secure authentication. This will allow you to easily log in to your accounts."

@@ -11,8 +11,8 @@ import {
   Link,
 } from "@mui/material";
 import { useState } from "react";
-import { useAuthContext } from "@asgardeo/auth-react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../lib/auth-context";
 import LogoutIcon from "@mui/icons-material/Logout";
 import PersonIcon from "@mui/icons-material/Person";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
@@ -20,8 +20,6 @@ import Brightness7Icon from "@mui/icons-material/Brightness7";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import { useNotification } from "../../context";
 import { useTheme } from "../../context";
-
-// Map paths to readable names
 const pathNames: Record<string, string> = {
   "": "Dashboard",
   microapps: "Micro Apps",
@@ -30,7 +28,7 @@ const pathNames: Record<string, string> = {
 };
 
 export default function Header() {
-  const { state, signOut } = useAuthContext();
+  const { state, signOut } = useAuth();
   const { showNotification } = useNotification();
   const { mode, toggleTheme } = useTheme();
   const location = useLocation();
@@ -131,6 +129,7 @@ export default function Header() {
             onClick={toggleTheme}
             size="small"
             sx={{ color: "text.primary" }}
+            data-testid="theme-toggle"
           >
             {mode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}
           </IconButton>

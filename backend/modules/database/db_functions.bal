@@ -63,6 +63,18 @@ public isolated function getMicroApps(string[] groups) returns MicroApp[]|error 
         MicroAppVersion[] versions = check from MicroAppVersion version in versionStream
             select version;
         microApp.versions = versions;
+        
+        stream<MicroAppRole, sql:Error?> roleStream =
+            databaseClient->query(getAllMicroAppRolesQuery(microApp.appId));
+        MicroAppRole[] roles = check from MicroAppRole role in roleStream
+            select role;
+        microApp.roles = roles;
+        
+        stream<MicroAppConfig, sql:Error?> configStream =
+            databaseClient->query(getAllMicroAppConfigsQuery(microApp.appId));
+        MicroAppConfig[] configs = check from MicroAppConfig config in configStream
+            select config;
+        microApp.configs = configs;
     }
 
     return microApps;
@@ -91,8 +103,20 @@ public isolated function getMicroAppById(string appId, string[] groups) returns 
         databaseClient->query(getAllMicroAppVersionsQuery(microApp.appId));
     MicroAppVersion[] versions = check from MicroAppVersion microAppVersion in versionStream
         select microAppVersion;
-
     microApp.versions = versions;
+    
+    stream<MicroAppRole, sql:Error?> roleStream =
+        databaseClient->query(getAllMicroAppRolesQuery(microApp.appId));
+    MicroAppRole[] roles = check from MicroAppRole role in roleStream
+        select role;
+    microApp.roles = roles;
+    
+    stream<MicroAppConfig, sql:Error?> configStream =
+        databaseClient->query(getAllMicroAppConfigsQuery(microApp.appId));
+    MicroAppConfig[] configs = check from MicroAppConfig config in configStream
+        select config;
+    microApp.configs = configs;
+
     return microApp;
 }
 
@@ -112,6 +136,12 @@ public isolated function upsertMicroApp(MicroApp microApp, string createdBy) ret
     if microApp.versions.length() > 0 {
         foreach MicroAppVersion version in microApp.versions {
             _ = check databaseClient->execute(upsertMicroAppVersionQuery(microApp.appId, version, createdBy));
+        }
+    }
+
+    if microApp.configs.length() > 0 {
+        foreach MicroAppConfig config in microApp.configs {
+            _ = check databaseClient->execute(upsertMicroAppConfigQuery(microApp.appId, config.configKey, config.configValue.toJsonString(), createdBy));
         }
     }
 
@@ -166,6 +196,7 @@ public isolated function deactivateMicroApp(string appId, string updatedBy) retu
 
     _ = check databaseClient->execute(deactivateMicroAppVersionQuery(appId, updatedBy));
     _ = check databaseClient->execute(deactivateMicroAppRoleQuery(appId, updatedBy));
+    _ = check databaseClient->execute(deactivateMicroAppConfigQuery(appId, updatedBy));
     return result.cloneWithType(ExecutionSuccessResult);
 }
 

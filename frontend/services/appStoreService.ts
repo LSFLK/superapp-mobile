@@ -44,7 +44,7 @@ import {
   DEFAULT_VIEWING_MODE,
 } from "@/constants/Constants";
 import { UpdateUserConfiguration } from "./userConfigService";
-
+import { getAccessToken } from "@/utils/requestHandler";
 // File handle services
 export const downloadMicroApp = async (
   dispatch: AppDispatch,
@@ -63,7 +63,7 @@ export const downloadMicroApp = async (
     await downloadAndSaveFile(appId, downloadUrl); // Download react production build
     await unzipFile(dispatch, appId); // Unzip downloaded zip file
     await UpdateUserConfiguration(appId, DOWNLOADED, onLogout); // Update user configurations
-  } catch (error) {
+  } catch {
     await UpdateUserConfiguration(appId, NOT_DOWNLOADED, onLogout); // Update user configurations
     Alert.alert("Error", "Failed to download or save the file.");
   } finally {
@@ -78,9 +78,18 @@ const downloadAndSaveFile = async (appId: string, downloadUrl: string) => {
   if (!(await getInfoAsync(customDir)).exists) {
     await makeDirectoryAsync(customDir, { intermediates: true });
   }
+  let accessToken = await getAccessToken();
+
+  if (!accessToken) {
+    throw new Error("Access token not found");
+  }
 
   const fileUri = `${customDir}${fileName}`;
-  await downloadAsync(downloadUrl, fileUri);
+  const headers = {
+    "Authorization": `Bearer ${accessToken}`,
+    // "x-jwt-assertion": `${accessToken}`, // for local development only
+  };
+  await downloadAsync(downloadUrl, fileUri, { headers });
 };
 
 const unzipFile = async (dispatch: AppDispatch, appId: string) => {
@@ -251,7 +260,7 @@ export const removeMicroApp = async (
       })
     );
     await UpdateUserConfiguration(appId, NOT_DOWNLOADED, onLogout); // Update user configurations
-  } catch (error) {
+  } catch {
     Alert.alert("Error", "Failed to remove the app.");
   }
 };

@@ -11,8 +11,11 @@ export const microAppsService = {
   /**
    * Get all micro apps
    */
-  async getAll(): Promise<MicroApp[]> {
-    return apiService.get<MicroApp[]>("/micro-apps");
+  async getAll(query?: string): Promise<MicroApp[]> {
+    const path = query && query.trim()
+      ? `/micro-apps?q=${encodeURIComponent(query.trim())}`
+      : "/micro-apps";
+    return apiService.get<MicroApp[]>(path);
   },
 
   /**

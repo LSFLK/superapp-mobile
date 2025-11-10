@@ -13,6 +13,11 @@ export interface User {
   location?: string;
 }
 
+export type BulkCreateResult = {
+  success: Array<{ workEmail: string }>;
+  failed: Array<{ workEmail: string; reason: string }>;
+};
+
 class UsersService {
   private readonly BASE_PATH = "/users";
 
@@ -33,7 +38,7 @@ class UsersService {
   /**
    * Create or update multiple users in bulk
    */
-  async createBulkUsers(users: User[]): Promise<void> {
+  async createBulkUsers(users: User[]): Promise<BulkCreateResult | undefined> {
     return apiService.post(this.BASE_PATH, users);
   }
 

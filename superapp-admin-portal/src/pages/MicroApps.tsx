@@ -7,7 +7,6 @@ import {
   Chip,
   IconButton,
   Tooltip,
-  CircularProgress,
   Container,
   Card,
   CardContent,
@@ -21,7 +20,9 @@ import {
   Collapse,
   Divider,
   Stack,
+  TextField,
 } from "@mui/material";
+import Skeleton from "@mui/material/Skeleton";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -31,15 +32,32 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import DownloadIcon from "@mui/icons-material/Download";
 import AppsIcon from "@mui/icons-material/Apps";
+import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
 import type { MicroApp } from "../types/microapp.types";
 import { useNotification } from "../context";
+import { useAuth } from "../lib/auth-context";
 import { microAppsService } from "../services";
 import { ConfirmDialog, EditMicroAppDialog, AddVersionDialog } from "..";
 import AddMicroAppDialog from "../components/ui/AddMicroAppDialog";
 
+function useDebouncedValue<T>(value: T, delay = 300) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(id);
+  }, [value, delay]);
+  return debounced;
+}
+
 const MicroApps = () => {
+  const { state } = useAuth();
+  const userRoles = (state.roles ?? []).map((r) => r.toLowerCase());
+  const canManage = userRoles.includes("admin") || userRoles.includes("microapps:write");
   const [microApps, setMicroApps] = useState<MicroApp[]>([]);
   const [loading, setLoading] = useState(true);
+  const [forbidden, setForbidden] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedQuery = useDebouncedValue(searchQuery, 300);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const [editDialog, setEditDialog] = useState<{
@@ -74,19 +92,27 @@ const MicroApps = () => {
 
   useEffect(() => {
     fetchMicroApps();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedQuery]);
 
   const fetchMicroApps = async () => {
     try {
       setLoading(true);
-      const data = await microAppsService.getAll();
+      setForbidden(false);
+      const q = debouncedQuery.trim();
+      const data = await microAppsService.getAll(q ? q : undefined);
       setMicroApps(data);
     } catch (error) {
       console.error("Error fetching micro apps:", error);
-      showNotification(
-        error instanceof Error ? error.message : "Failed to load micro apps",
-        "error",
-      );
+      const status = (error as any)?.status;
+      if (status === 403) {
+        setForbidden(true);
+      } else {
+        showNotification(
+          error instanceof Error ? error.message : "Failed to load micro apps",
+          "error",
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -159,17 +185,88 @@ const MicroApps = () => {
     }
   };
 
+  const handleToggleActive = async (microApp: MicroApp) => {
+    try {
+      // Backend endpoint deactivates/activates via same path in this repo semantics
+      await microAppsService.delete(microApp.appId);
+      const nowActive = microApp.isActive === 1 ? 0 : 1;
+      // Update in place
+      setMicroApps((prev) =>
+        prev.map((m) => (m.appId === microApp.appId ? { ...m, isActive: nowActive } : m)),
+      );
+      showNotification(
+        nowActive === 1 ? "Micro app reactivated successfully" : "Micro app deactivated successfully",
+        "success",
+      );
+    } catch (error) {
+      console.error("Error toggling micro app:", error);
+      showNotification(
+        error instanceof Error ? error.message : "Failed to toggle micro app",
+        "error",
+      );
+    } finally {
+      handleMenuClose();
+    }
+  };
+
   if (loading) {
+    const placeholders = Array.from({ length: 6 });
     return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          minHeight="400px"
-        >
-          <CircularProgress />
+      <Container maxWidth="lg" sx={{ py: 4 }} data-testid="microapps-skeleton">
+        <Box mb={4}>
+          <Skeleton variant="text" height={40} width={200} />
+          <Skeleton variant="text" height={20} width={320} />
         </Box>
+        <Grid container spacing={3}>
+          {placeholders.map((_, idx) => (
+            <Grid item xs={12} sm={6} md={4} key={idx} data-testid="microapp-skeleton-card">
+              <Card>
+                <CardContent>
+                  <Box display="flex" alignItems="center" mb={2}>
+                    <Skeleton variant="rounded" width={56} height={56} sx={{ mr: 2 }} />
+                    <Box flexGrow={1}>
+                      <Skeleton variant="text" width="60%" height={28} />
+                      <Box display="flex" gap={1}>
+                        <Skeleton variant="rounded" width={80} height={24} />
+                        <Skeleton variant="rounded" width={80} height={24} />
+                      </Box>
+                    </Box>
+                  </Box>
+                  <Skeleton variant="text" height={18} width="90%" />
+                  <Skeleton variant="text" height={18} width="80%" />
+                  <Box mt={2}>
+                    <Skeleton variant="text" width={140} height={16} />
+                    <Box display="flex" gap={1} mt={1}>
+                      <Skeleton variant="rounded" width={60} height={20} />
+                      <Skeleton variant="rounded" width={60} height={20} />
+                      <Skeleton variant="rounded" width={40} height={20} />
+                    </Box>
+                  </Box>
+                </CardContent>
+                <CardActions>
+                  <Skeleton variant="rounded" width={90} height={32} />
+                  <Skeleton variant="rounded" width={90} height={32} />
+                </CardActions>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+    );
+  }
+
+  if (forbidden) {
+    return (
+      <Container maxWidth="md" sx={{ py: 8 }} data-testid="forbidden-state">
+        <Paper sx={{ p: 6, textAlign: 'center', borderRadius: 3 }}>
+          <AppsIcon sx={{ fontSize: 56, color: 'warning.main', mb: 2 }} />
+          <Typography variant="h5" fontWeight={600} gutterBottom>
+            Not authorized
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            You don't have permission to view Micro Apps. Contact your administrator if you believe this is a mistake.
+          </Typography>
+        </Paper>
       </Container>
     );
   }
@@ -178,13 +275,8 @@ const MicroApps = () => {
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Header Section */}
       <Box mb={4}>
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={2}
-        >
-          <Box>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2} gap={2}>
+          <Box sx={{ flex: 1 }}>
             <Typography
               variant="h4"
               component="h1"
@@ -197,6 +289,14 @@ const MicroApps = () => {
               Manage and deploy your micro applications
             </Typography>
           </Box>
+          <TextField
+            size="small"
+            placeholder="Search micro apps..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            inputProps={{ "data-testid": "microapps-search" }}
+            sx={{ minWidth: 260 }}
+          />
           <Button
             variant="contained"
             size="large"
@@ -287,9 +387,9 @@ const MicroApps = () => {
           </Button>
         </Paper>
       ) : (
-        <Grid container spacing={3} sx={{ alignItems: "flex-start" }}>
+    <Grid container spacing={3} sx={{ alignItems: "flex-start" }} data-testid="microapps-grid">
           {microApps.map((app) => (
-            <Grid item xs={12} sm={6} md={4} key={app.appId}>
+      <Grid item xs={12} sm={6} md={4} key={app.appId} data-testid="microapp-card">
               <Card
                 sx={{
                   display: "flex",
@@ -327,6 +427,13 @@ const MicroApps = () => {
                           }
                           color={app.isMandatory === 1 ? "primary" : "default"}
                           size="small"
+                        />
+                        <Chip
+                          data-testid={`microapp-status-${app.appId}`}
+                          label={app.isActive === 0 ? "Inactive" : "Active"}
+                          color={app.isActive === 0 ? "warning" : "success"}
+                          size="small"
+                          variant="outlined"
                         />
                         <Chip
                           label={`${app.versions.length} version${app.versions.length !== 1 ? "s" : ""}`}
@@ -516,11 +623,12 @@ const MicroApps = () => {
                   </Box>
                 </CardContent>
 
-                <CardActions sx={{ p: 2, pt: 0, justifyContent: "flex-end" }}>
+        <CardActions sx={{ p: 2, pt: 0, justifyContent: "flex-end" }}>
                   <Tooltip title="More actions">
                     <IconButton
                       size="small"
                       onClick={(e) => handleMenuOpen(e, app)}
+          data-testid={`microapp-actions-${app.appId}`}
                     >
                       <MoreVertIcon />
                     </IconButton>
@@ -538,13 +646,36 @@ const MicroApps = () => {
         open={Boolean(menuAnchor.element)}
         onClose={handleMenuClose}
       >
-        <MenuItem onClick={handleEditInfo}>
+        {/* {menuAnchor.microApp && (
+          <MenuItem
+            onClick={() => handleToggleActive(menuAnchor.microApp!)}
+            data-testid={
+              menuAnchor.microApp.isActive === 0
+                ? "microapp-menu-reactivate"
+                : "microapp-menu-deactivate"
+            }
+            disabled={!canManage}
+          >
+            <ListItemIcon>
+              <PowerSettingsNewIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>
+              {menuAnchor.microApp.isActive === 0 ? "Reactivate" : "Deactivate"}
+            </ListItemText>
+          </MenuItem>
+        )} */}
+        <MenuItem
+          onClick={handleEditInfo}
+          data-testid="microapp-menu-edit"
+          //disabled={!canManage}
+        >
           <ListItemIcon>
             <EditIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>Edit Information</ListItemText>
         </MenuItem>
-        <MenuItem onClick={handleAddVersion}>
+        <MenuItem onClick={handleAddVersion} //disabled={!canManage} 
+        data-testid="microapp-menu-add-version">
           <ListItemIcon>
             <NewReleasesIcon fontSize="small" />
           </ListItemIcon>
@@ -561,6 +692,8 @@ const MicroApps = () => {
             handleMenuClose();
           }}
           sx={{ color: "error.main" }}
+          //disabled={!canManage}
+          data-testid="microapp-menu-delete"
         >
           <ListItemIcon>
             <DeleteIcon fontSize="small" color="error" />
@@ -580,7 +713,7 @@ const MicroApps = () => {
         confirmColor="error"
       />
 
-      <AddMicroAppDialog
+  <AddMicroAppDialog
         open={addDialogOpen}
         onClose={() => setAddDialogOpen(false)}
         onSuccess={() => {
@@ -593,7 +726,12 @@ const MicroApps = () => {
         <EditMicroAppDialog
           open={editDialog.open}
           onClose={() => setEditDialog({ open: false })}
-          onSuccess={fetchMicroApps}
+          onSuccess={(updated) => {
+            // In-place update without refetch
+            setMicroApps((prev) =>
+              prev.map((m) => (m.appId === updated.appId ? { ...m, ...updated } : m)),
+            );
+          }}
           microApp={editDialog.microApp}
         />
       )}

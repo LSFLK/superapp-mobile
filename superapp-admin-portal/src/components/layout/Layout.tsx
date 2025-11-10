@@ -23,7 +23,7 @@ export default function Layout({ children }: LayoutProps) {
     {
       title: "Micro Apps",
       icon: <AppsIcon sx={{ color: "#1976d2" }} />,
-      path: "/dashboard",
+      path: "/",
     },
     {
       title: "Users",

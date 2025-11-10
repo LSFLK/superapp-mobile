@@ -18,131 +18,49 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useEffect, useState } from "react";
-import { useColorScheme } from "@/hooks/useColorScheme";
-import { Provider, useDispatch } from "react-redux";
-import { PersistGate } from "redux-persist/integration/react";
-import { AppDispatch, persistor, store } from "@/context/store";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { setApps } from "@/context/slices/appSlice";
-import { APPS, USER_INFO } from "@/constants/Constants";
-import { getUserConfigurations } from "@/context/slices/userConfigSlice";
-import { restoreAuth } from "@/context/slices/authSlice";
-import { getVersions } from "@/context/slices/versionSlice";
-import { setUserInfo } from "@/context/slices/userInfoSlice";
-import SplashModal from "@/components/SplashModal";
-import { performLogout } from "@/utils/performLogout";
-import { lockAsync, OrientationLock } from "expo-screen-orientation";
 import * as SplashScreen from "expo-splash-screen";
-
-// Component to handle app initialization
-function AppInitializer({ onReady }: { onReady: () => void }) {
-  const dispatch = useDispatch<AppDispatch>(); // Ensure correct typing for async actions
-  const handleLogout = async () => {
-    await dispatch(performLogout()).unwrap(); // Ensure the logout action is dispatched properly
-  };
-
-  useEffect(() => {
-    const initialize = async () => {
-      try {
-        const [savedApps, savedUserInfo] = await Promise.all([
-          AsyncStorage.getItem(APPS),
-          AsyncStorage.getItem(USER_INFO),
-        ]);
-
-        if (savedApps) dispatch(setApps(JSON.parse(savedApps)));
-        if (savedUserInfo) dispatch(setUserInfo(JSON.parse(savedUserInfo)));
-
-        dispatch(getVersions(handleLogout));
-        dispatch(getUserConfigurations(handleLogout));
-        await dispatch(restoreAuth()).unwrap();
-      } catch (error) {
-        console.error("Initialization error:", error);
-      } finally {
-        onReady();
-      }
-    };
-
-    initialize();
-  }, [dispatch]);
-
-  return null; // No UI rendering needed
-}
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { useAppLayout } from "@/hooks/useAppLayout";
+import { Provider } from "react-redux";
+import { PersistGate } from "redux-persist/integration/react";
+import { persistor, store } from "@/context/store";
+import SplashModal from "@/components/SplashModal";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import AppInitializer from "../components/AppInitializer";
 
 // Main Root Layout
 export default function RootLayout() {
   SplashScreen.hide();
   const colorScheme = useColorScheme();
-  const [isAppReady, setIsAppReady] = useState(false);
-  const [isMinTimeElapsed, setIsMinTimeElapsed] = useState(false);
-  const [fontsLoaded] = useFonts({
-    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
-  });
-
-  // Called when all app initialization is done
-  const onAppLoadComplete = useCallback(() => {
-    if (fontsLoaded) {
-      setIsAppReady(true);
-    }
-  }, [fontsLoaded]);
-
-  // Start timer on first render
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsMinTimeElapsed(true);
-    }, 2000); // 2 seconds
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Trigger initialization when fonts are ready
-  useEffect(() => {
-    if (fontsLoaded) {
-      onAppLoadComplete();
-    }
-  }, [fontsLoaded, onAppLoadComplete]);
-
-  const showSplash = !isAppReady || !isMinTimeElapsed;
-
-  // Lock screen orientation to portrait mode
-  useEffect(() => {
-    const lockOrientation = async () => {
-      try {
-        await lockAsync(OrientationLock.PORTRAIT_UP);
-      } catch (error) {
-        console.error("Error locking orientation:", error);
-      }
-    };
-
-    lockOrientation();
-  }, []);
+  const { showSplash, onAppLoadComplete } = useAppLayout();
 
   if (showSplash) {
     return <SplashModal loading={showSplash} animationType="fade" />;
   }
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <>
-        <Provider store={store}>
-          <PersistGate loading={null} persistor={persistor}>
-            <AppInitializer onReady={onAppLoadComplete} />
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="update" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="micro-app"
-                options={{ headerBackTitle: "Back" }}
-              />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-          </PersistGate>
-        </Provider>
-        <StatusBar style="auto" />
-      </>
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <>
+          <Provider store={store}>
+            <PersistGate loading={null} persistor={persistor}>
+              <AppInitializer onReady={onAppLoadComplete} />
+              <Stack>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="update" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="micro-app"
+                  options={{ headerBackTitle: "Back" }}
+                />
+                <Stack.Screen name="+not-found" />
+              </Stack>
+            </PersistGate>
+          </Provider>
+          <StatusBar style="auto" />
+        </>
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }
