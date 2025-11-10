@@ -15,5 +15,5 @@
 // under the License.
 
 public const string SUPERAPP_ISSUER = "superapp-backend";
-public const string KEY_ID = "<your-kid-from-jwks>";
+public const string KEY_ID = "superapp-backend-publicKey_1";
 public const string JWKS_FILE_PATH = "modules/token_exchange/jwks.json";
