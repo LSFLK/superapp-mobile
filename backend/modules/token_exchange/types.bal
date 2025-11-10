@@ -27,6 +27,8 @@ public type TokenRequest record {|
 
 # JSON Web Key (JWK) record type for RSA keys.
 public type JsonWebKey record {|
+    # Algorithm (e.g., "RS256")
+    string alg;
     # Key type (e.g., "RSA")
     string kty;
     # Public key use (e.g., "sig" for signature)
