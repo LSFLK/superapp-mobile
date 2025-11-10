@@ -1,10 +1,11 @@
 {
   "keys": [
     {
-      "kid": "superapp-backend-publicKey_1",
       "kty": "RSA",
       "use": "sig",
-      "n": "2uzAJ9tbGsg-Hq3HEqoGDmUJLp17J77-dFeCpWuKCWWIV_oYHLDBEPHmuyyS9UQDADOSlyzPjypCOyYIu0eHOsZzGj30vmfYd2yz2oLW-AJebQWel7MbNJfr76TDi4JdRfiTXbtUdWHH989pQ4HZ5Xh3Hp978Sv-skt99jBljqM",
+      "alg": "RS256",
+      "kid": "superapp-backend-publicKey_1",
+      "n": "7lIrevHXzLXhp-E8dAksBsyK3Dofwei0T1CPvRh1MePThsnb6qN_0FG9x_v-459SN8NSX28deeIWT8-8TtOIOPZ3c84mP8m0ceantvc89TRzYqCgiIqADtSnlbd37zdNHph2tL2dHVGgvivPizwYZ2SLQPRqORdCxHUUH52iLnzScBrCnWFQI2MhuiCaEdgpmdwMJRps58zfMZnz3FE1znGMgUaIhuAI-Cys5HEIG1J0tsan_OE3JaIn70fCXUJDwEDHx-wQA0Svl0oAxmc6T_gR7eijpEW8pNGZ8kc_ScHjGKsKyTipSE5Bs1FLOwndPQgB8HoPND4MAsCGKPDPx_DuCV9LfegeTSNZqQzJ7DAprQn1msWQ1FkroTp8XXe-OMNHfi034PZapCg9MsQXek6wcvCYGDV8j3F_-jxV8_RuM3LvzDB1zEYT9Ih6czxRqiw_ojGfssu6eQ_Esspebi9e-1hzPQOMsWK0dVLSVJIfiprEzcSOY7FemdamBtfvjnPs-Rh8A-c4pucUOSDiFw8jUHMJ7yK3BaaWLByYXvtf4__rWfPde5gUX4-a4i3sFinhNBFJDib_zm6zTp1TqXrbvmP0WE7GxdzNrfX33V1Mq6lm3XsK3HwF4Nh6WEGIlU092OH7_4k4TFSzCco-vr0hEnFmzVtxa9UparxYULM",
       "e": "AQAB"
     }
   ]
