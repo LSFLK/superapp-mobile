@@ -82,6 +82,8 @@ public type MicroApp record {|
     MicroAppVersion[] versions = [];
     # List of roles/groups that have access to the microapp
     MicroAppRole[] roles = [];
+    # List of configurations for the microapp
+    MicroAppConfig[] configs = [];
 |};
 
 # Record type to represent a role/group mapping for a MicroApp.
@@ -108,6 +110,16 @@ public type MicroAppVersion record {|
     # Download url
     @sql:Column {name: "download_url"}
     string downloadUrl;
+|};
+
+# Record type to model configurations for the MicroApps of the SuperApp.
+public type MicroAppConfig record {|
+    # Configuration key, unique key for the configuration
+    @sql:Column {name: "config_key"}
+    string configKey;
+    # Configuration value, in a json format
+    @sql:Column {name: "config_value"}
+    json configValue;
 |};
 
 # Record type to model Version of the SuperApp.
