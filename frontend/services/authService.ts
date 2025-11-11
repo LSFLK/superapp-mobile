@@ -454,6 +454,21 @@ const isAccessTokenExpired = (accessToken: string): boolean => {
 };
 
 /**
+ * Check if token is expired or expiring soon (within 30 seconds)
+ */
+export const isTokenExpiringSoon = (token: string): boolean => {
+  try {
+    const decoded = jwtDecode<{ exp: number }>(token);
+    const now = Math.floor(Date.now() / 1000);
+    const bufferTime = 60; // 60 seconds buffer
+    return now >= (decoded.exp - bufferTime);
+  } catch {
+    return true; // Assume expired if decoding fails
+  }
+};
+
+
+/**
  * Process authentication data from react-native-app-auth
  */
 export const processNativeAuthResult = async (

@@ -21,6 +21,6 @@ configurable string baseUrl = ?;
 # + fileName - Name of the file
 # + return - The download URL for the file
 public isolated function getDownloadUrl(string fileName) returns string {
-    string downloadUrl = baseUrl + "micro-app-files/download/" + fileName;
+    string downloadUrl = baseUrl + "/micro-app-files/download/" + fileName;
     return downloadUrl;
 }

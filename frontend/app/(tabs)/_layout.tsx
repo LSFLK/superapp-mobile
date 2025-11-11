@@ -21,7 +21,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { Platform } from "react-native";
 import { Href } from "expo-router";
-import { LIBRARY_URL } from "@/constants/Constants";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type TabType = {
@@ -44,16 +43,6 @@ const tabs: TabType[] = [
       icon: "layers-outline",
       iconFocused: "layers-sharp",
       href: "/",
-    },
-  },
-  {
-    name: "library",
-    options: {
-      headerShown: true,
-      title: "Library",
-      icon: "book-outline",
-      iconFocused: "book",
-      href: LIBRARY_URL !== ""? "/library" : null,
     },
   },
   {

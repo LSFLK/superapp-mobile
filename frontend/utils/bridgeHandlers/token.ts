@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 import { BridgeFunction } from "../../types/bridge.types";
-
+import { isTokenExpiringSoon } from "../../services/authService";
 /**
  * Bridge handler: token
  *
@@ -27,7 +27,8 @@ import { BridgeFunction } from "../../types/bridge.types";
 export const BRIDGE_FUNCTION: BridgeFunction = {
   topic: "token",
   handler: async (params, context) => {
-    if (context.token) {
+    // Check if token exists and is not expiring soon
+    if (context.token && !isTokenExpiringSoon(context.token)) {
       context.resolve(context.token);
       
       // Resolve any pending token requests
@@ -35,7 +36,18 @@ export const BRIDGE_FUNCTION: BridgeFunction = {
         const resolve = context.pendingTokenRequests.shift();
         resolve?.(context.token as string);
       }
+    } else if (context.token && isTokenExpiringSoon(context.token)) {
+      // Token is expiring soon - queue the request and trigger refresh
+      context.pendingTokenRequests.push((token: string) => {
+        context.resolve(token);
+      });
+      
+      // Trigger token refresh
+      if (context.refreshToken) {
+        await context.refreshToken();
+      }
     } else {
+      // Token not available yet, queue the request
       context.pendingTokenRequests.push((token: string) => {
         context.resolve(token);
       });
