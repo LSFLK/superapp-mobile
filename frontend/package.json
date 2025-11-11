@@ -12,9 +12,9 @@
     "test:coverage": "jest --coverage",
     "test:ci": "jest --ci --coverage --maxWorkers=2",
     "test:update": "jest --updateSnapshot",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
-    "lint:ci": "eslint . --ext .js,.jsx,.ts,.tsx --max-warnings=0",
+    "lint": "eslint --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint --ext .js,.jsx,.ts,.tsx --fix",
+    "lint:ci": "eslint --ext .js,.jsx,.ts,.tsx --max-warnings=0",
     "write-firebase-files": "npx dotenv -e .env -- node ./scripts/writeFirebaseFiles.ts",
     "postinstall": "npm run write-firebase-files || true && npm install --prefix .."
   },

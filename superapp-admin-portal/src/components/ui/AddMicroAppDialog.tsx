@@ -39,7 +39,7 @@ const steps = [
   "Basic Information",
   "Upload Assets",
   "Version Details",
-  "Assign Roles",
+  "Roles & Capabilities",
   "Review",
 ];
 
@@ -80,9 +80,11 @@ const AddMicroAppDialog = ({
       downloadUrl: "",
     },
     roles: [] as string[],
+    allowedFunctions: [] as string[],
   });
 
   const [newRole, setNewRole] = useState("");
+  const [newFunction, setNewFunction] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const hasStepErrors = (step: number): boolean => {
@@ -350,6 +352,23 @@ const AddMicroAppDialog = ({
     }));
   };
 
+  const handleAddFunction = () => {
+    if (newFunction.trim() && !formData.allowedFunctions.includes(newFunction.trim())) {
+      setFormData((prev) => ({
+        ...prev,
+        allowedFunctions: [...prev.allowedFunctions, newFunction.trim()],
+      }));
+      setNewFunction("");
+    }
+  };
+
+  const handleRemoveFunction = (func: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      allowedFunctions: prev.allowedFunctions.filter((f) => f !== func),
+    }));
+  };
+
   const handleSubmit = async () => {
     if (!validateStep(activeStep)) return;
 
@@ -366,6 +385,14 @@ const AddMicroAppDialog = ({
         bannerImageUrl: formData.bannerImageUrl,
         versions: [formData.version],
         roles: formData.roles.map((role) => ({ role })),
+        configs: formData.allowedFunctions.length > 0
+          ? [
+              {
+                configKey: "allowedFunctions",
+                configValue: formData.allowedFunctions,
+              },
+            ]
+          : undefined,
       };
 
       await microAppsService.upsert(microApp);
@@ -761,56 +788,114 @@ const AddMicroAppDialog = ({
 
       case 3:
         return (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
-            <Typography variant="body2" color="text.secondary">
-              Assign roles/groups that can access this micro app
-            </Typography>
-            <Box sx={{ display: "flex", gap: 1 }}>
-              <TextField
-                label="Role/Group Name"
-                placeholder="e.g., admin, employee"
-                value={newRole}
-                onChange={(e) => setNewRole(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddRole();
-                  }
-                }}
-                fullWidth
-                size="small"
-                inputProps={{ "data-testid": "add-app-role-input" }}
-              />
-              <IconButton
-                color="primary"
-                onClick={handleAddRole}
-                disabled={!newRole.trim()}
-                data-testid="add-app-add-role"
-              >
-                <AddIcon />
-              </IconButton>
-            </Box>
-            {errors.roles && <Alert severity="error" data-testid="add-app-roles-error">{errors.roles}</Alert>}
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
-              {formData.roles.map((role) => (
-                <Chip
-                  key={role}
-                  label={role}
-                  onDelete={() => handleRemoveRole(role)}
-                  color="primary"
-                  variant="outlined"
-                />
-              ))}
-            </Box>
-            {formData.roles.length === 0 && (
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ fontStyle: "italic", mt: 1 }}
-              >
-                No roles assigned yet. Add at least one role.
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 3, mt: 2 }}>
+            {/* Roles Section */}
+            <Box>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Assign roles/groups that can access this micro app
               </Typography>
-            )}
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <TextField
+                  label="Role/Group Name"
+                  placeholder="e.g., admin, employee"
+                  value={newRole}
+                  onChange={(e) => setNewRole(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddRole();
+                    }
+                  }}
+                  fullWidth
+                  size="small"
+                  inputProps={{ "data-testid": "add-app-role-input" }}
+                />
+                <IconButton
+                  color="primary"
+                  onClick={handleAddRole}
+                  disabled={!newRole.trim()}
+                  data-testid="add-app-add-role"
+                >
+                  <AddIcon />
+                </IconButton>
+              </Box>
+              {errors.roles && <Alert severity="error" data-testid="add-app-roles-error">{errors.roles}</Alert>}
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
+                {formData.roles.map((role) => (
+                  <Chip
+                    key={role}
+                    label={role}
+                    onDelete={() => handleRemoveRole(role)}
+                    color="primary"
+                    variant="outlined"
+                  />
+                ))}
+              </Box>
+              {formData.roles.length === 0 && (
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ fontStyle: "italic", mt: 1 }}
+                >
+                  No roles assigned yet. Add at least one role.
+                </Typography>
+              )}
+            </Box>
+
+            {/* Allowed Functions Section */}
+            <Box>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Capabilites
+              </Typography>
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
+                Specify which bridge functions this micro-app can access (e.g., requestToken, requestCamera)
+              </Typography>
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <TextField
+                  label="Function Name"
+                  placeholder="e.g., requestToken, requestCamera"
+                  value={newFunction}
+                  onChange={(e) => setNewFunction(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddFunction();
+                    }
+                  }}
+                  fullWidth
+                  size="small"
+                  inputProps={{ "data-testid": "add-app-function-input" }}
+                />
+                <IconButton
+                  color="secondary"
+                  onClick={handleAddFunction}
+                  disabled={!newFunction.trim()}
+                  data-testid="add-app-add-function"
+                >
+                  <AddIcon />
+                </IconButton>
+              </Box>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
+                {formData.allowedFunctions.map((func) => (
+                  <Chip
+                    key={func}
+                    label={func}
+                    onDelete={() => handleRemoveFunction(func)}
+                    color="secondary"
+                    variant="outlined"
+                  />
+                ))}
+              </Box>
+              {formData.allowedFunctions.length === 0 && (
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ fontStyle: "italic", mt: 1 }}
+                >
+                  No functions specified. Micro-app will have default permissions.
+                </Typography>
+              )}
+            </Box>
           </Box>
         );
 
@@ -871,6 +956,24 @@ const AddMicroAppDialog = ({
                 ))}
               </Box>
             </Paper>
+            {formData.allowedFunctions.length > 0 && (
+              <Paper variant="outlined" sx={{ p: 2, mt: 2 }}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Capabilities
+                </Typography>
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
+                  {formData.allowedFunctions.map((func) => (
+                    <Chip
+                      key={func}
+                      label={func}
+                      size="small"
+                      color="secondary"
+                      variant="outlined"
+                    />
+                  ))}
+                </Box>
+              </Paper>
+            )}
           </Box>
         );
 
