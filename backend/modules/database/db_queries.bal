@@ -310,7 +310,6 @@ isolated function deactivateMicroAppRoleQuery(string appId, string updatedBy) re
 isolated function deactivateMicroAppConfigQuery(string appId, string updatedBy) returns sql:ParameterizedQuery =>
     `UPDATE micro_app_config SET 
         active = 0, 
-        updated_at = CURRENT_TIMESTAMP, 
         updated_by = ${updatedBy} 
     WHERE micro_app_id = ${appId}
 `;
