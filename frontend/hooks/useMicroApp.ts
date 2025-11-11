@@ -59,9 +59,8 @@ export const useMicroApp = (params: MicroAppParams) => {
   const allowedBridgeMethods = useSelector((state: RootState) => {
     const app = state.apps.apps.find((app) => app.appId === appId);
     if (!app?.configs) return undefined;
-    
     const bridgeMethodsConfig = app.configs.find(
-      (config) => config.configKey === ALLOWED_BRIDGE_METHODS_CONFIG_KEY && config.isActive === 1
+      (config) => config.configKey === ALLOWED_BRIDGE_METHODS_CONFIG_KEY
     );
     
     return bridgeMethodsConfig?.configValue as string[] | undefined;
