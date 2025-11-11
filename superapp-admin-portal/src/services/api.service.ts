@@ -85,7 +85,7 @@ class ApiService {
       };
 
       // Add token as x-jwt-assertion header for development
-      headers["x-jwt-assertion"] = token;
+      // headers["x-jwt-assertion"] = token;
       // for production
       headers["Authorization"] = `Bearer ${token}`;
 
