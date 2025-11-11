@@ -26,6 +26,7 @@ export interface BridgeContext {
   sendResponseToWeb: (method: string, data?: any, requestId?: string) => void;
 
   pendingTokenRequests: ((token: string) => void)[];
+  refreshToken?: () => Promise<void>;
   resolve: (data?: any, requestId?: string) => void;
   reject: (error: string, requestId?: string) => void;
 

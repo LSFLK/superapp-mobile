@@ -99,25 +99,27 @@ const MicroApp = () => {
             </View>
           )
         ) : (
-          <WebView
-            ref={webviewRef}
-            originWhitelist={["*"]}
-            source={{
-              uri: isDeveloper
-                ? webViewUri
-                : `${documentDirectory}${webViewUri}`,
-            }}
-            allowFileAccess
-            allowUniversalAccessFromFileURLs
-            allowingReadAccessToURL="file:///"
-            style={{ flex: 1 }}
-            onMessage={onMessage}
-            onError={handleError}
-            onShouldStartLoadWithRequest={() => true}
-            domStorageEnabled
-            webviewDebuggingEnabled={isDeveloper}
-            injectedJavaScriptBeforeContentLoaded={injectedJavaScript}
-          />
+          <View style={{ flex: 1, paddingBottom: insets.bottom }}>
+            <WebView
+              ref={webviewRef}
+              originWhitelist={["*"]}
+              source={{
+                uri: isDeveloper
+                  ? webViewUri
+                  : `${documentDirectory}${webViewUri}`,
+              }}
+              allowFileAccess
+              allowUniversalAccessFromFileURLs
+              allowingReadAccessToURL="file:///"
+              style={{ flex: 1 }}
+              onMessage={onMessage}
+              onError={handleError}
+              onShouldStartLoadWithRequest={() => true}
+              domStorageEnabled
+              webviewDebuggingEnabled={isDeveloper}
+              injectedJavaScriptBeforeContentLoaded={injectedJavaScript}
+            />
+          </View>
         )}
       </View>
     );

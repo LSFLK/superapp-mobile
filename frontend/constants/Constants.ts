@@ -24,7 +24,6 @@ export const BASE_URL = process.env.EXPO_PUBLIC_BACKEND_BASE_URL ?? "";
 export const MICRO_APP_STORAGE_DIR =
   process.env.EXPO_PUBLIC_MICRO_APP_STORAGE_DIR ?? "";
 export const ARTICLE_BASE_URL = process.env.EXPO_PUBLIC_ARTICLE_BASE_URL ?? "";
-export const LIBRARY_URL = process.env.EXPO_PUBLIC_LIBRARY_URL ?? "";
 export const GOOGLE_IOS_CLIENT_ID =
   process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? "";
 export const GOOGLE_ANDROID_CLIENT_ID =
@@ -37,8 +36,6 @@ export const GOOGLE_REFRESH_TOKEN_KEY =
   process.env.EXPO_PUBLIC_GOOGLE_REFRESH_TOKEN_KEY ?? "";
 export const GOOGLE_USER_INFO_KEY =
   process.env.EXPO_PUBLIC_GOOGLE_USER_INFO_KEY ?? "";
-export const LIBRARY_ARTICLE_FALLBACK_IMAGE =
-  process.env.EXPO_PUBLIC_LIBRARY_ARTICLE_FALLBACK_IMAGE ?? "";
 export const DEVELOPER_APP_DEFAULT_URL =
   process.env.EXPO_PUBLIC_DEVELOPER_APP_DEFAULT_URL ?? "";
 export const USE_BACKEND_TOKEN_EXCHANGE =
@@ -76,9 +73,6 @@ export const USER_CONFIGURATIONS = "user-configurations";
 export const APP_LIST_CONFIG_KEY = "superapp.apps.list";
 export const USER_INFO = "user-info";
 export const LAST_ACTIVE_PATH_KEY = "last-active-path";
-export const LIBRARY_STORAGE_KEY = "cached_library_feed";
-export const LIBRARY_TIMESTAMP_KEY = "cached_library_timestamp";
-export const LIBRARY_ARTICLE_FETCH_LIMIT = 12;
 export const EVENTS_STORAGE_KEY = "cached_events_feed";
 export const EVENTS_TIMESTAMP_KEY = "cached_events_timestamp";
 export const NEWS_URL = process.env.EXPO_PUBLIC_NEWS_URL ?? "";
