@@ -15,50 +15,47 @@
 // under the License.
 import React, { useEffect, useRef, useState } from "react";
 import {
-  Animated,
-  Image,
   StyleSheet,
   View,
   Dimensions,
-  PanResponder,
+  FlatList,
+  Image,
+  ImageSourcePropType,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
 } from "react-native";
 
 const screenWidth = Dimensions.get("window").width;
-const BANNER_PADDING = 32; // 16px on each side
-const BANNER_GAP = 16; // Gap between banners
-const BANNER_WIDTH = screenWidth - BANNER_PADDING;
+const HORIZONTAL_PADDING = 16; // Padding on each side of the screen
+const IMAGE_GAP = 16; // Gap between images
+
+const ITEM_WIDTH = screenWidth - HORIZONTAL_PADDING * 2; // Actual width of each image
+const SNAP_INTERVAL = ITEM_WIDTH + IMAGE_GAP; // Width of item + gap for snapping
 const AUTO_PLAY_INTERVAL = 5000; // 5 seconds
 
-const bannerImages = [
-  require("../assets/images/banner1.png"),
-  require("../assets/images/banner2.png"),
-  require("../assets/images/banner3.png"),
-];
+interface BannerSliderProps {
+  images: ImageSourcePropType[];
+}
 
-export default function BannerSlider() {
+export default function BannerSlider({ images }: BannerSliderProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const scrollX = useRef(new Animated.Value(0)).current;
+  const flatListRef = useRef<FlatList | null>(null);
   const autoPlayTimer = useRef<NodeJS.Timeout | null>(null);
-  const startPositionRef = useRef(0);
-  const currentIndexRef = useRef(0);
-
-  // Keep ref in sync with state
-  useEffect(() => {
-    currentIndexRef.current = currentIndex;
-  }, [currentIndex]);
 
   // Auto-play logic
   useEffect(() => {
     startAutoPlay();
     return () => stopAutoPlay();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentIndex]);
+  }, [currentIndex, images.length]);
 
   const startAutoPlay = () => {
     stopAutoPlay();
-    autoPlayTimer.current = setTimeout(() => {
-      goToNext();
-    }, AUTO_PLAY_INTERVAL);
+    if (images.length > 1) {
+      autoPlayTimer.current = setTimeout(() => {
+        goToNext();
+      }, AUTO_PLAY_INTERVAL);
+    }
   };
 
   const stopAutoPlay = () => {
@@ -69,88 +66,58 @@ export default function BannerSlider() {
   };
 
   const goToNext = () => {
-    const nextIndex = (currentIndexRef.current + 1) % bannerImages.length;
+    const nextIndex = (currentIndex + 1) % images.length;
     goToIndex(nextIndex);
   };
 
   const goToIndex = (index: number) => {
-    setCurrentIndex(index);
-    const targetPosition = -index * (BANNER_WIDTH + BANNER_GAP);
-    startPositionRef.current = targetPosition;
-    Animated.spring(scrollX, {
-      toValue: targetPosition,
-      useNativeDriver: true,
-      tension: 50,
-      friction: 8,
-    }).start();
+    if (flatListRef.current) {
+      flatListRef.current.scrollToIndex({ index, animated: true });
+    }
   };
 
-  // Pan responder for manual swiping
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, gestureState) => {
-        return Math.abs(gestureState.dx) > 5;
-      },
-      onPanResponderGrant: () => {
-        stopAutoPlay();
-        // Store the current scroll position when touch starts
-        const index = currentIndexRef.current;
-        startPositionRef.current = -index * (BANNER_WIDTH + BANNER_GAP);
-      },
-      onPanResponderMove: (_, gestureState) => {
-        const newValue = startPositionRef.current + gestureState.dx;
-        scrollX.setValue(newValue);
-      },
-      onPanResponderRelease: (_, gestureState) => {
-        const index = currentIndexRef.current;
-        const threshold = BANNER_WIDTH * 0.25;
-        let targetIndex = index;
+  const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const scrollPosition = event.nativeEvent.contentOffset.x;
+    // Add a small tolerance to handle floating point inaccuracies
+    const index = Math.round(scrollPosition / SNAP_INTERVAL);
+    if (index !== currentIndex) {
+      setCurrentIndex(index);
+    }
+  };
 
-        // Simple logic: just check swipe distance
-        if (gestureState.dx < -threshold && index < bannerImages.length - 1) {
-          // Swiped left enough - go to next
-          targetIndex = index + 1;
-        } else if (gestureState.dx > threshold && index > 0) {
-          // Swiped right enough - go to previous
-          targetIndex = index - 1;
-        } 
-        goToIndex(targetIndex);
-      },
-    })
-  ).current;
+  if (!images || images.length === 0) {
+    return null;
+  }
 
   return (
     <View style={styles.container}>
-      <Animated.View
-        {...panResponder.panHandlers}
-        style={[
-          styles.slider,
-          {
-            transform: [{ translateX: scrollX }],
-          },
-        ]}
-      >
-        {bannerImages.map((image, index) => (
-          <View key={index} style={styles.imageContainer}>
-            <Image
-              source={image}
-              style={styles.image}
-              resizeMode="cover"
-            />
+      <FlatList
+        ref={flatListRef}
+        data={images}
+        renderItem={({ item }) => (
+          <View style={styles.imageContainer}>
+            <Image source={item} style={styles.image} resizeMode="cover" />
           </View>
-        ))}
-      </Animated.View>
+        )}
+        keyExtractor={(_, index) => index.toString()}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onScroll={onScroll}
+        onScrollBeginDrag={stopAutoPlay}
+        onScrollEndDrag={startAutoPlay}
+        style={styles.slider}
+        contentContainerStyle={styles.sliderContent}
+        snapToInterval={SNAP_INTERVAL}
+        decelerationRate="fast"
+      />
 
       {/* Dots indicator */}
       <View style={styles.dotsContainer}>
-        {bannerImages.map((_, index) => (
+        {images.map((_, index) => (
           <View
             key={index}
-            style={[
-              styles.dot,
-              currentIndex === index && styles.activeDot,
-            ]}
+            style={[styles.dot, currentIndex === index && styles.activeDot]}
           />
         ))}
       </View>
@@ -164,15 +131,19 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   slider: {
-    flexDirection: "row",
-    gap: BANNER_GAP,
+    width: screenWidth,
+    marginLeft: -HORIZONTAL_PADDING, // Center the FlatList
+  },
+  sliderContent: {
+    paddingHorizontal: HORIZONTAL_PADDING,
   },
   imageContainer: {
-    width: BANNER_WIDTH,
+    width: ITEM_WIDTH,
+    marginRight: IMAGE_GAP,
   },
   image: {
-    width: BANNER_WIDTH,
-    height: BANNER_WIDTH * (22 / 35),
+    width: "100%",
+    height: ITEM_WIDTH * (22 / 35),
     borderRadius: 12,
   },
   dotsContainer: {

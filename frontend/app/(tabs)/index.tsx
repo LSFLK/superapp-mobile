@@ -38,17 +38,25 @@ import { Ionicons } from "@expo/vector-icons";
 const screenWidth = Dimensions.get("window").width;
 const windowHeight = Dimensions.get("window").height;
 
+const bannerImages = [
+  require("../../assets/images/banner1.png"),
+  require("../../assets/images/banner2.png"),
+  require("../../assets/images/banner3.png"),
+];
 
 const Discovery = () => {
   const tabBarHeight: number = useBottomTabBarHeight();
   const colorScheme = useColorScheme();
   const { height: windowHeightDynamic } = useWindowDimensions();
-  const styles = createStyles(colorScheme ?? "light", tabBarHeight, windowHeightDynamic);
+  const styles = createStyles(
+    colorScheme ?? "light",
+    tabBarHeight,
+    windowHeightDynamic
+  );
 
   useTrackActiveScreen(ScreenPaths.FEED);
 
   const { newsItems, eventItems, shouldShowSkeleton, isEmpty } = useFeed();
-
 
   return (
     <View style={styles.background}>
@@ -57,7 +65,7 @@ const Discovery = () => {
       ) : (
         <ScrollView style={{ padding: 16, marginTop: 5 }}>
           {/* Banner image slider */}
-          <BannerSlider />
+          <BannerSlider images={bannerImages} />
 
           {/* Events section */}
           {eventItems && eventItems.length > 0 && (
