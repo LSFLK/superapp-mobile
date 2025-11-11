@@ -10,6 +10,11 @@ export interface MicroAppRole {
   role: string;
 }
 
+export interface MicroAppConfig {
+  configKey: string;
+  configValue: string[];
+}
+
 export interface MicroApp {
   appId: string;
   name: string;
@@ -22,5 +27,6 @@ export interface MicroApp {
   isActive?: number;
   versions: MicroAppVersion[];
   roles: MicroAppRole[];
+  configs?: MicroAppConfig[];
   allowedBridgeMethods?: string[];
 }

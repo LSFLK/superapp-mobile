@@ -469,38 +469,69 @@ const MicroApps = () => {
                     App Id : {app.appId}
                   </Typography>
 
-                  <Box>
+                  <Box display="flex" alignItems="center" gap={0.5} flexWrap="wrap">
                     <Typography
                       variant="caption"
                       color="text.secondary"
-                      display="block"
-                      mb={0.5}
                     >
-                      Roles:{" "}
-                      {app.roles.length > 0
-                        ? app.roles.map((role) => role.role).join(", ")
-                        : "None"}
+                      Roles:
                     </Typography>
-                    <Box display="flex" gap={0.5} flexWrap="wrap">
-                      {app.roles.slice(0, 3).map((role, index) => (
-                        <Chip
-                          key={index}
-                          label={role.role}
-                          size="small"
-                          variant="outlined"
-                          sx={{ fontSize: "0.7rem", height: 20 }}
-                        />
-                      ))}
-                      {app.roles.length > 3 && (
-                        <Chip
-                          label={`+${app.roles.length - 3}`}
-                          size="small"
-                          variant="outlined"
-                          sx={{ fontSize: "0.7rem", height: 20 }}
-                        />
-                      )}
-                    </Box>
+                    {app.roles.slice(0, 3).map((role, index) => (
+                      <Chip
+                        key={index}
+                        label={role.role}
+                        size="small"
+                        variant="outlined"
+                        sx={{ fontSize: "0.7rem", height: 20 }}
+                      />
+                    ))}
+                    {app.roles.length > 3 && (
+                      <Chip
+                        label={`+${app.roles.length - 3}`}
+                        size="small"
+                        variant="outlined"
+                        sx={{ fontSize: "0.7rem", height: 20 }}
+                      />
+                    )}
                   </Box>
+
+                  {/* Allowed Functions Section */}
+                  {(() => {
+                    const allowedFunctionsConfig = app.configs?.find(
+                      (config) => config.configKey === "allowedFunctions"
+                    );
+                    const allowedFunctions = allowedFunctionsConfig?.configValue || [];
+                    
+                    return allowedFunctions.length > 0 ? (
+                      <Box display="flex" alignItems="center" gap={0.5} flexWrap="wrap" mt={1.5}>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                        >
+                          Capabilities:
+                        </Typography>
+                        {allowedFunctions.slice(0, 3).map((func, index) => (
+                          <Chip
+                            key={index}
+                            label={func}
+                            size="small"
+                            variant="outlined"
+                            color="secondary"
+                            sx={{ fontSize: "0.7rem", height: 20 }}
+                          />
+                        ))}
+                        {allowedFunctions.length > 3 && (
+                          <Chip
+                            label={`+${allowedFunctions.length - 3}`}
+                            size="small"
+                            variant="outlined"
+                            color="secondary"
+                            sx={{ fontSize: "0.7rem", height: 20 }}
+                          />
+                        )}
+                      </Box>
+                    ) : null;
+                  })()}
 
                   {/* Versions Section */}
                   <Box mt={2}>
