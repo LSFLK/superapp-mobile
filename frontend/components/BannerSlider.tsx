@@ -74,6 +74,15 @@ export default function BannerSlider({ images }: BannerSliderProps) {
     }
   };
 
+  // Update indicator based on scroll position
+  const onScroll = (event: any) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(offsetX / SNAP_INTERVAL);
+    if (index >= 0 && index < images.length && index !== currentIndex) {
+      setCurrentIndex(index);
+    }
+  };
+
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: any[] }) => {
       if (viewableItems.length > 0) {
@@ -122,6 +131,8 @@ export default function BannerSlider({ images }: BannerSliderProps) {
         keyExtractor={(_, index) => index.toString()}
         horizontal
         showsHorizontalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         onScrollBeginDrag={stopAutoPlay}
         onScrollEndDrag={startAutoPlay}
         onViewableItemsChanged={onViewableItemsChanged}
