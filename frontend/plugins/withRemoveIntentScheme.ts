@@ -68,6 +68,11 @@ const withRemoveIntentScheme: ConfigPlugin<RemoveIntentSchemeProps> = (
   config,
   { scheme }
 ) => {
+  if (!scheme || typeof scheme !== "string" || scheme.trim() === "") {
+    console.warn("Scheme is required and must be a non-empty string");
+    return config;
+  }
+
   return withAndroidManifest(config, (config) => {
     const androidManifest = config.modResults;
     const mainActivity = getMainActivity(androidManifest);
