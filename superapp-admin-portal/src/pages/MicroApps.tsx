@@ -32,10 +32,9 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import DownloadIcon from "@mui/icons-material/Download";
 import AppsIcon from "@mui/icons-material/Apps";
-import PowerSettingsNewIcon from "@mui/icons-material/PowerSettingsNew";
 import type { MicroApp } from "../types/microapp.types";
 import { useNotification } from "../context";
-import { useAuth } from "../lib/auth-context";
+// import { useAuth } from "../lib/auth-context";
 import { microAppsService } from "../services";
 import { ConfirmDialog, EditMicroAppDialog, AddVersionDialog } from "..";
 import AddMicroAppDialog from "../components/ui/AddMicroAppDialog";
@@ -50,9 +49,8 @@ function useDebouncedValue<T>(value: T, delay = 300) {
 }
 
 const MicroApps = () => {
-  const { state } = useAuth();
-  const userRoles = (state.roles ?? []).map((r) => r.toLowerCase());
-  const canManage = userRoles.includes("admin") || userRoles.includes("microapps:write");
+  // const { state } = useAuth();
+  // const userRoles = (state.roles ?? []).map((r) => r.toLowerCase());
   const [microApps, setMicroApps] = useState<MicroApp[]>([]);
   const [loading, setLoading] = useState(true);
   const [forbidden, setForbidden] = useState(false);
@@ -185,29 +183,29 @@ const MicroApps = () => {
     }
   };
 
-  const handleToggleActive = async (microApp: MicroApp) => {
-    try {
-      // Backend endpoint deactivates/activates via same path in this repo semantics
-      await microAppsService.delete(microApp.appId);
-      const nowActive = microApp.isActive === 1 ? 0 : 1;
-      // Update in place
-      setMicroApps((prev) =>
-        prev.map((m) => (m.appId === microApp.appId ? { ...m, isActive: nowActive } : m)),
-      );
-      showNotification(
-        nowActive === 1 ? "Micro app reactivated successfully" : "Micro app deactivated successfully",
-        "success",
-      );
-    } catch (error) {
-      console.error("Error toggling micro app:", error);
-      showNotification(
-        error instanceof Error ? error.message : "Failed to toggle micro app",
-        "error",
-      );
-    } finally {
-      handleMenuClose();
-    }
-  };
+  // const handleToggleActive = async (microApp: MicroApp) => {
+  //   try {
+  //     // Backend endpoint deactivates/activates via same path in this repo semantics
+  //     await microAppsService.delete(microApp.appId);
+  //     const nowActive = microApp.isActive === 1 ? 0 : 1;
+  //     // Update in place
+  //     setMicroApps((prev) =>
+  //       prev.map((m) => (m.appId === microApp.appId ? { ...m, isActive: nowActive } : m)),
+  //     );
+  //     showNotification(
+  //       nowActive === 1 ? "Micro app reactivated successfully" : "Micro app deactivated successfully",
+  //       "success",
+  //     );
+  //   } catch (error) {
+  //     console.error("Error toggling micro app:", error);
+  //     showNotification(
+  //       error instanceof Error ? error.message : "Failed to toggle micro app",
+  //       "error",
+  //     );
+  //   } finally {
+  //     handleMenuClose();
+  //   }
+  // };
 
   if (loading) {
     const placeholders = Array.from({ length: 6 });
