@@ -216,6 +216,7 @@ const AddMicroAppDialog = ({
         downloadUrl: "",
       },
       roles: [],
+      allowedFunctions: [],
     });
     setErrors({});
     onClose();
@@ -450,7 +451,7 @@ const AddMicroAppDialog = ({
               }}
               error={!!errors.name}
               helperText={errors.name}
-              FormHelperTextProps={{ 'data-testid': 'add-app-name-error' }}
+              FormHelperTextProps={{ 'data-testid': 'add-app-name-error' } as any}
               InputProps={{
                 endAdornment: errors.name ? (
                   <InputAdornment position="end">
@@ -669,7 +670,7 @@ const AddMicroAppDialog = ({
               }}
               error={!!errors.version}
               helperText={errors.version}
-              FormHelperTextProps={{ 'data-testid': 'add-app-version-error' }}
+              FormHelperTextProps={{ 'data-testid': 'add-app-version-error' } as any}
               InputProps={{
                 endAdornment: errors.version ? (
                   <InputAdornment position="end">
