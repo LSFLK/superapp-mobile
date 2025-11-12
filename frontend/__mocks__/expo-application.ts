@@ -13,18 +13,9 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
-import { renderHook } from '@testing-library/react-native';
-import { useProfile } from '@/hooks/useProfile';
-import { createMockStore } from '../utils/test-utils';
-import { Provider } from 'react-redux';
-
-describe('useProfile Hook', () => {
-  it('should provide handleLogout function and user data', () => {
-    const store = createMockStore();
-    const wrapper = ({ children }: any) => Provider({ store, children });
-    
-    const { result } = renderHook(() => useProfile(), { wrapper });
-
-    expect(typeof result.current.handleLogout).toBe('function');
-  });
-});
+export const nativeApplicationVersion = "1.0.0";
+export const nativeBuildVersion = "1";
+export default {
+  nativeApplicationVersion,
+  nativeBuildVersion,
+};
