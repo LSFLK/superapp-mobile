@@ -103,3 +103,33 @@ Read the planned enhancements and longer-term tasks in [FUTURE_IMPROVEMENTS.md](
 ## 🤝 Contributing
 
 If you are planning on contributing to the development efforts of Open Superapp Mobile, you can do so by checking out the latest development version. The main branch holds the latest unreleased source code.
+
+## 📡 Observability (OpenTelemetry Metrics)
+
+The mobile app sends performance metrics to an OpenTelemetry Collector, which exports to Prometheus.
+
+### Quick Start (Local Development)
+
+```sh
+cd observability
+docker compose up -d
+```
+
+View metrics at **http://localhost:9090** (Prometheus)
+
+### Configure the App
+
+Set in `frontend/.env`:
+
+```
+EXPO_PUBLIC_OTEL_ENABLED=true
+EXPO_PUBLIC_OTEL_COLLECTOR_URL=http://10.0.2.2:4318 
+```
+
+### Metrics Available
+- `api_request_count_total`, `api_request_duration_bucket`
+- `microapp_load_count_total`, `microapp_load_duration_bucket`
+- `auth_token_refresh_count_total`
+- `app_start_time_bucket`
+
+See `observability/README.md` for details.

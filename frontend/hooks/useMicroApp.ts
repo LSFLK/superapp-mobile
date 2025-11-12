@@ -35,6 +35,11 @@ import {
   DEVELOPER_APP_DEFAULT_URL,
   ALLOWED_BRIDGE_METHODS_CONFIG_KEY,
 } from "@/constants/Constants";
+import {
+  recordMicroAppLoad,
+  recordMicroAppLoadDuration,
+  recordMicroAppError,
+} from "@/telemetry/metrics";
 
 interface MicroAppParams {
   webViewUri: string;
@@ -74,6 +79,7 @@ export const useMicroApp = (params: MicroAppParams) => {
   const webviewRef = useRef<WebView>(null);
   const pendingTokenRequestsRef = useRef<((token: string) => void)[]>([]);
   const qrScanCallbackRef = useRef<((qrCode: string) => void) | null>(null);
+  const loadStartTimeRef = useRef<number | null>(null);
 
   const isDeveloper: boolean = appId.includes("developer");
   const isTotp: boolean = appId.includes("totp");
@@ -225,7 +231,22 @@ export const useMicroApp = (params: MicroAppParams) => {
 
   const handleError = (syntheticEvent: any) => {
     setHasError(true);
-    console.error("WebView error:", syntheticEvent.nativeEvent);
+    const error = syntheticEvent.nativeEvent;
+    console.error("WebView error:", error);
+    recordMicroAppError(appId, error?.description || "unknown");
+  };
+
+  const handleLoadStart = () => {
+    loadStartTimeRef.current = Date.now();
+    recordMicroAppLoad(appId);
+  };
+
+  const handleLoadEnd = () => {
+    if (loadStartTimeRef.current) {
+      const duration = Date.now() - loadStartTimeRef.current;
+      recordMicroAppLoadDuration(duration, appId);
+      loadStartTimeRef.current = null;
+    }
   };
 
   const reloadWebView = () => {
@@ -261,6 +282,8 @@ export const useMicroApp = (params: MicroAppParams) => {
     // Handlers
     onMessage,
     handleError,
+    handleLoadStart,
+    handleLoadEnd,
     reloadWebView,
     handleQRScan,
     handleChangeWebUri,

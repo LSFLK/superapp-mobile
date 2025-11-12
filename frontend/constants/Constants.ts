@@ -83,3 +83,19 @@ export const isAndroid = Platform.OS === "android";
 export const isIos = Platform.OS === "ios";
 export const FULL_SCREEN_VIEWING_MODE = "fullscreen";
 export const DEFAULT_VIEWING_MODE = "default";
+// OpenTelemetry Configuration
+export const OTEL_ENABLED = process.env.EXPO_PUBLIC_OTEL_ENABLED === "true";
+export const OTEL_COLLECTOR_URL =
+  process.env.EXPO_PUBLIC_OTEL_COLLECTOR_URL ?? "http://10.0.2.2:4318/";
+export const OTEL_SERVICE_NAME =
+  process.env.EXPO_PUBLIC_OTEL_SERVICE_NAME ?? "superapp-mobile";
+export const OTEL_SERVICE_VERSION =
+  process.env.EXPO_PUBLIC_OTEL_SERVICE_VERSION ?? "1.0.0";
+// Use API key authentication for secure OTLP endpoint
+// export const OTEL_API_KEY = process.env.EXPO_PUBLIC_OTEL_API_KEY ?? "";
+// Note: Increase export interval to save battery (60s = 60000ms)
+export const OTEL_EXPORT_INTERVAL =
+  parseInt(process.env.EXPO_PUBLIC_OTEL_EXPORT_INTERVAL ?? "10000", 10);
+// Note: Sample percentage (0.0-1.0) to reduce load at scale
+export const OTEL_SAMPLE_RATE =
+  parseFloat(process.env.EXPO_PUBLIC_OTEL_SAMPLE_RATE ?? "1.0");
