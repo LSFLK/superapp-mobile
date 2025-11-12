@@ -191,12 +191,7 @@ try {
   console.error('Token request failed:', error);
 }
 
-// Request user ID
-try {
-  const userId = await window.nativebridge.requestUserId();
-} catch (error) {
-  console.error('Failed to get user ID:', error);
-}
+// If you need identity details, decode the JWT payload from token
 ```
 
 ### Promise-based Best Practices
@@ -210,10 +205,8 @@ try {
 // Example with proper error handling
 async function loadUserData() {
   try {
-    const [token, userId] = await Promise.all([
-      window.nativebridge.requestToken(),
-      window.nativebridge.requestUserId()
-    ]);
+    const token = await window.nativebridge.requestToken();
+    // const { sub } = decodeJwt(token)
 
   } catch (error) {
     console.error('Failed to load user data:', error);

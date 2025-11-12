@@ -3,7 +3,7 @@
 <img src="./resources/snapshots.png?" alt="Snapshot Image" width="700"/>
 <p align="left">
   <a href="https://opensource.org/license/apache-2-0">
-    <img alt="License: MIT" src="https://img.shields.io/badge/License-apache-red.svg">
+    <img alt="License: Apache-2.0" src="https://img.shields.io/badge/License-Apache%202.0-blue.svg">
   </a>
   <!-- <a href="https://twitter.com/intent/follow?screen_name=wso2" rel="nofollow"><img src="https://img.shields.io/twitter/follow/wso2.svg?style=social&amp;label=Follow%20Us" style="max-width: 100%;"></a> -->
 </p>
@@ -27,7 +27,7 @@ This repository serves as the foundation for hosting multiple micro-apps with se
 ├── superapp-admin-portal/    # React web portal for uploading and managing micro-apps
 │   └── README.md             # Admin portal documentation
 ├── sample-microapps/         # Example micro-apps for demonstration
-│   └── government-calender/
+│   └── government-calendar/
 │       ├── frontend/         # React frontend
 │       └── README.md         # Micro-app documentation
 └── README.md                 # Project root documentation (you're here)
@@ -41,7 +41,7 @@ This repository serves as the foundation for hosting multiple micro-apps with se
 
 ### Frontend
 - **Framework**: React Native (Expo)
-- **State Management**: Redux with Thunk
+- **State Management**: Redux Toolkit + Redux Persist
 
 ### Authentication
 - External identity provider (OIDC/OAuth2 compatible)
@@ -88,7 +88,7 @@ Each part of this repository has its own setup guide. Pick the guide that matche
 
 - **Micro-App Developers** (third-party or in-house apps):
   - [Micro-App Developer Guide](./frontend/docs/MICROAPP_DEVELOPER_GUIDE.md): Building, integrating, and deploying micro-apps within the SuperApp
-  - [Sample Micro-Apps](./sample_microapps/): Reference implementations and examples
+  - [Sample Micro-Apps](./sample-microapps/): Reference implementations and examples
   
 ## 🐞 Reporting Issues
 
