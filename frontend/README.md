@@ -410,3 +410,4 @@ For detailed testing guidelines, see [`__tests__/README.md`](./__tests__/README.
 ❌ **Problem**: The build fails with an error caused by a firebase plugin during `npx expo prebuild` or `npx expo prebuild --clean`
 
 ✅ **Solution**: It was noticed that some firebase modules don't need to be added into the plugin list in the `app.config.js`. Remove the package and try re-running the commands.
+
