@@ -17,7 +17,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: '20.19.4'
 
       - name: Setup Java JDK
         uses: actions/setup-java@v4
@@ -25,18 +25,49 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install dependencies
-        run: npm install
+      - name: Create frontend .env from minimal secrets
+        run: |
+          cat > ./frontend/.env <<'EOF'
+          EXPO_PUBLIC_CLIENT_ID=${{ secrets.EXPO_PUBLIC_CLIENT_ID }}
+          EXPO_PUBLIC_REDIRECT_URI=${{ secrets.EXPO_PUBLIC_REDIRECT_URI }}
+          EXPO_PUBLIC_TOKEN_URL=${{ secrets.EXPO_PUBLIC_TOKEN_URL }}
+          EXPO_PUBLIC_LOGOUT_URL=${{ secrets.EXPO_PUBLIC_LOGOUT_URL }}
+          EXPO_PUBLIC_BACKEND_BASE_URL=${{ secrets.EXPO_PUBLIC_BACKEND_BASE_URL }}
 
-      - name: Run Expo prebuild
+          # App Configurations
+          APP_NAME=${{ secrets.APP_NAME }}
+          APP_SLUG=${{ secrets.APP_SLUG }}
+          APP_SCHEME=${{ secrets.APP_SCHEME }}
+          APP_VERSION=${{ secrets.APP_VERSION }}
+          APP_OWNER=${{ secrets.APP_OWNER }}
+          BUNDLE_IDENTIFIER=${{ secrets.BUNDLE_IDENTIFIER }}
+          ANDROID_PACKAGE=${{ secrets.ANDROID_PACKAGE }}
+          EAS_PROJECT_ID=${{ secrets.EAS_PROJECT_ID }}
+
+          EXPO_PUBLIC_EVENTS_URL=${{ secrets.EXPO_PUBLIC_EVENTS_URL }}
+          EXPO_PUBLIC_NEWS_URL=${{ secrets.EXPO_PUBLIC_NEWS_URL }}
+
+          IOS_URL_SCHEME=${{ secrets.IOS_URL_SCHEME }}
+
+          EXPO_PUBLIC_OTEL_ENABLED=${{ secrets.EXPO_PUBLIC_OTEL_ENABLED || 'false' }}
+          EXPO_PUBLIC_OTEL_COLLECTOR_URL=${{ secrets.EXPO_PUBLIC_OTEL_COLLECTOR_URL || '' }}
+          EOF
+        working-directory: .
+
+      - name: Install frontend dependencies
+        run: npm ci --prefer-offline --no-audit --progress=false
+        working-directory: ./frontend
+
+      - name: Run Expo prebuild (frontend)
         run: npx expo prebuild --platform android --clean
+        working-directory: ./frontend
 
       - name: Make gradlew executable
-        run: chmod +x ./android/gradlew
+        run: chmod +x ./frontend/android/gradlew
 
       - name: Build Android Release APK
         run: ./gradlew assembleRelease
-        working-directory: ./android
+        working-directory: ./frontend/android
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
