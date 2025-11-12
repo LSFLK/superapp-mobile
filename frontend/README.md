@@ -21,7 +21,7 @@ Before setting up the project, ensure you have the following installed:
 1. **Clone the Repository**
    ```bash
    git clone <repository-url>
-   cd gov-sup-app/superapp-mobile/frontend
+   cd superapp-mobile/frontend
    ```
 
 2. **Install Dependencies**
@@ -34,14 +34,23 @@ Before setting up the project, ensure you have the following installed:
    cp .env.example .env
    ```
 
-   Fill in the required environment variables in `.env`:
-   ```bash
-   EXPO_PUBLIC_CLIENT_ID=<project-client-id-from-idp>
-   EXPO_PUBLIC_REDIRECT_URI=<redirect-uri-from-idp>
-   EXPO_PUBLIC_TOKEN_URL=<token-url-from-idp>
-   EXPO_PUBLIC_LOGOUT_URL=<logout-url-from-idp>
-   EXPO_PUBLIC_BACKEND_BASE_URL=<backend-api-url>
-   ```
+    Fill in the required environment variables in `.env`:
+    - Authentication (choose one mode)
+       - Explicit endpoints (recommended)
+          - `EXPO_PUBLIC_AUTHORIZATION_URL`
+          - `EXPO_PUBLIC_TOKEN_URL`
+          - `EXPO_PUBLIC_REVOCATION_URL` (optional)
+       - Or discovery
+          - `EXPO_PUBLIC_ISSUER`
+       - Common
+          - `EXPO_PUBLIC_CLIENT_ID`
+          - `EXPO_PUBLIC_REDIRECT_URI`
+          - `EXPO_PUBLIC_LOGOUT_URL`
+    - Backend
+       - `EXPO_PUBLIC_BACKEND_BASE_URL`
+    - Optional
+       - `EXPO_PUBLIC_USE_BACKEND_TOKEN_EXCHANGE` ("true"|"false", default true)
+       - OpenTelemetry: set `EXPO_PUBLIC_OTEL_ENABLED=true` to enable metrics during development
 
 4. **Start Development Server**
    ```bash
@@ -119,8 +128,8 @@ npm run lint
 # Fix linting issues
 npm run lint:fix
 
-# Type check
-npm run type-check
+# Type check (optional)
+npx tsc --noEmit
 ```
 
 ---
@@ -179,12 +188,14 @@ The app uses a **dual-storage approach** for optimal security and performance:
 ├── app                       # Main application screens
 │   ├── (tabs)                # Tab navigation screens
 │   │   ├── _layout.tsx       # Layout configuration for tab screens
-│   │   ├── index.tsx         # Home tab screen
-│   │   └── settings.tsx      # Settings tab screen
+│   │   ├── index.tsx         # Feed tab screen
+│   │   ├── apps/             # My Apps tab screens
+│   │   └── profile.tsx       # Profile tab screen
 │   ├── +not-found.tsx        # Not Found (404) screen
-│   ├── app-store.tsx         # Micro-app store screen
 │   ├── index.tsx             # Entry point of the app
-│   └── micro-app.tsx         # Micro-app management screen
+│   ├── login.tsx             # Login screen (shown when unauthenticated)
+│   ├── micro-app.tsx         # Micro-app management screen
+│   └── update.tsx            # Force update screen
 ├── components                # Reusable UI components
 ├── constants                 # Static configuration and constants
 ├── context                   # Redux store and slices
@@ -198,35 +209,34 @@ The app uses a **dual-storage approach** for optimal security and performance:
 
 ## 🔄 Super App Mobile Flow
 
-### **High-Level Overview**
+### High-Level Overview
 
-1. User installs & opens the app for the first time
+1. First launch
 
-   - App fetches **latest events and news** and **caches** them for 24 hours.
+   - If the user is not authenticated, the **Login** screen is shown.
+   - After successful sign-in, the app initializes user profile and configuration.
 
-2. Default landing tab is `FEED`
+2. Landing experience (authenticated)
 
-3. User can navigate:
+   - Default landing tab is **Feed**.
+   - Tabs available: **Feed**, **My Apps**, **Profile**.
 
-   - To **Library** tab → Articles are fetched from **Library API**.
-   - To **Store/Profile** tabs → Prompt to **Sign In** is displayed.
+3. Authentication
 
-4. If user signs in:
-
-   - Retrieve **access_token & refresh_token** via **IdP**.
+   - Retrieve **access_token & refresh_token** via the **IdP** and store them in encrypted storage.
    - Fetch **user configurations** and **profile info**.
-   - Align locally installed apps with server-side configurations (install/uninstall accordingly).
+   - Align locally installed micro-apps with server-side configuration (install/uninstall as needed).
 
-5. Show:
+4. Using the app
 
-   - **My Apps** tab → User's micro apps.
-   - **Store** tab → App management functions (update, delete, download).
-   - **Profile** tab → Profile details and sign-out option.
+   - **Feed** shows the latest content.
+   - **My Apps** lists the user’s micro-apps.
+   - **Profile** provides account details and the sign-out option.
 
-6. On re-open, the app:
+5. On re-open
 
-   - Starts at the **My Apps** tab.
-   - Checks for a **Super App force update**. If required, the update screen is shown.
+   - If a valid session exists, the app opens directly to the tabs (**Feed** by default).
+   - Checks for a **Super App force update**; if required, the update screen is shown.
    - Checks if any **micro-apps have updates** and updates them automatically.
 
 ---

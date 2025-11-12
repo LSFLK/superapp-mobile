@@ -161,6 +161,22 @@ const config: ExpoConfig = {
       "@react-native-google-signin/google-signin",
       { iosUrlScheme: IOS_URL_SCHEME },
     ],
+    [
+      "react-native-edge-to-edge",
+      {
+        android: {
+          parentTheme: "Default",
+          enforceNavigationBarContrast: false,
+        },
+      },
+    ],
+    // Remove the intent scheme from the AndroidManifest.xml as it is duplicated by the app auth plugin
+    [
+      "./plugins/withRemoveIntentScheme.ts",
+      {
+        scheme: APP_SCHEME,
+      },
+    ],
   ],
   experiments: { typedRoutes: true },
   extra: {

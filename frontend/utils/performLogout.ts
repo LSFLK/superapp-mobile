@@ -23,6 +23,7 @@ import SecureStorage from "@/utils/secureStorage";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { router } from "expo-router";
 import { Alert } from "react-native";
+import { recordAuthLogout } from "@/telemetry/metrics";
 
 // Logout user
 export const performLogout = createAsyncThunk(
@@ -30,6 +31,7 @@ export const performLogout = createAsyncThunk(
   async (_, { dispatch }) => {
     try {
       await logout(); // Call Asgardeo logout
+      recordAuthLogout(); // Record logout metric
       await persistor.purge(); // Clear redux-persist storage
       dispatch(resetAll()); // Reset Redux state completely
 
@@ -43,7 +45,7 @@ export const performLogout = createAsyncThunk(
         [
           {
             text: "OK",
-            onPress: () => router.navigate(ScreenPaths.FEED),
+            onPress: () => router.navigate(ScreenPaths.LOGIN),
           },
         ],
         { cancelable: false }

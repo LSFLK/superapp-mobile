@@ -91,7 +91,6 @@ export const useProfile = () => {
   }, [dispatch]);
 
   return {
-    accessToken,
     basicUserInfo,
     handleLogout,
   };

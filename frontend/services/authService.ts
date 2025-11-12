@@ -36,7 +36,7 @@ import dayjs from "dayjs";
 import { jwtDecode } from "jwt-decode";
 import { Alert } from "react-native";
 import { logout as appLogout, AuthorizeResult } from "react-native-app-auth";
-
+import { recordAuthLogin, recordAuthTokenRefresh } from "@/telemetry/metrics";
 const GRANT_TYPE_AUTHORIZATION_CODE = "authorization_code";
 const GRANT_TYPE_REFRESH_TOKEN = "refresh_token";
 const GRANT_TYPE_TOKEN_EXCHANGE =
@@ -102,6 +102,9 @@ export const getAccessToken = async (
         };
 
         await SecureStorage.setItem(AUTH_DATA, JSON.stringify(authData)); // Persist data
+        
+        // Record login metric
+        recordAuthLogin("asgardeo");
         return authData;
       }
     } catch (err) {
@@ -179,9 +182,15 @@ export const refreshAccessToken = async (
 
         await SecureStorage.setItem(AUTH_DATA, JSON.stringify(updatedAuthData));
 
+        // Record token refresh metric
+        recordAuthTokenRefresh(true);
+
         refreshPromise = null;
         return updatedAuthData;
       }
+
+      // Record failed token refresh
+      recordAuthTokenRefresh(false);
 
       refreshPromise = null;
       return null;

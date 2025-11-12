@@ -29,7 +29,8 @@ import userInfoReducer from "./slices/userInfoSlice";
 const authPersistConfig = {
   key: "auth",
   storage: AsyncStorage,
-  whitelist: ["accessToken", "refreshToken", "idToken", "expiresAt", "email"],
+  // Security: Do not persist tokens in AsyncStorage; keep only non-sensitive fields
+  whitelist: ["email"],
 };
 
 const appsPersistConfig = {

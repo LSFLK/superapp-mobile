@@ -30,7 +30,6 @@ import ProfileListItem from "@/components/ProfileListItem";
 import Avatar from "@/components/Avatar";
 import { useTrackActiveScreen } from "@/hooks/useTrackActiveScreen";
 import { ScreenPaths } from "@/constants/ScreenPaths";
-import SignInMessage from "@/components/SignInMessage";
 import { useProfile } from "@/hooks/useProfile";
 
 /**
@@ -44,26 +43,7 @@ const SettingsScreen = () => {
 
   useTrackActiveScreen(ScreenPaths.PROFILE);
 
-  const { accessToken, basicUserInfo, handleLogout } = useProfile();
-
-  if (!accessToken) {
-    return (
-      <SafeAreaView style={styles.container} edges={['left', 'right']}>
-        <View style={styles.signInContainer}>
-          <View style={styles.overlay}>
-            <View style={styles.modal}>
-              <SignInMessage />
-            </View>
-          </View>
-          <View style={styles.bottomContainer}>
-            <View style={styles.versionContainer}>
-              <Text style={styles.versionText}>version {version}</Text>
-            </View>
-          </View>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  const { basicUserInfo, handleLogout } = useProfile();
 
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right']}>
@@ -131,23 +111,6 @@ const createStyles = (colorScheme: "light" | "dark") =>
       flex: 1,
       backgroundColor: Colors[colorScheme].primaryBackgroundColor,
       justifyContent: "space-between",
-    },
-    signInContainer: {
-      flex: 1,
-      justifyContent: "space-between",
-    },
-    overlay: {
-      flex: 1,
-      backgroundColor: Colors[colorScheme].primaryBackgroundColor,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    modal: {
-      backgroundColor: Colors[colorScheme].primaryBackgroundColor,
-      padding: 30,
-      borderRadius: 16,
-      width: "90%",
-      alignItems: "center",
     },
     topContainer: {
       marginLeft: 10,

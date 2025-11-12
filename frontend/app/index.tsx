@@ -13,13 +13,19 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
-export enum ScreenPaths {
-  FEED = "/(tabs)",
-  LIBRARY = "/library",
-  MY_APPS = "/(tabs)/apps",
-  STORE = "/(tabs)/apps/store",
-  MICRO_APP = "/micro-app",
-  PROFILE = "/(tabs)/profile",
-  UPDATE = "/update",
-  LOGIN = "/login",
+import React from "react";
+import { Redirect } from "expo-router";
+import { useSelector } from "react-redux";
+import { RootState } from "@/context/store";
+
+export default function Index() {
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+
+  // If not logged in, show login screen first
+  if (!accessToken) {
+    return <Redirect href="/login" />;
+  }
+
+  // If logged in, go to the main tabs
+  return <Redirect href="/(tabs)" />;
 }
