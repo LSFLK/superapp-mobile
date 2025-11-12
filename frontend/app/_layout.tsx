@@ -33,7 +33,8 @@ import { Colors } from "@/constants/Colors";
 
 // Main Root Layout
 export default function RootLayout() {
-  SplashScreen.hide();
+  // Ensure the native splash is hidden; ignore if already hidden
+  SplashScreen.hideAsync?.().catch(() => {});
   const colorScheme = useColorScheme();
   const { showSplash, onAppLoadComplete } = useAppLayout();
 

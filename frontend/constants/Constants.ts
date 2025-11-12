@@ -38,8 +38,9 @@ export const GOOGLE_USER_INFO_KEY =
   process.env.EXPO_PUBLIC_GOOGLE_USER_INFO_KEY ?? "";
 export const DEVELOPER_APP_DEFAULT_URL =
   process.env.EXPO_PUBLIC_DEVELOPER_APP_DEFAULT_URL ?? "";
+// Interpret env as boolean: default true; set to "false" to disable
 export const USE_BACKEND_TOKEN_EXCHANGE =
-  process.env.EXPO_PUBLIC_USE_BACKEND_TOKEN_EXCHANGE ?? "true";
+  (process.env.EXPO_PUBLIC_USE_BACKEND_TOKEN_EXCHANGE ?? "true") === "true";
 // Authenticator Micro App ID
 export const AUTHENTICATOR_APP_ID =
   process.env.EXPO_PUBLIC_AUTHENTICATOR_APP_ID ?? "";

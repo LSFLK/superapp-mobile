@@ -14,7 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 import React, { useEffect } from "react";
-import { View, Text, StyleSheet, useColorScheme, SafeAreaView } from "react-native";
+import { View, Text, StyleSheet, useColorScheme } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import { RootState } from "@/context/store";
 import { useRouter } from "expo-router";
@@ -37,7 +38,7 @@ export default function LoginScreen() {
   }, [accessToken, router]);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['left','right']}>
       <View style={styles.content}>
         <View style={styles.card}>
           <SignInMessage message="Please sign in to continue using the app" />
