@@ -20,6 +20,9 @@ export const CLIENT_ID = process.env.EXPO_PUBLIC_CLIENT_ID ?? "";
 export const REDIRECT_URI = process.env.EXPO_PUBLIC_REDIRECT_URI ?? "";
 export const TOKEN_URL = process.env.EXPO_PUBLIC_TOKEN_URL ?? "";
 export const LOGOUT_URL = process.env.EXPO_PUBLIC_LOGOUT_URL ?? "";
+export const AUTHORIZATION_URL = process.env.EXPO_PUBLIC_AUTHORIZATION_URL ?? "";
+export const REVOCATION_URL = process.env.EXPO_PUBLIC_REVOCATION_URL ?? "";
+export const ISSUER = process.env.EXPO_PUBLIC_ISSUER ?? "";
 export const BASE_URL = process.env.EXPO_PUBLIC_BACKEND_BASE_URL ?? "";
 export const MICRO_APP_STORAGE_DIR =
   process.env.EXPO_PUBLIC_MICRO_APP_STORAGE_DIR ?? "";
