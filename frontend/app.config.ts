@@ -172,7 +172,7 @@ const config: ExpoConfig = {
     ],
     // Remove the intent scheme from the AndroidManifest.xml as it is duplicated by the app auth plugin
     [
-      "./plugins/withRemoveIntentScheme.ts",
+      "./plugins/withRemoveIntentScheme.js",
       {
         scheme: APP_SCHEME,
       },
