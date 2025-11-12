@@ -29,6 +29,7 @@ import { persistor, store } from "@/context/store";
 import SplashModal from "@/components/SplashModal";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AppInitializer from "../components/AppInitializer";
+import { Colors } from "@/constants/Colors";
 
 // Main Root Layout
 export default function RootLayout() {
@@ -59,7 +60,14 @@ export default function RootLayout() {
               </Stack>
             </PersistGate>
           </Provider>
-          <StatusBar style="auto" />
+          <StatusBar
+            style={colorScheme === "dark" ? "light" : "dark"}
+            backgroundColor={
+              Colors[colorScheme === "dark" ? "dark" : "light"].
+                primaryBackgroundColor
+            }
+            translucent={false}
+          />
         </>
       </ThemeProvider>
     </SafeAreaProvider>
