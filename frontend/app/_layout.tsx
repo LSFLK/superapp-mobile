@@ -48,6 +48,7 @@ export default function RootLayout() {
             <PersistGate loading={null} persistor={persistor}>
               <AppInitializer onReady={onAppLoadComplete} />
               <Stack>
+                <Stack.Screen name="login" options={{ headerShown: false }} />
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                 <Stack.Screen name="update" options={{ headerShown: false }} />
                 <Stack.Screen

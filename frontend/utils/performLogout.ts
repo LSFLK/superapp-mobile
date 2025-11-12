@@ -45,7 +45,7 @@ export const performLogout = createAsyncThunk(
         [
           {
             text: "OK",
-            onPress: () => router.navigate(ScreenPaths.FEED),
+            onPress: () => router.navigate(ScreenPaths.LOGIN),
           },
         ],
         { cancelable: false }
