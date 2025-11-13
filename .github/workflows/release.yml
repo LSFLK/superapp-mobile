@@ -91,8 +91,22 @@ jobs:
         run: ./gradlew assembleRelease
         working-directory: ./frontend/android
 
+      - name: Stage APK with desired filename
+        run: |
+          set -euo pipefail
+          APK_SRC=./frontend/android/app/build/outputs/apk/release/app-release.apk
+          APK_DST=./frontend/android/app/build/outputs/apk/release/lsf-superapp.apk
+          if [ ! -f "$APK_SRC" ]; then
+            echo "Expected APK not found at $APK_SRC"
+            exit 1
+          fi
+          cp "$APK_SRC" "$APK_DST"
+        working-directory: .
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-release
-          path: ./frontend/android/app/build/outputs/apk/release/app-release.apk
+          # Artifact name shown in GitHub UI (keeps the file name inside the artifact)
+          name: lsf-superapp-apk
+          # Upload the staged file with the nicer name so the downloaded file is lsf-superapp.apk
+          path: ./frontend/android/app/build/outputs/apk/release/lsf-superapp.apk
