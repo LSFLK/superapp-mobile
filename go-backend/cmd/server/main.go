@@ -19,7 +19,7 @@ func main() {
 	defer database.Close(db)
 
 	// Initialize HTTP routes
-	mux := router.NewRouter(db)
+	mux := router.NewRouter(db, cfg)
 
 	// Start the server
 	addr := fmt.Sprintf(":%s", cfg.ServerPort)

@@ -12,6 +12,10 @@ type Config struct {
 	DBPort     string
 	DBName     string
 	ServerPort string
+
+	JWKSURL     string
+	JWTIssuer   string
+	JWTAudience string
 }
 
 func Load() *Config {
@@ -22,6 +26,10 @@ func Load() *Config {
 		DBPort:     getEnv("DB_PORT", "3306"),
 		DBName:     getEnv("DB_NAME", "testdb"),
 		ServerPort: getEnv("SERVER_PORT", "9090"),
+
+		JWKSURL:     getEnv("JWKS_URL", "fallback <idp-metadata-url>/jwks"),
+		JWTIssuer:   getEnv("JWT_ISSUER", "fallback <idp-issuer-url>"),
+		JWTAudience: getEnv("JWT_AUDIENCE", "fallback <target-audience-in-token>"),
 	}
 
 	log.Println("Configuration loaded")
