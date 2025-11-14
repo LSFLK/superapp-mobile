@@ -33,17 +33,19 @@ This repository serves as the foundation for hosting multiple micro-apps with se
 └── README.md                 # Project root documentation (you're here)
 ```
 
-
 ## ⚙️ Technologies Used
 
 ### Backend
+
 - **Language**: [Ballerina](https://ballerina.io/)
 
 ### Frontend
+
 - **Framework**: React Native (Expo)
 - **State Management**: Redux Toolkit + Redux Persist
 
 ### Authentication
+
 - External identity provider (OIDC/OAuth2 compatible)
 
 ## 🧱 System Architecture
@@ -53,7 +55,8 @@ Here’s a high-level view of the flow:
 <img src="./resources/architecture_diagram.png?" alt="Architecture Diagram" width="700"/>
 
 ## 🧱 Authentication Flow
-<img src="./resources/auth_flow.png?" alt="Authentication Flow Diagram" width="700"/> 
+
+<img src="./resources/auth_flow.png?" alt="Authentication Flow Diagram" width="700"/>
 
 ### Key Concepts
 
@@ -70,18 +73,19 @@ Here’s a high-level view of the flow:
 3. Downloaded micro-apps are stored using AsyncStorage.
 4. (if required) When launched, microapp specific tokens are issued by the superapp for access.
 5. The micro-app uses micro-app specific access tokens to communicate with the respective backends.
-    
 
 ## 🚀 Getting Started
-
 
 Each part of this repository has its own setup guide. Pick the guide that matches what you want to do:
 
 ### End-to-End Setup
+
 - **[Super App Deployment Guide](./docs/DEPLOYMENT_GUIDE.md)**: Step-by-step instructions for setting up the entire SuperApp stack locally, including infrastructure (database, IdP), configuration. Ideal for new contributors or those working on the complete system.
 
 ### Component-Specific Development
+
 - **SuperApp Core Deployer** (main app, backend, admin portal):
+
   - [Frontend Setup](./frontend/README.md): React Native mobile app development and local testing
   - [Backend Setup](./backend/README.md): Ballerina API service development
   - [Admin Portal Setup](./superapp-admin-portal/README.md): Web portal for managing micro-apps
@@ -89,10 +93,10 @@ Each part of this repository has its own setup guide. Pick the guide that matche
 - **Micro-App Developers** (third-party or in-house apps):
   - [Micro-App Developer Guide](./frontend/docs/MICROAPP_DEVELOPER_GUIDE.md): Building, integrating, and deploying micro-apps within the SuperApp
   - [Sample Micro-Apps](./sample-microapps/): Reference implementations and examples
-  
+
 ## 🐞 Reporting Issues
 
-###  Opening an issue
+### Opening an issue
 
 All known issues of Open Super App Mobile are filed at: https://github.com/LSFLK/superapp-mobile/issues. Please check this list before opening a new issue.
 
@@ -123,10 +127,11 @@ Set in `frontend/.env`:
 
 ```
 EXPO_PUBLIC_OTEL_ENABLED=true
-EXPO_PUBLIC_OTEL_COLLECTOR_URL=http://10.0.2.2:4318 
+EXPO_PUBLIC_OTEL_COLLECTOR_URL=http://10.0.2.2:4318
 ```
 
 ### Metrics Available
+
 - `api_request_count_total`, `api_request_duration_bucket`
 - `microapp_load_count_total`, `microapp_load_duration_bucket`
 - `auth_token_refresh_count_total`

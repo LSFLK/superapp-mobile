@@ -26,14 +26,18 @@ The Bridge leverages React Native's WebView component and the `postMessage` API 
 ## Developer Roles
 
 ### SuperApp Developer
+
 Responsible for maintaining the bridge infrastructure and implementing native functionality. This includes:
+
 - Adding new bridge functions to the registry
 - Implementing native handlers with device/platform access
 - Managing security and permissions
 - Updating bridge types and documentation
 
 ### MicroApp Developer
+
 Develops web applications that integrate with the SuperApp through the bridge. Responsibilities include:
+
 - Using bridge APIs to access native features via promises
 - Handling asynchronous responses with async/await
 - Managing bridge state and error conditions
@@ -47,7 +51,7 @@ Each bridge function is defined in `frontend/utils/bridgeRegistry.ts` with the f
 
 ```typescript
 interface BridgeFunction {
-  topic: string;                    // Unique identifier for the function
+  topic: string; // Unique identifier for the function
   handler: (params: any, context: BridgeContext) => Promise<void> | void;
   // Method names are auto-generated from topic:
   // - request: `request${capitalize(topic)}`
@@ -64,34 +68,34 @@ The handler receives a `BridgeContext` object, which provides convenient access 
 ```typescript
 interface BridgeContext {
   // Core data
-  topic: string;                              // Current bridge topic (auto-injected)
-  appID: string;                              // Current MicroApp ID
-  token: string | null;                       // Authentication token
-  
+  topic: string; // Current bridge topic (auto-injected)
+  appID: string; // Current MicroApp ID
+  token: string | null; // Authentication token
+
   // UI controls
   setScannerVisible: (visible: boolean) => void; // Control QR scanner visibility
-  
+
   // Communication
   sendResponseToWeb: (method: string, data?: any, requestId?: string) => void; // Send custom response to MicroApp
   pendingTokenRequests: ((token: string) => void)[]; // Token request queue
-  
+
   // Convenience methods that auto-generate method names from topic
   resolve: (data?: any, requestId?: string) => void; // Auto-generates resolve method name
   reject: (error: string, requestId?: string) => void; // Auto-generates reject method name
-  
+
   // Optional features (available based on context)
-  promptAsync?: () => Promise<any>;           // Google authentication prompt
-  router?: { back: () => void };              // Navigation router
-  insets?: {                                  // Safe area insets for device
+  promptAsync?: () => Promise<any>; // Google authentication prompt
+  router?: { back: () => void }; // Navigation router
+  insets?: {
+    // Safe area insets for device
     top: number;
     bottom: number;
     left: number;
     right: number;
   };
-  qrScanCallback?: (qrCode: string) => void;  // QR scanner result callback
+  qrScanCallback?: (qrCode: string) => void; // QR scanner result callback
 }
 ```
-
 
 ### Adding a New Bridge Function
 
@@ -104,14 +108,14 @@ Each bridge function lives in its own file under `frontend/utils/bridgeHandlers/
 
 ```ts
 // frontend/utils/bridgeHandlers/example_handler.ts
-import { BridgeFunction, BridgeContext } from './bridgeTypes';
+import { BridgeFunction, BridgeContext } from "./bridgeTypes";
 
 export const BRIDGE_FUNCTION: BridgeFunction = {
-  topic: 'example_topic',
+  topic: "example_topic",
   handler: async (params: any, context: BridgeContext) => {
     try {
       if (!params) {
-        context.reject('Missing parameters');
+        context.reject("Missing parameters");
         return;
       }
 
@@ -121,7 +125,7 @@ export const BRIDGE_FUNCTION: BridgeFunction = {
     } catch (err) {
       context.reject(err instanceof Error ? err.message : String(err));
     }
-  }
+  },
 };
 ```
 
@@ -138,19 +142,19 @@ Some bridge functions need to handle UI interactions that happen outside the nor
 ```typescript
 // Example: QR Scanner Handler
 export const BRIDGE_FUNCTION: BridgeFunction = {
-  topic: 'QR_code',
+  topic: "QR_code",
   handler: async (params, context) => {
     // Show the scanner UI
     context.setScannerVisible(true);
-    
+
     // Store a callback that will be invoked when QR is scanned
     context.qrScanCallback = (qrCode: string) => {
       context.resolve(qrCode);
     };
-    
+
     // Note: The actual scanner component will call context.qrScanCallback
     // when a QR code is detected
-  }
+  },
 };
 ```
 
@@ -188,7 +192,7 @@ All bridge functions now return promises for cleaner asynchronous handling:
 try {
   const token = await window.nativebridge.requestToken();
 } catch (error) {
-  console.error('Token request failed:', error);
+  console.error("Token request failed:", error);
 }
 
 // If you need identity details, decode the JWT payload from token
@@ -207,9 +211,8 @@ async function loadUserData() {
   try {
     const token = await window.nativebridge.requestToken();
     // const { sub } = decodeJwt(token)
-
   } catch (error) {
-    console.error('Failed to load user data:', error);
+    console.error("Failed to load user data:", error);
     // Handle error appropriately
   }
 }
@@ -220,6 +223,7 @@ async function loadUserData() {
 ### Authentication & Identity
 
 #### Token Management
+
 - **Request**: `await window.nativebridge.requestToken()` → `Promise<string>`
 - **Purpose**: Retrieve authentication token for API calls
 - **Note**: Token is automatically sent when available, also supports request-based retrieval
@@ -227,70 +231,84 @@ async function loadUserData() {
 ### User Interface
 
 #### Alert Dialog
+
 - **Request**: `await window.nativebridge.requestAlert({"title": title, "message": message,"buttonText": buttonText})`
 - **Purpose**: Display native alert dialog
 
 #### Confirmation Dialog
+
 - **Request**: `await window.nativebridge.requestConfirmAlert({title, message, confirmButtonText, cancelButtonText})` → `Promise<"confirm" | "cancel">`
 - **Purpose**: Display native confirmation dialog with two options
 
 #### Close WebView
+
 - **Request**: `window.nativebridge.requestCloseWebview()`
 - **Purpose**: Navigate back/close the current MicroApp WebView
 
 ### Device Features
 
 #### QR Code Scanner
+
 - **Request**: `await window.nativebridge.requestQRCode()` → `Promise<string>`
 - **Purpose**: Activate native QR code scanner and get scanned code
 - **Returns**: Promise that resolves with the scanned QR code string
 
 #### Device Safe Area Insets
+
 - **Request**: `await window.nativebridge.requestDeviceSafeAreaInsets()` → `Promise<{top, bottom, left, right}>`
 - **Purpose**: Get device safe area insets for proper UI layout
 
 ### Data Storage
 
 #### Save Local Data
+
 - **Request**: `await window.nativebridge.requestSaveLocalData({key, value})` → `Promise<void>`
 - **Purpose**: Persist data using AsyncStorage
 - **Note**: Value will be stored as a string
 
 #### Get Local Data
+
 - **Request**: `await window.nativebridge.requestGetLocalData({key})` → `Promise<{value: string | null}>`
 - **Purpose**: Retrieve persisted data from AsyncStorage
 
 ### Google Services
 
 #### Google Authentication
+
 - **Request**: `await window.nativebridge.requestAuthenticateWithGoogle()` → `Promise<UserInfo>`
 - **Purpose**: Initiate Google OAuth flow and get user information
 
 #### Check Google Auth State
+
 - **Request**: `await window.nativebridge.requestCheckGoogleAuthState()` → `Promise<boolean | UserInfo>`
 - **Purpose**: Check if user is authenticated with Google
 
 #### Get Google User Info
+
 - **Request**: `await window.nativebridge.requestGoogleUserInfo()` → `Promise<UserInfo>`
 - **Purpose**: Get authenticated Google user's information
 
 #### Upload to Google Drive
+
 - **Request**: `await window.nativebridge.requestUploadToGoogleDrive(data)` → `Promise<{id: string}>`
 - **Purpose**: Upload data/file to user's Google Drive
 
 #### Restore from Google Drive
+
 - **Request**: `await window.nativebridge.requestRestoreGoogleDriveBackup()` → `Promise<any>`
 - **Purpose**: Restore latest backup data from Google Drive
 
 ### TOTP (Time-based One-Time Password)
 
 #### TOTP QR Migration Data
+
 - **Request**: `await window.nativebridge.requestTotpQrMigrationData()` → `Promise<{data: string}>`
 - **Purpose**: Get TOTP migration data for QR code generation
 
 ### Development & Debugging
 
 #### Native Log
+
 - **Request**: `window.nativebridge.requestNativeLog({level, message, data})`
 - **Purpose**: Log messages to native console (only works in development mode)
 - **Levels**: `"info"`, `"warn"`, `"error"`
@@ -319,10 +337,10 @@ async function loadUserData() {
 3. **Test promise resolution**: Use browser dev tools to inspect promise states
 4. **Network monitoring**: Look for postMessage calls in network tab
 
-
 ## Support
 
 For bridge-related issues:
+
 - Check this documentation first
 - Review console logs for error messages
 - Verify function implementation in registry
@@ -337,25 +355,25 @@ For bridge-related issues:
 The bridge system maintains backward compatibility with legacy event-based implementations. While the **promise-based approach is recommended** for new development, the bridge continues to support the older pattern.
 
 **Legacy Pattern (Pre-defined Callbacks):**
+
 ```javascript
 // example usage for `save_local_data` function
 window.ReactNativeWebView.postMessage(
   JSON.stringify({
-    topic: 'save_local_data',
-    data: { key, value }
+    topic: "save_local_data",
+    data: { key, value },
   })
 );
 
 // Pre-define callbacks on the bridge object
 window.nativebridge.resolveSaveLocalData = (data) => {
-  console.log('Success:', data);
+  console.log("Success:", data);
 };
 
 window.nativebridge.rejectSaveLocalData = (error) => {
-  console.error('Failed:', error);
+  console.error("Failed:", error);
 };
 ```
-
 
 The bridge auto-generates method names from topics using a `capitalize` function that converts snake_case to PascalCase and appends the relevant prefix afterwards. For example:
 
@@ -363,6 +381,7 @@ The bridge auto-generates method names from topics using a `capitalize` function
 - Topic: `google_login` → Methods: `requestGoogleLogin`, `resolveGoogleLogin`, `rejectGoogleLogin`
 
 When handlers call `context.resolve(data)` or `context.reject(error)`, the bridge:
+
 1. **Resolves/rejects the promise** (modern approach)
 2. **Calls the pre-defined callback** if it exists (legacy compatibility)
 
@@ -370,7 +389,7 @@ When handlers call `context.resolve(data)` or `context.reject(error)`, the bridg
 
 ---
 
-*This guide is maintained by the SuperApp development team. Last updated: October 2025*</content>.  
+_This guide is maintained by the SuperApp development team. Last updated: October 2025_</content>.  
 <parameter name="filePath">superapp-mobile/frontend/docs/BRIDGE_GUIDE.md
 
-<br>.  
+<br>.
