@@ -39,7 +39,7 @@ func microAppRoutes(db *gorm.DB) http.Handler {
 	r.Put("/deactivate/{appID}", microappHandler.Deactivate)
 
 	// POST /micro-apps/{appID}/versions
-	r.Post("/{appID}/versions", microappVersionHandler.CreateVersion)
+	r.Post("/{appID}/versions", microappVersionHandler.UpsertVersion)
 
 	return r
 }

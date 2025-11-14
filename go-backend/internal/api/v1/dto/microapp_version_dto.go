@@ -17,7 +17,4 @@ type CreateMicroAppVersionRequest struct {
 	ReleaseNotes *string `json:"releaseNotes,omitempty"`
 	IconURL      *string `json:"iconUrl,omitempty"`
 	DownloadURL  string  `json:"downloadUrl"`
-	Active       int     `json:"active"`
-	CreatedBy    string  `json:"createdBy"`
-	UpdatedBy    *string `json:"updatedBy,omitempty"`
 }

@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"go-backend/internal/api/v1/dto"
+	"go-backend/internal/auth"
 	"go-backend/internal/models"
 
 	"github.com/go-chi/chi/v5"
@@ -69,6 +70,14 @@ func (h *MicroAppHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 // MicroAppHandler to handle upserting a new micro app
 func (h *MicroAppHandler) Upsert(w http.ResponseWriter, r *http.Request) {
+	// Get user info from context (set by auth middleware)
+	userInfo, ok := auth.GetUserInfo(r.Context())
+	if !ok {
+		http.Error(w, "user info not found in context", http.StatusUnauthorized)
+		return
+	}
+	userEmail := userInfo.Email
+
 	var req dto.CreateMicroAppRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
@@ -81,13 +90,13 @@ func (h *MicroAppHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 			Name:        req.Name,
 			Description: req.Description,
 			IconURL:     req.IconURL,
-			Active:      req.Active,
 			Mandatory:   req.Mandatory,
-			UpdatedBy:   req.UpdatedBy,
+			Active:      1,
+			UpdatedBy:   &userEmail,
 		}).
 		Attrs(models.MicroApp{
 			MicroAppID: req.AppID,
-			CreatedBy:  req.CreatedBy,
+			CreatedBy:  userEmail,
 		}).FirstOrCreate(&app)
 
 	if result.Error != nil {
@@ -104,14 +113,14 @@ func (h *MicroAppHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 					ReleaseNotes: versionReq.ReleaseNotes,
 					IconURL:      versionReq.IconURL,
 					DownloadURL:  versionReq.DownloadURL,
-					Active:       versionReq.Active,
-					UpdatedBy:    versionReq.UpdatedBy,
+					Active:       1,
+					UpdatedBy:    &userEmail,
 				}).
 				Attrs(models.MicroAppVersion{
 					MicroAppID: req.AppID,
 					Version:    versionReq.Version,
 					Build:      versionReq.Build,
-					CreatedBy:  versionReq.CreatedBy,
+					CreatedBy:  userEmail,
 				}).FirstOrCreate(&version)
 
 			if versionResult.Error != nil {
@@ -169,7 +178,7 @@ func (h *MicroAppHandler) Deactivate(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, appResponse)
 }
 
-// Healper Functions
+// Helper Functions
 
 // Fetches active versions for a micro app and converts to response format
 func (h *MicroAppHandler) fetchVersionsForApp(microAppID string) ([]dto.MicroAppVersionResponse, error) {
