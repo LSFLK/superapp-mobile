@@ -19,6 +19,27 @@ import axios, { AxiosRequestConfig } from "axios";
 import { jwtDecode } from "jwt-decode";
 import dayjs from "dayjs";
 import * as secureStorage from "@/utils/secureStorage";
+import {
+  recordApiRequest,
+  recordApiRequestDuration,
+  recordApiRequestError,
+} from "@/telemetry/metrics";
+
+// Helper to record all API metrics in one place
+const recordApiMetrics = (
+  method: string,
+  endpoint: string,
+  duration: number,
+  statusCode?: number,
+  isError: boolean = false
+) => {
+  if (isError && statusCode) {
+    recordApiRequestError(method, endpoint, statusCode);
+  } else if (statusCode) {
+    recordApiRequest(method, endpoint, statusCode);
+  }
+  recordApiRequestDuration(duration, method, endpoint);
+};
 
 // General API request handler
 export const apiRequest = async (
@@ -47,24 +68,39 @@ export const apiRequest = async (
     // "x-jwt-assertion": `${accessToken}`,
   };
 
+  const method = config.method?.toUpperCase() || "GET";
+  const url = config.url || "";
+  const endpoint = url.replace(config.baseURL || "", "") || url;
+  const startTime = Date.now();
+
   try {
-    return await axios(config); // Make the API request
+    const response = await axios(config); // Make the API request
+    recordApiMetrics(method, endpoint, Date.now() - startTime, response.status);
+    return response;
   } catch (error: any) {
+    const duration = Date.now() - startTime;
+    const statusCode = error.response?.status;
+    
     if (error.response?.status === 401) {
       const newAuthData = await refreshAccessToken(onLogout);
       if (newAuthData?.accessToken) {
         // Retry the request with the new token
         config.headers.Authorization = `Bearer ${newAuthData.accessToken}`;
+        const retryStartTime = Date.now();
 
         try {
-          return await axios(config);
+          const retryResponse = await axios(config);
+          recordApiMetrics(method, endpoint, Date.now() - retryStartTime, retryResponse.status);
+          return retryResponse;
         } catch (retryError: any) {
+          recordApiMetrics(method, endpoint, Date.now() - retryStartTime, retryError.response?.status, true);
           // 401 after refresh: Likely another issue, not token expiration
           throw retryError;
         }
       }
     }
 
+    recordApiMetrics(method, endpoint, duration, statusCode, true);
     throw error;
   }
 };

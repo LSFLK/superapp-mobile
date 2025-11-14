@@ -21,8 +21,6 @@ import {
   FlatList,
   Image,
   ImageSourcePropType,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
 } from "react-native";
 
 const screenWidth = Dimensions.get("window").width;
@@ -76,18 +74,49 @@ export default function BannerSlider({ images }: BannerSliderProps) {
     }
   };
 
-  const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const scrollPosition = event.nativeEvent.contentOffset.x;
-    // Add a small tolerance to handle floating point inaccuracies
-    const index = Math.round(scrollPosition / SNAP_INTERVAL);
-    if (index !== currentIndex) {
+  // Update indicator based on scroll position
+  const onScroll = (event: any) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(offsetX / SNAP_INTERVAL);
+    if (index >= 0 && index < images.length && index !== currentIndex) {
       setCurrentIndex(index);
     }
+  };
+
+  const onViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: any[] }) => {
+      if (viewableItems.length > 0) {
+        const newIndex = viewableItems[0].index;
+        if (newIndex !== null && newIndex !== currentIndex) {
+          setCurrentIndex(newIndex);
+        }
+      }
+    }
+  ).current;
+
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 51,
+  }).current;
+
+  const getItemLayout = (_: any, index: number) => ({
+    length: ITEM_WIDTH,
+    offset: index * SNAP_INTERVAL,
+    index,
+  });
+
+  const onScrollToIndexFailed = (info: {
+    index: number;
+    highestMeasuredFrameIndex: number;
+    averageItemLength: number;
+  }) => {
+    console.error("Failed to scroll to index:", info.index);
   };
 
   if (!images || images.length === 0) {
     return null;
   }
+
+  const ItemSeparator = () => <View style={{ width: IMAGE_GAP }} />;
 
   return (
     <View style={styles.container}>
@@ -101,15 +130,20 @@ export default function BannerSlider({ images }: BannerSliderProps) {
         )}
         keyExtractor={(_, index) => index.toString()}
         horizontal
-        pagingEnabled
         showsHorizontalScrollIndicator={false}
         onScroll={onScroll}
+        scrollEventThrottle={16}
         onScrollBeginDrag={stopAutoPlay}
         onScrollEndDrag={startAutoPlay}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
         style={styles.slider}
         contentContainerStyle={styles.sliderContent}
         snapToInterval={SNAP_INTERVAL}
         decelerationRate="fast"
+        ItemSeparatorComponent={ItemSeparator}
+        getItemLayout={getItemLayout}
+        onScrollToIndexFailed={onScrollToIndexFailed}
       />
 
       {/* Dots indicator */}
@@ -139,7 +173,6 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: ITEM_WIDTH,
-    marginRight: IMAGE_GAP,
   },
   image: {
     width: "100%",

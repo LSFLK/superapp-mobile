@@ -13,13 +13,9 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
-export enum ScreenPaths {
-  FEED = "/(tabs)",
-  LIBRARY = "/library",
-  MY_APPS = "/(tabs)/apps",
-  STORE = "/(tabs)/apps/store",
-  MICRO_APP = "/micro-app",
-  PROFILE = "/(tabs)/profile",
-  UPDATE = "/update",
-  LOGIN = "/login",
-}
+export const nativeApplicationVersion = "1.0.0";
+export const nativeBuildVersion = "1";
+export default {
+  nativeApplicationVersion,
+  nativeBuildVersion,
+};
