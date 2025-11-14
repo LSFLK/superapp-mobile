@@ -92,7 +92,7 @@ const ListItem = React.memo(
         >
           <Image
             style={styles.image}
-            source={iconUrl}
+            source={iconUrl.trim()}
             contentFit="contain"
             transition={1000}
           />

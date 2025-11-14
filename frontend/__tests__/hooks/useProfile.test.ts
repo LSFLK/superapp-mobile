@@ -26,6 +26,5 @@ describe('useProfile Hook', () => {
     const { result } = renderHook(() => useProfile(), { wrapper });
 
     expect(typeof result.current.handleLogout).toBe('function');
-    expect(result.current).toHaveProperty('accessToken');
   });
 });

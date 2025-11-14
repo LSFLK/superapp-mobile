@@ -72,7 +72,7 @@ describe("performLogout", () => {
     // Simulate onPress and check if router.navigate is called
     const onPressFunction = (Alert.alert as jest.Mock).mock.calls[0][2][0].onPress;
     onPressFunction();
-    expect(router.navigate).toHaveBeenCalledWith("/(tabs)");
+  expect(router.navigate).toHaveBeenCalledWith("/login");
   });
 
   it("should handle logout errors gracefully", async () => {

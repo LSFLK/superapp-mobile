@@ -58,6 +58,8 @@ const MicroApp = () => {
     webviewRef,
     onMessage,
     handleError,
+    handleLoadStart,
+    handleLoadEnd,
     reloadWebView,
     handleQRScan,
     handleChangeWebUri,
@@ -114,6 +116,8 @@ const MicroApp = () => {
               style={{ flex: 1 }}
               onMessage={onMessage}
               onError={handleError}
+              onLoadStart={handleLoadStart}
+              onLoadEnd={handleLoadEnd}
               onShouldStartLoadWithRequest={() => true}
               domStorageEnabled
               webviewDebuggingEnabled={isDeveloper}

@@ -25,6 +25,8 @@ import { restoreAuth } from "@/context/slices/authSlice";
 import { getVersions } from "@/context/slices/versionSlice";
 import { setUserInfo } from "@/context/slices/userInfoSlice";
 import { performLogout } from "@/utils/performLogout";
+import { initializeTelemetry } from "@/telemetry/telemetryService";
+import { recordAppStartTime } from "@/telemetry/metrics";
 
 /**
  * Component to handle app initialization
@@ -39,7 +41,12 @@ function AppInitializer({ onReady }: { onReady: () => void }) {
 
   useEffect(() => {
     const initialize = async () => {
+      const startTime = Date.now();
+      
       try {
+        // Initialize telemetry first
+        await initializeTelemetry();
+
         const [savedApps, savedUserInfo] = await Promise.all([
           AsyncStorage.getItem(APPS),
           AsyncStorage.getItem(USER_INFO),
@@ -54,6 +61,8 @@ function AppInitializer({ onReady }: { onReady: () => void }) {
       } catch (error) {
         console.error("Initialization error:", error);
       } finally {
+        const initDuration = Date.now() - startTime;
+        recordAppStartTime(initDuration);
         onReady();
       }
     };
