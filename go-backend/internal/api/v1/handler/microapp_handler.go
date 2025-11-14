@@ -25,7 +25,8 @@ func NewMicroAppHandler(db *gorm.DB) *MicroAppHandler {
 func (h *MicroAppHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	var apps []models.MicroApp
 
-	if err := h.db.Preload("Versions", "active = ?", 1).Find(&apps).Error; err != nil {
+	// Fetch only active micro apps with their active versions
+	if err := h.db.Where("active = ?", 1).Preload("Versions", "active = ?", 1).Find(&apps).Error; err != nil {
 		http.Error(w, fmt.Sprintf("failed to fetch micro apps: %v", err), http.StatusInternalServerError)
 		return
 	}
@@ -50,7 +51,7 @@ func (h *MicroAppHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var app models.MicroApp
-	if err := h.db.Where("micro_app_id = ?", id).First(&app).Error; err != nil {
+	if err := h.db.Where("micro_app_id = ? AND active = ?", id, 1).First(&app).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			http.Error(w, "micro app not found", http.StatusNotFound)
 		} else {
@@ -200,14 +201,7 @@ func (h *MicroAppHandler) Deactivate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.Active = 0
-	appResponse, err := h.convertToResponse(app)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to fetch versions: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	if err := writeJSON(w, http.StatusOK, appResponse); err != nil {
+	if err := writeJSON(w, http.StatusOK, map[string]string{"message": "Micro app deactivated successfully"}); err != nil {
 		http.Error(w, fmt.Sprintf("failed to write response: %v", err), http.StatusInternalServerError)
 	}
 }
