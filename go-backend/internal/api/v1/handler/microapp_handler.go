@@ -24,21 +24,21 @@ func NewMicroAppHandler(db *gorm.DB) *MicroAppHandler {
 // MicroAppHandler to handle fetching all micro apps
 func (h *MicroAppHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	var apps []models.MicroApp
-	if err := h.db.Find(&apps).Error; err != nil {
+
+	if err := h.db.Preload("Versions", "active = ?", 1).Find(&apps).Error; err != nil {
 		http.Error(w, fmt.Sprintf("failed to fetch micro apps: %v", err), http.StatusInternalServerError)
 		return
 	}
 
 	var response []dto.MicroAppResponse
-	for _, a := range apps {
-		appResponse, err := h.convertToResponse(a)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("failed to fetch versions: %v", err), http.StatusInternalServerError)
-			return
-		}
+	for _, app := range apps {
+		appResponse := h.convertToResponseFromPreloaded(app)
 		response = append(response, appResponse)
 	}
-	writeJSON(w, response)
+
+	if err := writeJSON(w, http.StatusOK, response); err != nil {
+		http.Error(w, fmt.Sprintf("failed to write response: %v", err), http.StatusInternalServerError)
+	}
 }
 
 // MicroAppHandler to handle fetching a micro app by ID
@@ -65,7 +65,9 @@ func (h *MicroAppHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, appResponse)
+	if err := writeJSON(w, http.StatusOK, appResponse); err != nil {
+		http.Error(w, fmt.Sprintf("failed to write response: %v", err), http.StatusInternalServerError)
+	}
 }
 
 // MicroAppHandler to handle upserting a new micro app
@@ -78,56 +80,79 @@ func (h *MicroAppHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 	}
 	userEmail := userInfo.Email
 
+	if !validateContentType(w, r) {
+		return
+	}
+
+	limitRequestBody(w, r, 0) // 1MB default limit
 	var req dto.CreateMicroAppRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	app := models.MicroApp{}
-	result := h.db.Where("micro_app_id = ?", req.AppID).
-		Assign(models.MicroApp{
-			Name:        req.Name,
-			Description: req.Description,
-			IconURL:     req.IconURL,
-			Mandatory:   req.Mandatory,
-			Active:      1,
-			UpdatedBy:   &userEmail,
-		}).
-		Attrs(models.MicroApp{
-			MicroAppID: req.AppID,
-			CreatedBy:  userEmail,
-		}).FirstOrCreate(&app)
-
-	if result.Error != nil {
-		http.Error(w, fmt.Sprintf("failed to upsert micro app: %v", result.Error), http.StatusInternalServerError)
+	// Validate required fields
+	if !validateRequiredStrings(w, map[string]string{
+		"appId": req.AppID,
+		"name":  req.Name,
+	}) {
 		return
 	}
 
-	// Upsert versions if provided
-	if len(req.Versions) > 0 {
-		for _, versionReq := range req.Versions {
-			version := models.MicroAppVersion{}
-			versionResult := h.db.Where("micro_app_id = ? AND version = ? AND build = ?", req.AppID, versionReq.Version, versionReq.Build).
-				Assign(models.MicroAppVersion{
-					ReleaseNotes: versionReq.ReleaseNotes,
-					IconURL:      versionReq.IconURL,
-					DownloadURL:  versionReq.DownloadURL,
-					Active:       1,
-					UpdatedBy:    &userEmail,
-				}).
-				Attrs(models.MicroAppVersion{
-					MicroAppID: req.AppID,
-					Version:    versionReq.Version,
-					Build:      versionReq.Build,
-					CreatedBy:  userEmail,
-				}).FirstOrCreate(&version)
+	var app models.MicroApp
 
-			if versionResult.Error != nil {
-				http.Error(w, fmt.Sprintf("failed to upsert version: %v", versionResult.Error), http.StatusInternalServerError)
-				return
+	// Use transaction to ensure app and all versions are upserted atomically
+	err := h.db.Transaction(func(tx *gorm.DB) error {
+		// Upsert micro app
+		result := tx.Where("micro_app_id = ?", req.AppID).
+			Assign(models.MicroApp{
+				Name:        req.Name,
+				Description: req.Description,
+				IconURL:     req.IconURL,
+				Mandatory:   req.Mandatory,
+				Active:      1,
+				UpdatedBy:   &userEmail,
+			}).
+			Attrs(models.MicroApp{
+				MicroAppID: req.AppID,
+				CreatedBy:  userEmail,
+			}).FirstOrCreate(&app)
+
+		if result.Error != nil {
+			return result.Error
+		}
+
+		// Upsert versions if provided
+		if len(req.Versions) > 0 {
+			for _, versionReq := range req.Versions {
+				version := models.MicroAppVersion{}
+				versionResult := tx.Where("micro_app_id = ? AND version = ? AND build = ?", req.AppID, versionReq.Version, versionReq.Build).
+					Assign(models.MicroAppVersion{
+						ReleaseNotes: versionReq.ReleaseNotes,
+						IconURL:      versionReq.IconURL,
+						DownloadURL:  versionReq.DownloadURL,
+						Active:       1,
+						UpdatedBy:    &userEmail,
+					}).
+					Attrs(models.MicroAppVersion{
+						MicroAppID: req.AppID,
+						Version:    versionReq.Version,
+						Build:      versionReq.Build,
+						CreatedBy:  userEmail,
+					}).FirstOrCreate(&version)
+
+				if versionResult.Error != nil {
+					return versionResult.Error
+				}
 			}
 		}
+
+		return nil
+	})
+
+	if err != nil {
+		http.Error(w, fmt.Sprintf("failed to upsert micro app: %v", err), http.StatusInternalServerError)
+		return
 	}
 
 	appResponse, err := h.convertToResponse(app)
@@ -136,7 +161,9 @@ func (h *MicroAppHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, appResponse)
+	if err := writeJSON(w, http.StatusCreated, appResponse); err != nil {
+		http.Error(w, fmt.Sprintf("failed to write response: %v", err), http.StatusInternalServerError)
+	}
 }
 
 // MicroAppHandler to handle deactivating a micro app
@@ -157,14 +184,19 @@ func (h *MicroAppHandler) Deactivate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.db.Model(&app).Update("active", 0).Error; err != nil {
-		http.Error(w, fmt.Sprintf("failed to deactivate micro app: %v", err), http.StatusInternalServerError)
-		return
-	}
+	// Use transaction to ensure both app and versions are deactivated together
+	err := h.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&app).Update("active", 0).Error; err != nil {
+			return err
+		}
+		if err := tx.Model(&models.MicroAppVersion{}).Where("micro_app_id = ?", id).Update("active", 0).Error; err != nil {
+			return err
+		}
+		return nil
+	})
 
-	// Deactivate all versions associated with this micro app
-	if err := h.db.Model(&models.MicroAppVersion{}).Where("micro_app_id = ?", id).Update("active", 0).Error; err != nil {
-		http.Error(w, fmt.Sprintf("failed to deactivate micro app versions: %v", err), http.StatusInternalServerError)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("failed to deactivate micro app: %v", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -175,7 +207,9 @@ func (h *MicroAppHandler) Deactivate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, appResponse)
+	if err := writeJSON(w, http.StatusOK, appResponse); err != nil {
+		http.Error(w, fmt.Sprintf("failed to write response: %v", err), http.StatusInternalServerError)
+	}
 }
 
 // Helper Functions
@@ -220,4 +254,31 @@ func (h *MicroAppHandler) convertToResponse(app models.MicroApp) (dto.MicroAppRe
 		Mandatory:   app.Mandatory,
 		Versions:    versions,
 	}, nil
+}
+
+// Converts a MicroApp model with preloaded versions to response DTO
+func (h *MicroAppHandler) convertToResponseFromPreloaded(app models.MicroApp) dto.MicroAppResponse {
+	var versionResponses []dto.MicroAppVersionResponse
+	for _, v := range app.Versions {
+		versionResponses = append(versionResponses, dto.MicroAppVersionResponse{
+			ID:           v.ID,
+			MicroAppID:   v.MicroAppID,
+			Version:      v.Version,
+			Build:        v.Build,
+			ReleaseNotes: v.ReleaseNotes,
+			IconURL:      v.IconURL,
+			DownloadURL:  v.DownloadURL,
+			Active:       v.Active,
+		})
+	}
+
+	return dto.MicroAppResponse{
+		AppID:       app.MicroAppID,
+		Name:        app.Name,
+		Description: app.Description,
+		IconURL:     app.IconURL,
+		Active:      app.Active,
+		Mandatory:   app.Mandatory,
+		Versions:    versionResponses,
+	}
 }

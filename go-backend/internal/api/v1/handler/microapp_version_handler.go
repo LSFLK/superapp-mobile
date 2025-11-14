@@ -47,9 +47,26 @@ func (h *MicroAppVersionHandler) UpsertVersion(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	if !validateContentType(w, r) {
+		return
+	}
+
+	limitRequestBody(w, r, 0) // 1MB default limit
 	var req dto.CreateMicroAppVersionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Validate required fields
+	if !validateRequiredStrings(w, map[string]string{
+		"version":     req.Version,
+		"downloadUrl": req.DownloadURL,
+	}) {
+		return
+	}
+	if req.Build < 1 {
+		http.Error(w, "build must be 1 or greater", http.StatusBadRequest)
 		return
 	}
 
@@ -74,7 +91,7 @@ func (h *MicroAppVersionHandler) UpsertVersion(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	writeJSON(w, dto.MicroAppVersionResponse{
+	if err := writeJSON(w, http.StatusCreated, dto.MicroAppVersionResponse{
 		ID:           version.ID,
 		MicroAppID:   version.MicroAppID,
 		Version:      version.Version,
@@ -83,5 +100,7 @@ func (h *MicroAppVersionHandler) UpsertVersion(w http.ResponseWriter, r *http.Re
 		IconURL:      version.IconURL,
 		DownloadURL:  version.DownloadURL,
 		Active:       version.Active,
-	})
+	}); err != nil {
+		http.Error(w, fmt.Sprintf("failed to write response: %v", err), http.StatusInternalServerError)
+	}
 }
