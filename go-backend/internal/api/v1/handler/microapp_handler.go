@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"slices"
 
 	"go-backend/internal/api/v1/dto"
 	"go-backend/internal/auth"
@@ -38,7 +39,6 @@ func (h *MicroAppHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// If user has no authorized apps, return empty array
 	if len(authorizedAppIDs) == 0 {
 		if err := writeJSON(w, http.StatusOK, []dto.MicroAppResponse{}); err != nil {
 			slog.Error("Failed to write JSON response", "error", err)
@@ -49,11 +49,12 @@ func (h *MicroAppHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	var apps []models.MicroApp
 
-	// Fetch only active micro apps with their active versions and roles
+	// Fetch only active micro apps with their active versions, roles, and configs
 	// that the user has access to
 	if err := h.db.Where("active = ? AND micro_app_id IN ?", 1, authorizedAppIDs).
 		Preload("Versions", "active = ?", 1).
 		Preload("Roles", "active = ?", 1).
+		Preload("Configs", "active = ?", 1).
 		Find(&apps).Error; err != nil {
 		slog.Error("Failed to fetch micro apps from database", "error", err)
 		http.Error(w, "failed to fetch micro apps", http.StatusInternalServerError)
@@ -96,13 +97,7 @@ func (h *MicroAppHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if the requested app ID is in the user's authorized list
-	isAuthorized := false
-	for _, authorizedID := range authorizedAppIDs {
-		if authorizedID == id {
-			isAuthorized = true
-			break
-		}
-	}
+	isAuthorized := slices.Contains(authorizedAppIDs, id)
 
 	if !isAuthorized {
 		slog.Warn("User not authorized to access micro app", "appID", id, "email", userInfo.Email, "groups", userInfo.Groups)
@@ -232,6 +227,29 @@ func (h *MicroAppHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
+		// Upsert configs if provided
+		if len(req.Configs) > 0 {
+			for _, configReq := range req.Configs {
+				config := models.MicroAppConfig{}
+				configResult := tx.Where("micro_app_id = ? AND config_key = ?", req.AppID, configReq.ConfigKey).
+					Assign(models.MicroAppConfig{
+						ConfigValue: configReq.ConfigValue,
+						Active:      1,
+						UpdatedBy:   userEmail,
+					}).
+					Attrs(models.MicroAppConfig{
+						MicroAppID:  req.AppID,
+						ConfigKey:   configReq.ConfigKey,
+						ConfigValue: configReq.ConfigValue,
+						CreatedBy:   userEmail,
+					}).FirstOrCreate(&config)
+
+				if configResult.Error != nil {
+					return configResult.Error
+				}
+			}
+		}
+
 		return nil
 	})
 
@@ -273,7 +291,7 @@ func (h *MicroAppHandler) Deactivate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Use transaction to ensure app, versions, and roles are deactivated together
+	// Use transaction to ensure app, versions, roles, and configs are deactivated together
 	err := h.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(&app).Update("active", 0).Error; err != nil {
 			return err
@@ -282,6 +300,9 @@ func (h *MicroAppHandler) Deactivate(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 		if err := tx.Model(&models.MicroAppRole{}).Where("micro_app_id = ?", id).Update("active", 0).Error; err != nil {
+			return err
+		}
+		if err := tx.Model(&models.MicroAppConfig{}).Where("micro_app_id = ?", id).Update("active", 0).Error; err != nil {
 			return err
 		}
 		return nil
@@ -301,8 +322,7 @@ func (h *MicroAppHandler) Deactivate(w http.ResponseWriter, r *http.Request) {
 
 // Helper Functions
 
-// getMicroAppIDsByGroups queries the micro_app_role table to find all micro app IDs
-// that the user has access to based on their groups (role-based access control)
+// Fetches micro app IDs accessible by the given user groups
 func (h *MicroAppHandler) getMicroAppIDsByGroups(groups []string) ([]string, error) {
 	if len(groups) == 0 {
 		slog.Warn("No groups found for the user")
@@ -369,7 +389,30 @@ func (h *MicroAppHandler) fetchRolesForApp(microAppID string) ([]dto.MicroAppRol
 	return roleResponses, nil
 }
 
-// Converts a MicroApp model to response DTO with versions and roles
+// Fetches active configs for a micro app and converts to response format
+func (h *MicroAppHandler) fetchConfigsForApp(microAppID string) ([]dto.MicroAppConfigResponse, error) {
+	var configs []models.MicroAppConfig
+	if err := h.db.Where("micro_app_id = ? AND active = ?", microAppID, 1).Find(&configs).Error; err != nil {
+		return nil, err
+	}
+
+	var configResponses []dto.MicroAppConfigResponse
+	for _, c := range configs {
+		// Marshal JSONMap to json.RawMessage
+		configValueBytes, err := json.Marshal(c.ConfigValue)
+		if err != nil {
+			return nil, err
+		}
+		configResponses = append(configResponses, dto.MicroAppConfigResponse{
+			ConfigKey:   c.ConfigKey,
+			ConfigValue: json.RawMessage(configValueBytes),
+		})
+	}
+
+	return configResponses, nil
+}
+
+// Converts a MicroApp model to response DTO with versions, roles, and configs
 func (h *MicroAppHandler) convertToResponse(app models.MicroApp) (dto.MicroAppResponse, error) {
 	versions, err := h.fetchVersionsForApp(app.MicroAppID)
 	if err != nil {
@@ -377,6 +420,11 @@ func (h *MicroAppHandler) convertToResponse(app models.MicroApp) (dto.MicroAppRe
 	}
 
 	roles, err := h.fetchRolesForApp(app.MicroAppID)
+	if err != nil {
+		return dto.MicroAppResponse{}, err
+	}
+
+	configs, err := h.fetchConfigsForApp(app.MicroAppID)
 	if err != nil {
 		return dto.MicroAppResponse{}, err
 	}
@@ -390,10 +438,11 @@ func (h *MicroAppHandler) convertToResponse(app models.MicroApp) (dto.MicroAppRe
 		Mandatory:   app.Mandatory,
 		Versions:    versions,
 		Roles:       roles,
+		Configs:     configs,
 	}, nil
 }
 
-// Converts a MicroApp model with preloaded versions and roles to response DTO
+// Converts a MicroApp model with preloaded versions, roles, and configs to response DTO
 func (h *MicroAppHandler) convertToResponseFromPreloaded(app models.MicroApp) dto.MicroAppResponse {
 	var versionResponses []dto.MicroAppVersionResponse
 	for _, v := range app.Versions {
@@ -419,6 +468,16 @@ func (h *MicroAppHandler) convertToResponseFromPreloaded(app models.MicroApp) dt
 		})
 	}
 
+	var configResponses []dto.MicroAppConfigResponse
+	for _, c := range app.Configs {
+		// Marshal JSONMap to json.RawMessage
+		configValueBytes, _ := json.Marshal(c.ConfigValue)
+		configResponses = append(configResponses, dto.MicroAppConfigResponse{
+			ConfigKey:   c.ConfigKey,
+			ConfigValue: json.RawMessage(configValueBytes),
+		})
+	}
+
 	return dto.MicroAppResponse{
 		AppID:       app.MicroAppID,
 		Name:        app.Name,
@@ -428,5 +487,6 @@ func (h *MicroAppHandler) convertToResponseFromPreloaded(app models.MicroApp) dt
 		Mandatory:   app.Mandatory,
 		Versions:    versionResponses,
 		Roles:       roleResponses,
+		Configs:     configResponses,
 	}
 }

@@ -9,6 +9,7 @@ type MicroAppResponse struct {
 	Mandatory   int                       `json:"mandatory"`
 	Versions    []MicroAppVersionResponse `json:"versions,omitempty"`
 	Roles       []MicroAppRoleResponse    `json:"roles,omitempty"`
+	Configs     []MicroAppConfigResponse  `json:"configs,omitempty"`
 }
 
 type CreateMicroAppRequest struct {
@@ -19,4 +20,5 @@ type CreateMicroAppRequest struct {
 	Mandatory   int                            `json:"mandatory"`
 	Versions    []CreateMicroAppVersionRequest `json:"versions,omitempty"`
 	Roles       []CreateMicroAppRoleRequest    `json:"roles,omitempty"`
+	Configs     []CreateMicroAppConfigRequest  `json:"configs,omitempty"`
 }
