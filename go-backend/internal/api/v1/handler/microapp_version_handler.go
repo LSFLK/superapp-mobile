@@ -2,7 +2,7 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
+	"log/slog"
 	"net/http"
 
 	"go-backend/internal/api/v1/dto"
@@ -42,7 +42,8 @@ func (h *MicroAppVersionHandler) UpsertVersion(w http.ResponseWriter, r *http.Re
 		if err == gorm.ErrRecordNotFound {
 			http.Error(w, "micro app not found", http.StatusNotFound)
 		} else {
-			http.Error(w, fmt.Sprintf("failed to fetch micro app: %v", err), http.StatusInternalServerError)
+			slog.Error("Failed to fetch micro app", "error", err, "appID", appID)
+			http.Error(w, "failed to fetch micro app", http.StatusInternalServerError)
 		}
 		return
 	}
@@ -87,7 +88,8 @@ func (h *MicroAppVersionHandler) UpsertVersion(w http.ResponseWriter, r *http.Re
 		}).FirstOrCreate(&version)
 
 	if result.Error != nil {
-		http.Error(w, fmt.Sprintf("failed to upsert version: %v", result.Error), http.StatusInternalServerError)
+		slog.Error("Failed to upsert version", "error", result.Error, "appID", appID, "version", req.Version, "build", req.Build)
+		http.Error(w, "failed to upsert version", http.StatusInternalServerError)
 		return
 	}
 
@@ -101,6 +103,7 @@ func (h *MicroAppVersionHandler) UpsertVersion(w http.ResponseWriter, r *http.Re
 		DownloadURL:  version.DownloadURL,
 		Active:       version.Active,
 	}); err != nil {
-		http.Error(w, fmt.Sprintf("failed to write response: %v", err), http.StatusInternalServerError)
+		slog.Error("Failed to write JSON response", "error", err)
+		http.Error(w, "failed to write response", http.StatusInternalServerError)
 	}
 }

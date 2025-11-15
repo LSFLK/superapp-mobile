@@ -2,7 +2,7 @@ package auth
 
 import (
 	"encoding/json"
-	"log"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -24,7 +24,7 @@ func AuthMiddleware(cfg *config.Config) func(http.Handler) http.Handler {
 			// 1. Get the token from Authorization header (Authorization: Bearer <token>)
 			authHeader := r.Header.Get(authHeader)
 			if authHeader == "" {
-				log.Println("Missing Authorization header!")
+				slog.Warn("Missing Authorization header", "path", r.URL.Path, "method", r.Method)
 				writeError(w, http.StatusUnauthorized, "Missing Authorization header")
 				return
 			}
@@ -32,7 +32,7 @@ func AuthMiddleware(cfg *config.Config) func(http.Handler) http.Handler {
 			// 2. Extract Bearer token
 			parts := strings.Split(authHeader, " ")
 			if len(parts) != headerContentPartCount || strings.ToLower(parts[bearerTypeIndex]) != "bearer" {
-				log.Println("Invalid Authorization header format!")
+				slog.Warn("Invalid Authorization header format", "path", r.URL.Path, "method", r.Method)
 				writeError(w, http.StatusUnauthorized, "Invalid Authorization header format. Expected: Bearer <token>")
 				return
 			}
@@ -42,7 +42,7 @@ func AuthMiddleware(cfg *config.Config) func(http.Handler) http.Handler {
 			// 3. Validate the token
 			userInfo, err := ValidateJWT(tokenString, cfg.JWKSURL, cfg.JWTIssuer, cfg.JWTAudience)
 			if err != nil {
-				log.Printf("Error while validating token: %v", err)
+				slog.Error("Token validation failed", "error", err, "path", r.URL.Path, "method", r.Method)
 				writeError(w, http.StatusUnauthorized, "Error while validating token")
 				return
 			}

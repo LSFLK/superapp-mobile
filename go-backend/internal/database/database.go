@@ -2,7 +2,7 @@ package database
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 
 	"go-backend/internal/config"
 
@@ -16,18 +16,20 @@ func Connect(cfg *config.Config) *gorm.DB {
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatalf("Failed to connect to DB: %v", err)
+		slog.Error("Failed to connect to database", "error", err)
+		panic(err)
 	}
 
 	sqlDB, err := db.DB()
 	if err != nil {
-		log.Fatalf("Failed to get DB instance: %v", err)
+		slog.Error("Failed to get DB instance", "error", err)
+		panic(err)
 	}
 
 	sqlDB.SetMaxOpenConns(25)
 	sqlDB.SetMaxIdleConns(5)
 
-	log.Println("Database connected successfully")
+	slog.Info("Database connected successfully", "host", cfg.DBHost, "database", cfg.DBName)
 	return db
 }
 

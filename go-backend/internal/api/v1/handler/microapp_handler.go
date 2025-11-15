@@ -2,7 +2,7 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
+	"log/slog"
 	"net/http"
 
 	"go-backend/internal/api/v1/dto"
@@ -27,7 +27,8 @@ func (h *MicroAppHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 
 	// Fetch only active micro apps with their active versions
 	if err := h.db.Where("active = ?", 1).Preload("Versions", "active = ?", 1).Find(&apps).Error; err != nil {
-		http.Error(w, fmt.Sprintf("failed to fetch micro apps: %v", err), http.StatusInternalServerError)
+		slog.Error("Failed to fetch micro apps from database", "error", err)
+		http.Error(w, "failed to fetch micro apps", http.StatusInternalServerError)
 		return
 	}
 
@@ -38,7 +39,8 @@ func (h *MicroAppHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := writeJSON(w, http.StatusOK, response); err != nil {
-		http.Error(w, fmt.Sprintf("failed to write response: %v", err), http.StatusInternalServerError)
+		slog.Error("Failed to write JSON response", "error", err)
+		http.Error(w, "failed to write response", http.StatusInternalServerError)
 	}
 }
 
@@ -55,19 +57,22 @@ func (h *MicroAppHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		if err == gorm.ErrRecordNotFound {
 			http.Error(w, "micro app not found", http.StatusNotFound)
 		} else {
-			http.Error(w, fmt.Sprintf("failed to fetch micro app: %v", err), http.StatusInternalServerError)
+			slog.Error("Failed to fetch micro app", "error", err, "appID", id)
+			http.Error(w, "failed to fetch micro app", http.StatusInternalServerError)
 		}
 		return
 	}
 
 	appResponse, err := h.convertToResponse(app)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to fetch versions: %v", err), http.StatusInternalServerError)
+		slog.Error("Failed to fetch versions for micro app", "error", err, "appID", id)
+		http.Error(w, "failed to fetch versions", http.StatusInternalServerError)
 		return
 	}
 
 	if err := writeJSON(w, http.StatusOK, appResponse); err != nil {
-		http.Error(w, fmt.Sprintf("failed to write response: %v", err), http.StatusInternalServerError)
+		slog.Error("Failed to write JSON response", "error", err)
+		http.Error(w, "failed to write response", http.StatusInternalServerError)
 	}
 }
 
@@ -152,18 +157,21 @@ func (h *MicroAppHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to upsert micro app: %v", err), http.StatusInternalServerError)
+		slog.Error("Failed to upsert micro app", "error", err, "appID", req.AppID)
+		http.Error(w, "failed to upsert micro app", http.StatusInternalServerError)
 		return
 	}
 
 	appResponse, err := h.convertToResponse(app)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to fetch versions: %v", err), http.StatusInternalServerError)
+		slog.Error("Failed to fetch versions for micro app", "error", err, "appID", req.AppID)
+		http.Error(w, "failed to fetch versions", http.StatusInternalServerError)
 		return
 	}
 
 	if err := writeJSON(w, http.StatusCreated, appResponse); err != nil {
-		http.Error(w, fmt.Sprintf("failed to write response: %v", err), http.StatusInternalServerError)
+		slog.Error("Failed to write JSON response", "error", err)
+		http.Error(w, "failed to write response", http.StatusInternalServerError)
 	}
 }
 
@@ -180,7 +188,8 @@ func (h *MicroAppHandler) Deactivate(w http.ResponseWriter, r *http.Request) {
 		if err == gorm.ErrRecordNotFound {
 			http.Error(w, "micro app not found", http.StatusNotFound)
 		} else {
-			http.Error(w, fmt.Sprintf("failed to fetch micro app: %v", err), http.StatusInternalServerError)
+			slog.Error("Failed to fetch micro app", "error", err, "appID", id)
+			http.Error(w, "failed to fetch micro app", http.StatusInternalServerError)
 		}
 		return
 	}
@@ -197,12 +206,14 @@ func (h *MicroAppHandler) Deactivate(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to deactivate micro app: %v", err), http.StatusInternalServerError)
+		slog.Error("Failed to deactivate micro app", "error", err, "appID", id)
+		http.Error(w, "failed to deactivate micro app", http.StatusInternalServerError)
 		return
 	}
 
 	if err := writeJSON(w, http.StatusOK, map[string]string{"message": "Micro app deactivated successfully"}); err != nil {
-		http.Error(w, fmt.Sprintf("failed to write response: %v", err), http.StatusInternalServerError)
+		slog.Error("Failed to write JSON response", "error", err)
+		http.Error(w, "failed to write response", http.StatusInternalServerError)
 	}
 }
 

@@ -1,7 +1,7 @@
 package config
 
 import (
-	"log"
+	"log/slog"
 	"os"
 )
 
@@ -32,7 +32,7 @@ func Load() *Config {
 		JWTAudience: getEnv("JWT_AUDIENCE", "fallback <target-audience-in-token>"),
 	}
 
-	log.Println("Configuration loaded")
+	slog.Info("Configuration loaded", "server_port", cfg.ServerPort, "db_host", cfg.DBHost)
 	return cfg
 }
 

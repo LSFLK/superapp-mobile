@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 
 	"go-backend/internal/config"
@@ -22,7 +22,6 @@ func main() {
 	mux := router.NewRouter(db, cfg)
 
 	// Start the server
-	addr := fmt.Sprintf(":%s", cfg.ServerPort)
-	fmt.Printf("Server running on %s\n", addr)
-	log.Fatal(http.ListenAndServe(addr, mux))
+	slog.Info("Starting server", "port", cfg.ServerPort)
+	log.Fatal(http.ListenAndServe(":"+cfg.ServerPort, mux))
 }
