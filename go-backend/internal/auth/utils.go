@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"net/http"
 	"strings"
 	"time"
 )
@@ -63,23 +62,9 @@ func parseJWT(tokenString string) (*ParsedJWT, error) {
 	}, nil
 }
 
-// fetchJWKS retrieves the key set from the given URL.
-func fetchJWKS(jwksURL string) (*JSONWebKeySet, error) {
-	resp, err := http.Get(jwksURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch URL: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("bad status code: %d", resp.StatusCode)
-	}
-
-	var keySet JSONWebKeySet
-	if err := json.NewDecoder(resp.Body).Decode(&keySet); err != nil {
-		return nil, fmt.Errorf("failed to decode response body: %w", err)
-	}
-	return &keySet, nil
+// getJWKS retrieves the JWKS from cache or fetches it if not present or expired.
+func getJWKS(jwksURL string) (*JSONWebKeySet, error) {
+	return loadJWKS(jwksURL)
 }
 
 // findAndBuildPublicKey finds the key in the set matching the token's kid and builds a public key.

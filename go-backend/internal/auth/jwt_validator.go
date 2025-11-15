@@ -4,44 +4,6 @@ import (
 	"fmt"
 )
 
-type JSONWebKey struct {
-	Kty string `json:"kty"`
-	Kid string `json:"kid"`
-	N   string `json:"n"`
-	E   string `json:"e"`
-	Alg string `json:"alg"`
-}
-
-type JSONWebKeySet struct {
-	Keys []JSONWebKey `json:"keys"`
-}
-
-type JWTHeader struct {
-	Alg string `json:"alg"`
-	Typ string `json:"typ"`
-	Kid string `json:"kid"`
-}
-
-type Claims struct {
-	Iss       string   `json:"iss"`
-	Sub       string   `json:"sub"`
-	Aud       string   `json:"aud"`
-	Exp       int64    `json:"exp"`
-	Nbf       int64    `json:"nbf"`
-	Iat       int64    `json:"iat"`
-	Jti       string   `json:"jti"`
-	Email     string   `json:"email"`
-	Groups    []string `json:"groups"`
-	GivenName string   `json:"given_name"`
-}
-
-type ParsedJWT struct {
-	Header       JWTHeader
-	Claims       Claims
-	Signature    []byte
-	SigningInput string
-}
-
 // ValidateJWT parses, verifies, and validates a JWT string.
 func ValidateJWT(tokenString, jwksURL, expectedIssuer, expectedAudience string) (*CustomJwtPayload, error) {
 	// 1. Parse the token string
@@ -50,8 +12,8 @@ func ValidateJWT(tokenString, jwksURL, expectedIssuer, expectedAudience string) 
 		return nil, fmt.Errorf("could not parse token: %w", err)
 	}
 
-	// 2. Fetch the JWKS from the IDP
-	keySet, err := fetchJWKS(jwksURL)
+	// 2. Get the JWKS from cache or fetch if needed
+	keySet, err := getJWKS(jwksURL)
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch JWKS: %w", err)
 	}

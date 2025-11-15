@@ -11,11 +11,6 @@ const (
 	userInfoKey = contextKey("userInfo")
 )
 
-type CustomJwtPayload struct {
-	Email  string   `json:"email"`
-	Groups []string `json:"groups"`
-}
-
 // SetUserInfo adds the CustomJwtPayload to the request context.
 func SetUserInfo(r *http.Request, userInfo *CustomJwtPayload) *http.Request {
 	ctx := context.WithValue(r.Context(), userInfoKey, userInfo)
