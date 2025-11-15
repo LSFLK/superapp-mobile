@@ -25,7 +25,6 @@ func microAppRoutes(db *gorm.DB) http.Handler {
 	// Initialize Microapp Handlers
 	microappHandler := handler.NewMicroAppHandler(db)
 	microappVersionHandler := handler.NewMicroAppVersionHandler(db)
-	microappRoleHandler := handler.NewMicroAppRoleHandler(db)
 
 	// GET /micro-apps
 	r.Get("/", microappHandler.GetAll)
@@ -41,9 +40,6 @@ func microAppRoutes(db *gorm.DB) http.Handler {
 
 	// POST /micro-apps/{appID}/versions
 	r.Post("/{appID}/versions", microappVersionHandler.UpsertVersion)
-
-	// POST /micro-apps/{appID}/roles
-	r.Post("/{appID}/roles", microappRoleHandler.UpsertRole)
 
 	return r
 }
