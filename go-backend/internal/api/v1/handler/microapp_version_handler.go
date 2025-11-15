@@ -59,15 +59,8 @@ func (h *MicroAppVersionHandler) UpsertVersion(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// Validate required fields
-	if !validateRequiredStrings(w, map[string]string{
-		"version":     req.Version,
-		"downloadUrl": req.DownloadURL,
-	}) {
-		return
-	}
-	if req.Build < 1 {
-		http.Error(w, "build must be 1 or greater", http.StatusBadRequest)
+	// Validate request
+	if !validateStruct(w, &req) {
 		return
 	}
 

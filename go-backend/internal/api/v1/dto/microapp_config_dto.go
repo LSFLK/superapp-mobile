@@ -8,6 +8,6 @@ type MicroAppConfigResponse struct {
 }
 
 type CreateMicroAppConfigRequest struct {
-	ConfigKey   string          `json:"configKey"`
-	ConfigValue json.RawMessage `json:"configValue"`
+	ConfigKey   string          `json:"configKey" validate:"required"`
+	ConfigValue json.RawMessage `json:"configValue" validate:"required"`
 }

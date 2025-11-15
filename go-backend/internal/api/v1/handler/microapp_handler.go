@@ -150,11 +150,8 @@ func (h *MicroAppHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate required fields
-	if !validateRequiredStrings(w, map[string]string{
-		"appId": req.AppID,
-		"name":  req.Name,
-	}) {
+	// Validate request
+	if !validateStruct(w, &req) {
 		return
 	}
 

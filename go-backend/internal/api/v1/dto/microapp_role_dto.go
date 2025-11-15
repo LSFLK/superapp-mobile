@@ -8,5 +8,5 @@ type MicroAppRoleResponse struct {
 }
 
 type CreateMicroAppRoleRequest struct {
-	Role string `json:"role"`
+	Role string `json:"role" validate:"required"`
 }

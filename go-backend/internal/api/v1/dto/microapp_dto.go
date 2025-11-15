@@ -13,12 +13,12 @@ type MicroAppResponse struct {
 }
 
 type CreateMicroAppRequest struct {
-	AppID       string                         `json:"appId"`
-	Name        string                         `json:"name"`
+	AppID       string                         `json:"appId" validate:"required"`
+	Name        string                         `json:"name" validate:"required"`
 	Description *string                        `json:"description,omitempty"`
 	IconURL     *string                        `json:"iconUrl,omitempty"`
 	Mandatory   int                            `json:"mandatory"`
-	Versions    []CreateMicroAppVersionRequest `json:"versions,omitempty"`
-	Roles       []CreateMicroAppRoleRequest    `json:"roles,omitempty"`
-	Configs     []CreateMicroAppConfigRequest  `json:"configs,omitempty"`
+	Versions    []CreateMicroAppVersionRequest `json:"versions,omitempty" validate:"omitempty,dive"`
+	Roles       []CreateMicroAppRoleRequest    `json:"roles,omitempty" validate:"omitempty,dive"`
+	Configs     []CreateMicroAppConfigRequest  `json:"configs,omitempty" validate:"omitempty,dive"`
 }
