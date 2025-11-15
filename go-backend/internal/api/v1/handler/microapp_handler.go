@@ -23,10 +23,38 @@ func NewMicroAppHandler(db *gorm.DB) *MicroAppHandler {
 
 // MicroAppHandler to handle fetching all micro apps
 func (h *MicroAppHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+	// Get user info from context (set by auth middleware)
+	userInfo, ok := auth.GetUserInfo(r.Context())
+	if !ok {
+		http.Error(w, "user info not found in context", http.StatusUnauthorized)
+		return
+	}
+
+	// Get app IDs the user has access to based on their groups
+	authorizedAppIDs, err := h.getMicroAppIDsByGroups(userInfo.Groups)
+	if err != nil {
+		slog.Error("Failed to get authorized app IDs", "error", err, "groups", userInfo.Groups)
+		http.Error(w, "failed to fetch micro apps", http.StatusInternalServerError)
+		return
+	}
+
+	// If user has no authorized apps, return empty array
+	if len(authorizedAppIDs) == 0 {
+		if err := writeJSON(w, http.StatusOK, []dto.MicroAppResponse{}); err != nil {
+			slog.Error("Failed to write JSON response", "error", err)
+			http.Error(w, "failed to write response", http.StatusInternalServerError)
+		}
+		return
+	}
+
 	var apps []models.MicroApp
 
-	// Fetch only active micro apps with their active versions
-	if err := h.db.Where("active = ?", 1).Preload("Versions", "active = ?", 1).Find(&apps).Error; err != nil {
+	// Fetch only active micro apps with their active versions and roles
+	// that the user has access to
+	if err := h.db.Where("active = ? AND micro_app_id IN ?", 1, authorizedAppIDs).
+		Preload("Versions", "active = ?", 1).
+		Preload("Roles", "active = ?", 1).
+		Find(&apps).Error; err != nil {
 		slog.Error("Failed to fetch micro apps from database", "error", err)
 		http.Error(w, "failed to fetch micro apps", http.StatusInternalServerError)
 		return
@@ -52,6 +80,36 @@ func (h *MicroAppHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get user info from context (set by auth middleware)
+	userInfo, ok := auth.GetUserInfo(r.Context())
+	if !ok {
+		http.Error(w, "user info not found in context", http.StatusUnauthorized)
+		return
+	}
+
+	// Get app IDs the user has access to based on their groups
+	authorizedAppIDs, err := h.getMicroAppIDsByGroups(userInfo.Groups)
+	if err != nil {
+		slog.Error("Failed to get authorized app IDs", "error", err, "groups", userInfo.Groups)
+		http.Error(w, "failed to fetch micro app", http.StatusInternalServerError)
+		return
+	}
+
+	// Check if the requested app ID is in the user's authorized list
+	isAuthorized := false
+	for _, authorizedID := range authorizedAppIDs {
+		if authorizedID == id {
+			isAuthorized = true
+			break
+		}
+	}
+
+	if !isAuthorized {
+		slog.Warn("User not authorized to access micro app", "appID", id, "email", userInfo.Email, "groups", userInfo.Groups)
+		http.Error(w, "micro app not found", http.StatusNotFound)
+		return
+	}
+
 	var app models.MicroApp
 	if err := h.db.Where("micro_app_id = ? AND active = ?", id, 1).First(&app).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -65,8 +123,8 @@ func (h *MicroAppHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	appResponse, err := h.convertToResponse(app)
 	if err != nil {
-		slog.Error("Failed to fetch versions for micro app", "error", err, "appID", id)
-		http.Error(w, "failed to fetch versions", http.StatusInternalServerError)
+		slog.Error("Failed to convert micro app to response", "error", err, "appID", id)
+		http.Error(w, "failed to fetch", http.StatusInternalServerError)
 		return
 	}
 
@@ -153,6 +211,27 @@ func (h *MicroAppHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
+		// Upsert roles if provided
+		if len(req.Roles) > 0 {
+			for _, roleReq := range req.Roles {
+				role := models.MicroAppRole{}
+				roleResult := tx.Where("micro_app_id = ? AND role = ?", req.AppID, roleReq.Role).
+					Assign(models.MicroAppRole{
+						Active:    1,
+						UpdatedBy: &userEmail,
+					}).
+					Attrs(models.MicroAppRole{
+						MicroAppID: req.AppID,
+						Role:       roleReq.Role,
+						CreatedBy:  userEmail,
+					}).FirstOrCreate(&role)
+
+				if roleResult.Error != nil {
+					return roleResult.Error
+				}
+			}
+		}
+
 		return nil
 	})
 
@@ -194,12 +273,15 @@ func (h *MicroAppHandler) Deactivate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Use transaction to ensure both app and versions are deactivated together
+	// Use transaction to ensure app, versions, and roles are deactivated together
 	err := h.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(&app).Update("active", 0).Error; err != nil {
 			return err
 		}
 		if err := tx.Model(&models.MicroAppVersion{}).Where("micro_app_id = ?", id).Update("active", 0).Error; err != nil {
+			return err
+		}
+		if err := tx.Model(&models.MicroAppRole{}).Where("micro_app_id = ?", id).Update("active", 0).Error; err != nil {
 			return err
 		}
 		return nil
@@ -218,6 +300,30 @@ func (h *MicroAppHandler) Deactivate(w http.ResponseWriter, r *http.Request) {
 }
 
 // Helper Functions
+
+// getMicroAppIDsByGroups queries the micro_app_role table to find all micro app IDs
+// that the user has access to based on their groups (role-based access control)
+func (h *MicroAppHandler) getMicroAppIDsByGroups(groups []string) ([]string, error) {
+	if len(groups) == 0 {
+		slog.Warn("No groups found for the user")
+		return []string{}, nil
+	}
+
+	var appIDs []string
+	if err := h.db.Model(&models.MicroAppRole{}).
+		Select("DISTINCT micro_app_id").
+		Where("active = ? AND role IN ?", 1, groups).
+		Pluck("micro_app_id", &appIDs).Error; err != nil {
+		return nil, err
+	}
+
+	if len(appIDs) == 0 {
+		slog.Warn("No micro apps found for the given groups", "groups", groups)
+		return []string{}, nil
+	}
+
+	return appIDs, nil
+}
 
 // Fetches active versions for a micro app and converts to response format
 func (h *MicroAppHandler) fetchVersionsForApp(microAppID string) ([]dto.MicroAppVersionResponse, error) {
@@ -243,9 +349,34 @@ func (h *MicroAppHandler) fetchVersionsForApp(microAppID string) ([]dto.MicroApp
 	return versionResponses, nil
 }
 
-// Converts a MicroApp model to response DTO with versions
+// Fetches active roles for a micro app and converts to response format
+func (h *MicroAppHandler) fetchRolesForApp(microAppID string) ([]dto.MicroAppRoleResponse, error) {
+	var roles []models.MicroAppRole
+	if err := h.db.Where("micro_app_id = ? AND active = ?", microAppID, 1).Find(&roles).Error; err != nil {
+		return nil, err
+	}
+
+	var roleResponses []dto.MicroAppRoleResponse
+	for _, r := range roles {
+		roleResponses = append(roleResponses, dto.MicroAppRoleResponse{
+			ID:         r.ID,
+			MicroAppID: r.MicroAppID,
+			Role:       r.Role,
+			Active:     r.Active,
+		})
+	}
+
+	return roleResponses, nil
+}
+
+// Converts a MicroApp model to response DTO with versions and roles
 func (h *MicroAppHandler) convertToResponse(app models.MicroApp) (dto.MicroAppResponse, error) {
 	versions, err := h.fetchVersionsForApp(app.MicroAppID)
+	if err != nil {
+		return dto.MicroAppResponse{}, err
+	}
+
+	roles, err := h.fetchRolesForApp(app.MicroAppID)
 	if err != nil {
 		return dto.MicroAppResponse{}, err
 	}
@@ -258,10 +389,11 @@ func (h *MicroAppHandler) convertToResponse(app models.MicroApp) (dto.MicroAppRe
 		Active:      app.Active,
 		Mandatory:   app.Mandatory,
 		Versions:    versions,
+		Roles:       roles,
 	}, nil
 }
 
-// Converts a MicroApp model with preloaded versions to response DTO
+// Converts a MicroApp model with preloaded versions and roles to response DTO
 func (h *MicroAppHandler) convertToResponseFromPreloaded(app models.MicroApp) dto.MicroAppResponse {
 	var versionResponses []dto.MicroAppVersionResponse
 	for _, v := range app.Versions {
@@ -277,6 +409,16 @@ func (h *MicroAppHandler) convertToResponseFromPreloaded(app models.MicroApp) dt
 		})
 	}
 
+	var roleResponses []dto.MicroAppRoleResponse
+	for _, r := range app.Roles {
+		roleResponses = append(roleResponses, dto.MicroAppRoleResponse{
+			ID:         r.ID,
+			MicroAppID: r.MicroAppID,
+			Role:       r.Role,
+			Active:     r.Active,
+		})
+	}
+
 	return dto.MicroAppResponse{
 		AppID:       app.MicroAppID,
 		Name:        app.Name,
@@ -285,5 +427,6 @@ func (h *MicroAppHandler) convertToResponseFromPreloaded(app models.MicroApp) dt
 		Active:      app.Active,
 		Mandatory:   app.Mandatory,
 		Versions:    versionResponses,
+		Roles:       roleResponses,
 	}
 }

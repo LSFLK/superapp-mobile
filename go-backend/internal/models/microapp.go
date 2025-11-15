@@ -17,6 +17,7 @@ type MicroApp struct {
 	Active         int               `gorm:"column:active;type:tinyint(1);not null;default:1"`
 	Mandatory      int               `gorm:"column:mandatory;type:tinyint(1);not null;default:0"`
 	Versions       []MicroAppVersion `gorm:"foreignKey:MicroAppID;references:MicroAppID"`
+	Roles          []MicroAppRole    `gorm:"foreignKey:MicroAppID;references:MicroAppID"`
 }
 
 func (MicroApp) TableName() string {

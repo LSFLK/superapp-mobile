@@ -8,6 +8,7 @@ type MicroAppResponse struct {
 	Active      int                       `json:"active"`
 	Mandatory   int                       `json:"mandatory"`
 	Versions    []MicroAppVersionResponse `json:"versions,omitempty"`
+	Roles       []MicroAppRoleResponse    `json:"roles,omitempty"`
 }
 
 type CreateMicroAppRequest struct {
@@ -17,4 +18,5 @@ type CreateMicroAppRequest struct {
 	IconURL     *string                        `json:"iconUrl,omitempty"`
 	Mandatory   int                            `json:"mandatory"`
 	Versions    []CreateMicroAppVersionRequest `json:"versions,omitempty"`
+	Roles       []CreateMicroAppRoleRequest    `json:"roles,omitempty"`
 }
