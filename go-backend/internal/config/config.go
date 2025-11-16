@@ -16,6 +16,9 @@ type Config struct {
 	JWKSURL     string
 	JWTIssuer   string
 	JWTAudience string
+
+	FileServiceType string
+	BaseURL         string
 }
 
 func Load() *Config {
@@ -30,6 +33,9 @@ func Load() *Config {
 		JWKSURL:     getEnv("JWKS_URL", "fallback <idp-metadata-url>/jwks"),
 		JWTIssuer:   getEnv("JWT_ISSUER", "fallback <idp-issuer-url>"),
 		JWTAudience: getEnv("JWT_AUDIENCE", "fallback <target-audience-in-token>"),
+
+		FileServiceType: getEnv("FILE_SERVICE_TYPE", "db"),
+		BaseURL:         getEnv("BASE_URL", "http://localhost:9090"),
 	}
 
 	slog.Info("Configuration loaded", "server_port", cfg.ServerPort, "db_host", cfg.DBHost)
