@@ -298,6 +298,35 @@ async function loadUserData() {
 - **Request**: `await window.nativebridge.requestRestoreGoogleDriveBackup()` → `Promise<any>`
 - **Purpose**: Restore latest backup data from Google Drive
 
+#### File Downloads
+
+- **Request**: `await window.nativebridge.requestDownloadFile({ url, filename? })` → `Promise<{ localPath: string }>`
+- **Purpose**: Download a file from a URL (or base64 data) into the device app storage and return the local path; the native layer may optionally offer a share/save UI.
+- **Params**:
+  - `url` (string): HTTP(S) URL of the file to download
+  - `filename` (optional string): Desired filename on the device. If omitted, filename is derived from the URL or a timestamp is used.
+- **Returns**: `{ localPath }` — local file URI in the device's document directory
+- **Note**: The handler will try to use native sharing APIs when available to let users open or save the file elsewhere.
+- **Note**: On Android, the handler attempts to save directly to the public Downloads folder (`/storage/emulated/0/Download`) when permitted; it may request runtime `WRITE_EXTERNAL_STORAGE` on older devices. If permission is denied or unsupported, it falls back to the app's external storage folder (e.g., `Android/data/<package>/files/Download`).
+- **Behavior**: When `url` is provided, the bridge opens the URL via the user's browser (`Linking.openURL`) so the browser handles the full download and the MicroApp itself does not perform the write. When `base64` content is provided, the bridge writes the file into the app cache and opens the system share/save dialog so the user can pick where to save the file (e.g., Downloads).
+- **Behavior**: When `url` is provided, the bridge opens the URL via the user's browser (`Linking.openURL`) so the browser handles the full download and the MicroApp itself does not perform the write. When `base64` content is provided, the bridge first tries to open a data-URL HTML wrapper that will trigger a browser download (this works in many mobile browsers). If that fails (data URL too large or the browser doesn't support it), the bridge falls back to writing the file into the app cache and opening the system share/save dialog so the user can pick where to save the file (e.g., Downloads).
+- **Option**: Pass `saveToDownloads: true` with `base64` payload on Android to use Storage Access Framework (SAF) and let the user pick a directory (choose Downloads) — this saves the file directly into that directory.
+
+**Usage**:
+
+```js
+// From a MicroApp running inside the WebView:
+try {
+  const { localPath } = await window.nativebridge.requestDownloadFile({
+    url: "https://example.com/somefile.pdf",
+    filename: "example.pdf",
+  });
+  console.log("Downloaded to", localPath);
+} catch (err) {
+  console.error("Download failed", err);
+}
+```
+
 ### TOTP (Time-based One-Time Password)
 
 #### TOTP QR Migration Data
