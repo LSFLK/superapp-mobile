@@ -95,8 +95,16 @@ const config: ExpoConfig = {
     package: ANDROID_PACKAGE,
     // googleServicesFile: androidJson, // Uncomment this if you use Firebase for Android
     permissions: [
+      // Core permissions already used by app
       "android.permission.CAMERA",
       "android.permission.RECORD_AUDIO",
+      // Permissions for saving files to shared storage / downloads
+      // Note: WRITE_EXTERNAL_STORAGE is deprecated on newer Android versions
+      // but declaring it helps backward compatibility. For Android 11+ we're
+      // using Storage Access Framework where possible which doesn't require
+      // this permission.
+      "android.permission.READ_EXTERNAL_STORAGE",
+      "android.permission.WRITE_EXTERNAL_STORAGE",
     ],
     adaptiveIcon: {
       foregroundImage: "./assets/images/adaptive-icon.png",

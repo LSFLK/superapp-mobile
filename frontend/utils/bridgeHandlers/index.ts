@@ -28,6 +28,7 @@ import { BRIDGE_FUNCTION as saveLocalData } from "./saveLocalData";
 import { BRIDGE_FUNCTION as token } from "./token";
 import { BRIDGE_FUNCTION as totpQrMigrationData } from "./totpQrMigrationData";
 import { BRIDGE_FUNCTION as uploadToGoogleDrive } from "./uploadToGoogleDrive";
+import { BRIDGE_FUNCTION as downloadFile } from "./downloadFile";
 
 export const BRIDGE_REGISTRY = [
   alert,
@@ -45,4 +46,5 @@ export const BRIDGE_REGISTRY = [
   token,
   totpQrMigrationData,
   uploadToGoogleDrive,
+  downloadFile,
 ];

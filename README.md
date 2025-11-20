@@ -22,15 +22,26 @@ This repository serves as the foundation for hosting multiple micro-apps with se
 .
 ├── backend/                  # Ballerina backend service for SuperApp
 │   └── README.md             # Backend setup and API docs
+├── docs/                     # Documentation and guides
+│   ├── DEPLOYMENT_GUIDE.md   # End-to-end deployment instructions
+│   └── FUTURE_IMPROVEMENTS.md # Planned enhancements
 ├── frontend/                 # React Native (Expo) frontend for SuperApp
 │   └── README.md             # Frontend setup and usage docs
-├── superapp-admin-portal/    # React web portal for uploading and managing micro-apps
-│   └── README.md             # Admin portal documentation
+├── observability/            # OpenTelemetry metrics and monitoring setup
+│   └── README.md             # Observability configuration
+├── resources/                # Images, diagrams, and assets
 ├── sample-microapps/         # Example micro-apps for demonstration
 │   └── government-calendar/
 │       ├── frontend/         # React frontend
 │       └── README.md         # Micro-app documentation
-└── README.md                 # Project root documentation (you're here)
+├── scripts/                  # Utility scripts for development and deployment
+├── superapp-admin-portal/    # React web portal for uploading and managing micro-apps
+│   └── README.md             # Admin portal documentation
+├── LICENSE                   # Apache 2.0 license
+├── README.md                 # Project root documentation (you're here)
+├── issue_template.md         # GitHub issue template
+├── package.json              # Root package configuration
+└── pull_request_template.md  # GitHub pull request template
 ```
 
 ## ⚙️ Technologies Used
@@ -138,3 +149,17 @@ EXPO_PUBLIC_OTEL_COLLECTOR_URL=http://10.0.2.2:4318
 - `app_start_time_bucket`
 
 See `observability/README.md` for details.
+
+## 🐞 Reporting Issues
+
+### Opening an issue
+
+All known issues of Open Super App Mobile are filed at: https://github.com/LSFLK/superapp-mobile/issues. Please check this list before opening a new issue.
+
+### Next steps & future improvements
+
+Read the planned enhancements and longer-term tasks in [FUTURE_IMPROVEMENTS.md](./docs/FUTURE_IMPROVEMENTS.md).
+
+## 🤝 Contributing
+
+If you are planning on contributing to the development efforts of Open Superapp Mobile, you can do so by checking out the latest development version. The main branch holds the latest unreleased source code.
