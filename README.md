@@ -105,6 +105,20 @@ Each part of this repository has its own setup guide. Pick the guide that matche
   - [Micro-App Developer Guide](./frontend/docs/MICROAPP_DEVELOPER_GUIDE.md): Building, integrating, and deploying micro-apps within the SuperApp
   - [Sample Micro-Apps](./sample-microapps/): Reference implementations and examples
 
+## 🐞 Reporting Issues
+
+### Opening an issue
+
+All known issues of Open Super App Mobile are filed at: https://github.com/LSFLK/superapp-mobile/issues. Please check this list before opening a new issue.
+
+### Next steps & future improvements
+
+Read the planned enhancements and longer-term tasks in [FUTURE_IMPROVEMENTS.md](./docs/FUTURE_IMPROVEMENTS.md).
+
+## 🤝 Contributing
+
+If you are planning on contributing to the development efforts of Open Superapp Mobile, you can do so by checking out the latest development version. The main branch holds the latest unreleased source code.
+
 ## 📡 Observability (OpenTelemetry Metrics)
 
 The mobile app sends performance metrics to an OpenTelemetry Collector, which exports to Prometheus.

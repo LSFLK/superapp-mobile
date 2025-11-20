@@ -1,0 +1,112 @@
+name: Android Release Build
+
+on:
+  push:
+    branches:
+      - client-lsf
+    paths:
+      - 'frontend/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            frontend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.19.4'
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Create frontend .env from minimal secrets
+        run: |
+          cat > ./frontend/.env <<'EOF'
+          EXPO_PUBLIC_CLIENT_ID=${{ secrets.EXPO_PUBLIC_CLIENT_ID }}
+          EXPO_PUBLIC_REDIRECT_URI=${{ secrets.EXPO_PUBLIC_REDIRECT_URI }}
+          EXPO_PUBLIC_TOKEN_URL=${{ secrets.EXPO_PUBLIC_TOKEN_URL }}
+          EXPO_PUBLIC_LOGOUT_URL=${{ secrets.EXPO_PUBLIC_LOGOUT_URL }}
+          EXPO_PUBLIC_BACKEND_BASE_URL=${{ secrets.EXPO_PUBLIC_BACKEND_BASE_URL }}
+
+          # App Configurations
+          APP_NAME=${{ secrets.APP_NAME }}
+          APP_SLUG=${{ secrets.APP_SLUG }}
+          APP_SCHEME=${{ secrets.APP_SCHEME }}
+          APP_VERSION=${{ secrets.APP_VERSION }}
+          APP_OWNER=${{ secrets.APP_OWNER }}
+          BUNDLE_IDENTIFIER=${{ secrets.BUNDLE_IDENTIFIER }}
+          ANDROID_PACKAGE=${{ secrets.ANDROID_PACKAGE }}
+          EAS_PROJECT_ID=${{ secrets.EAS_PROJECT_ID }}
+
+          EXPO_PUBLIC_EVENTS_URL=${{ secrets.EXPO_PUBLIC_EVENTS_URL }}
+          EXPO_PUBLIC_NEWS_URL=${{ secrets.EXPO_PUBLIC_NEWS_URL }}
+
+          IOS_URL_SCHEME=${{ secrets.IOS_URL_SCHEME }}
+
+          EXPO_PUBLIC_OTEL_ENABLED=${{ secrets.EXPO_PUBLIC_OTEL_ENABLED || 'false' }}
+          EXPO_PUBLIC_OTEL_COLLECTOR_URL=${{ secrets.EXPO_PUBLIC_OTEL_COLLECTOR_URL || '' }}
+          EOF
+        working-directory: .
+
+      - name: Install frontend dependencies
+        run: npm ci --prefer-offline --no-audit --progress=false
+        working-directory: ./frontend
+
+      - name: Run Expo prebuild (frontend)
+        run: npx expo prebuild --platform android --clean
+        working-directory: ./frontend
+
+      - name: Make gradlew executable
+        run: chmod +x ./frontend/android/gradlew
+
+      - name: Build Android Release APK
+        run: ./gradlew assembleRelease
+        working-directory: ./frontend/android
+
+      - name: Stage APK with desired filename
+        run: |
+          set -euo pipefail
+          APK_SRC=./frontend/android/app/build/outputs/apk/release/app-release.apk
+          APK_DST=./frontend/android/app/build/outputs/apk/release/lsf-superapp.apk
+          if [ ! -f "$APK_SRC" ]; then
+            echo "Expected APK not found at $APK_SRC"
+            exit 1
+          fi
+          cp "$APK_SRC" "$APK_DST"
+        working-directory: .
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          # Artifact name shown in GitHub UI (keeps the file name inside the artifact)
+          name: lsf-superapp-apk
+          # Upload the staged file with the nicer name so the downloaded file is lsf-superapp.apk
+          path: ./frontend/android/app/build/outputs/apk/release/lsf-superapp.apk
