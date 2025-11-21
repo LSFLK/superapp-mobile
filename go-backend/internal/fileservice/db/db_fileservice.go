@@ -1,4 +1,4 @@
-package fileservice
+package db
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 
 	"go-backend/internal/config"
 	"go-backend/internal/database"
+	"go-backend/internal/fileservice/core"
 
 	"gorm.io/gorm"
 )
@@ -25,15 +26,22 @@ type DBFileService struct {
 	baseURL string
 }
 
-var _ FileService = (*DBFileService)(nil)
+var _ core.FileService = (*DBFileService)(nil)
 
 var (
-	dbFileServiceInstance FileService
+	dbFileServiceInstance core.FileService
 	dbFileServiceOnce     sync.Once
 )
 
+// init registers the DB file service with the core registry
+func init() {
+	core.Register("db", func() (core.FileService, error) {
+		return NewDBFileService(), nil
+	})
+}
+
 // NewDBFileService returns a singleton instance of DBFileService
-func NewDBFileService() FileService {
+func NewDBFileService() core.FileService {
 	dbFileServiceOnce.Do(func() {
 		slog.Info("Creating DB file service singleton instance")
 

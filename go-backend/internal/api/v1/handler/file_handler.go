@@ -6,16 +6,16 @@ import (
 	"log/slog"
 	"net/http"
 
-	"go-backend/internal/fileservice"
+	"go-backend/internal/fileservice/core"
 
 	"github.com/go-chi/chi/v5"
 )
 
 type FileHandler struct {
-	fileService fileservice.FileService
+	fileService core.FileService
 }
 
-func NewFileHandler(fileService fileservice.FileService) *FileHandler {
+func NewFileHandler(fileService core.FileService) *FileHandler {
 	return &FileHandler{
 		fileService: fileService,
 	}
@@ -83,13 +83,22 @@ func (h *FileHandler) DeleteFile(w http.ResponseWriter, r *http.Request) {
 // DownloadMicroAppFile handles public file download
 // Note: This handler is only called when FileServiceType is "db", so the service will always be DBFileService
 func (h *FileHandler) DownloadMicroAppFile(w http.ResponseWriter, r *http.Request) {
+	// Local type definition since this handler is db-specific
+	type DBFileService interface {
+		GetBlobContent(fileName string) ([]byte, error)
+	}
+
 	fileName := chi.URLParam(r, "fileName")
 	if fileName == "" {
 		http.Error(w, "fileName parameter is required", http.StatusBadRequest)
 		return
 	}
 
-	dbService := h.fileService.(*fileservice.DBFileService)
+	dbService, ok := h.fileService.(DBFileService)
+	if !ok {
+		http.Error(w, "This endpoint only works with DB file service", http.StatusInternalServerError)
+		return
+	}
 
 	content, err := dbService.GetBlobContent(fileName)
 	if err != nil {

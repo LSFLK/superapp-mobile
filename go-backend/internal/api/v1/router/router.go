@@ -6,7 +6,7 @@ import (
 
 	"go-backend/internal/api/v1/handler"
 	"go-backend/internal/config"
-	"go-backend/internal/fileservice"
+	"go-backend/internal/fileservice/core"
 
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
@@ -18,8 +18,7 @@ func NewV1Router(db *gorm.DB, cfg *config.Config) http.Handler {
 
 	r.Mount("/micro-apps", microAppRoutes(db))
 
-	fileServiceFactory := fileservice.NewServiceFactory()
-	fileService, err := fileServiceFactory.NewFileService(fileservice.ServiceType(cfg.FileServiceType))
+	fileService, err := core.NewFileService(cfg.FileServiceType)
 	if err != nil {
 		slog.Error("Failed to create file service", "error", err)
 		panic(err)
@@ -33,8 +32,7 @@ func NewV1Router(db *gorm.DB, cfg *config.Config) http.Handler {
 func NewV1PublicRouter(db *gorm.DB, cfg *config.Config) http.Handler {
 	r := chi.NewRouter()
 
-	fileServiceFactory := fileservice.NewServiceFactory()
-	fileService, err := fileServiceFactory.NewFileService(fileservice.ServiceType(cfg.FileServiceType))
+	fileService, err := core.NewFileService(cfg.FileServiceType)
 	if err != nil {
 		slog.Error("Failed to create file service for public routes", "error", err)
 		panic(err)
@@ -72,7 +70,7 @@ func microAppRoutes(db *gorm.DB) http.Handler {
 }
 
 // fileRoutes sets up a sub-router for file operations.
-func fileRoutes(fileService fileservice.FileService) http.Handler {
+func fileRoutes(fileService core.FileService) http.Handler {
 	r := chi.NewRouter()
 
 	fileHandler := handler.NewFileHandler(fileService)

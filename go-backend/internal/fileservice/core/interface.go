@@ -1,4 +1,4 @@
-package fileservice
+package core
 
 // FileService defines the interface for file-related operations.
 type FileService interface {
