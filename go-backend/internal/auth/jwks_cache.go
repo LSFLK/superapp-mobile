@@ -9,9 +9,12 @@ import (
 )
 
 var (
-	cache    = make(map[string]*JWKSCacheEntry)
-	cacheMu  sync.RWMutex
-	cacheTTL = time.Hour
+	cache      = make(map[string]*JWKSCacheEntry)
+	cacheMu    sync.RWMutex
+	cacheTTL   = time.Hour
+	httpClient = &http.Client{
+		Timeout: 10 * time.Second,
+	}
 )
 
 // loadJWKS retrieves the JWKS from cache or fetches it if not present or expired.
@@ -52,7 +55,7 @@ func loadJWKS(jwksURL string) (*JSONWebKeySet, error) {
 
 // fetchJWKS retrieves the key set from the given URL.
 func fetchJWKS(jwksURL string) (*JSONWebKeySet, error) {
-	resp, err := http.Get(jwksURL)
+	resp, err := httpClient.Get(jwksURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch URL: %w", err)
 	}

@@ -10,7 +10,7 @@ type MicroAppConfig struct {
 	ConfigValue json.RawMessage `gorm:"column:config_value;type:json;not null"`
 	Active      int             `gorm:"column:active;type:tinyint(1);not null;default:1"`
 	CreatedBy   string          `gorm:"column:created_by;type:varchar(319);not null"`
-	UpdatedBy   string          `gorm:"column:updated_by;type:varchar(319);not null"`
+	UpdatedBy   *string         `gorm:"column:updated_by;type:varchar(319)"`
 }
 
 func (MicroAppConfig) TableName() string {

@@ -8,6 +8,10 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
+const (
+	defaultMaxRequestBodySize = 1 << 20 // 1MB
+)
+
 var validate = validator.New()
 
 // Writes the given data as JSON to the HTTP response with the specified status code.
@@ -42,7 +46,7 @@ func validateContentType(w http.ResponseWriter, r *http.Request) bool {
 // Limits the size of the request body to prevent large payloads.
 func limitRequestBody(w http.ResponseWriter, r *http.Request, maxBytes int64) {
 	if maxBytes == 0 {
-		maxBytes = 1 << 20 // 1MB default
+		maxBytes = defaultMaxRequestBodySize
 	}
 	r.Body = http.MaxBytesReader(w, r.Body, maxBytes)
 }
