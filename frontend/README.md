@@ -194,8 +194,8 @@ The app uses a **dual-storage approach** for optimal security and performance:
 ```shell
 .
 ├── README.md                 # Project documentation
-├── app                       # Main application screens
-│   ├── (tabs)                # Tab navigation screens
+├── app/                      # Main application screens (Expo Router)
+│   ├── (tabs)/               # Tab navigation screens
 │   │   ├── _layout.tsx       # Layout configuration for tab screens
 │   │   ├── index.tsx         # Feed tab screen
 │   │   ├── apps/             # My Apps tab screens
@@ -205,14 +205,24 @@ The app uses a **dual-storage approach** for optimal security and performance:
 │   ├── login.tsx             # Login screen (shown when unauthenticated)
 │   ├── micro-app.tsx         # Micro-app management screen
 │   └── update.tsx            # Force update screen
-├── components                # Reusable UI components
-├── constants                 # Static configuration and constants
-├── context                   # Redux store and slices
-├── hooks                     # Custom React hooks
-├── services                  # API service handlers
-├── utils                     # Utility functions
-├── __tests__                 # Unit tests
-├── docs                      # Frontend related Documentations
+├── assets/                   # Static assets (images, fonts, etc.)
+├── components/               # Reusable UI components
+├── config/                   # Configuration files
+├── constants/                # Static configuration and constants
+├── context/                  # Redux store and slices
+├── docs/                     # Frontend related documentation
+├── google-services/          # Google services configuration
+├── hooks/                    # Custom React hooks
+├── plugins/                  # Expo plugins
+├── scripts/                  # Build and utility scripts
+├── services/                 # API service handlers
+├── telemetry/                # Telemetry and analytics
+├── types/                    # TypeScript type definitions
+├── utils/                    # Utility functions
+├── __tests__/                # Unit tests
+├── android/                  # Android-specific files
+├── ios/                      # iOS-specific files
+└── .expo/                    # Expo build cache
 ```
 
 ## 🔄 Super App Mobile Flow
