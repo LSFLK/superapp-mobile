@@ -16,7 +16,7 @@ func Connect(cfg *config.Config) *gorm.DB {
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		slog.Error("Failed to connect to database", "error", err)
+		slog.Error("Failed to connect to database", "host", cfg.DBHost, "database", cfg.DBName, "user", cfg.DBUser, "port", cfg.DBPort)
 		panic(err)
 	}
 
@@ -26,8 +26,8 @@ func Connect(cfg *config.Config) *gorm.DB {
 		panic(err)
 	}
 
-	sqlDB.SetMaxOpenConns(25)
-	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetMaxOpenConns(cfg.DBMaxOpenConns)
+	sqlDB.SetMaxIdleConns(cfg.DBMaxIdleConns)
 
 	slog.Info("Database connected successfully", "host", cfg.DBHost, "database", cfg.DBName)
 	return db

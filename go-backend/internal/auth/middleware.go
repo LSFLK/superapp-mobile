@@ -22,15 +22,15 @@ func AuthMiddleware(cfg *config.Config) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 			// 1. Get the token from Authorization header (Authorization: Bearer <token>)
-			authHeader := r.Header.Get(authHeader)
-			if authHeader == "" {
+			authHeaderValue := r.Header.Get(authHeader)
+			if authHeaderValue == "" {
 				slog.Warn("Missing Authorization header", "path", r.URL.Path, "method", r.Method)
 				writeError(w, http.StatusUnauthorized, "Missing Authorization header")
 				return
 			}
 
 			// 2. Extract Bearer token
-			parts := strings.Split(authHeader, " ")
+			parts := strings.Split(authHeaderValue, " ")
 			if len(parts) != headerContentPartCount || strings.ToLower(parts[bearerTypeIndex]) != "bearer" {
 				slog.Warn("Invalid Authorization header format", "path", r.URL.Path, "method", r.Method)
 				writeError(w, http.StatusUnauthorized, "Invalid Authorization header format. Expected: Bearer <token>")
