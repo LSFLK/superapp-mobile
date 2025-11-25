@@ -6,13 +6,14 @@ import (
 	v1 "go-backend/internal/api/v1/router"
 	"go-backend/internal/auth"
 	"go-backend/internal/config"
+	"go-backend/internal/services"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"gorm.io/gorm"
 )
 
-func NewRouter(db *gorm.DB, cfg *config.Config) http.Handler {
+func NewRouter(db *gorm.DB, cfg *config.Config, fcmService *services.FCMService) http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(middleware.Logger)
@@ -21,7 +22,7 @@ func NewRouter(db *gorm.DB, cfg *config.Config) http.Handler {
 	// Apply Auth middleware and mount v1 routes
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Use(auth.AuthMiddleware(cfg))
-		r.Mount("/", v1.NewV1Router(db))
+		r.Mount("/", v1.NewV1Router(db, fcmService))
 	})
 
 	// future: v2 routers can be added here
