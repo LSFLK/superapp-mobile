@@ -21,6 +21,7 @@ import authReducer from "./slices/authSlice";
 import userConfigReducer from "./slices/userConfigSlice";
 import versionReducer from "./slices/versionSlice";
 import userInfoReducer from "./slices/userInfoSlice";
+import notificationReducer from "./slices/notificationSlice";
 
 // Note: Redux persist uses AsyncStorage for all slices due to SecureStore's 2048 byte limit
 // Individual sensitive values (AUTH_DATA, USER_CONFIGURATIONS) are stored separately in SecureStore
@@ -51,12 +52,19 @@ const userInfoPersistConfig = {
   whitelist: ["userInfo"],
 };
 
+const notificationPersistConfig = {
+  key: "notification",
+  storage: AsyncStorage,
+  whitelist: ["deviceToken", "permissionGranted", "isRegistered"],
+};
+
 const appReducerCombined = combineReducers({
   auth: persistReducer(authPersistConfig, authReducer),
   apps: persistReducer(appsPersistConfig, appReducer),
   userConfig: persistReducer(userConfigPersistConfig, userConfigReducer),
   version: versionReducer,
   userInfo: persistReducer(userInfoPersistConfig, userInfoReducer),
+  notification: persistReducer(notificationPersistConfig, notificationReducer),
 });
 
 const rootReducer = (
