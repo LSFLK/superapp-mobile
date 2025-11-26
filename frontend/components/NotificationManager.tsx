@@ -17,7 +17,8 @@
 import { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/context/store";
-import * as Notifications from "expo-notifications";
+import { router } from "expo-router";
+import { ScreenPaths } from "@/constants/ScreenPaths";
 import {
     requestNotificationPermissions,
     getDevicePushToken,
@@ -45,6 +46,7 @@ function NotificationManager() {
     const { deviceToken, isRegistered } = useSelector(
         (state: RootState) => state.notification
     );
+    const { apps } = useSelector((state: RootState) => state.apps);
 
     const handleLogout = async () => {
         await dispatch(performLogout()).unwrap();
@@ -107,11 +109,26 @@ function NotificationManager() {
 
                         // Store the notification
                         dispatch(setLastNotification(response.notification));
-
-                        // TODO: Navigate to microapp if microappId is present
+                        console.log("notification data ", data)
+                        // Navigate to microapp if microappId is present
                         if (data?.microappId) {
                             console.log("Navigate to microapp:", data.microappId);
-                            // Future implementation: navigation to specific microapp
+                            const app = apps.find((a) => a.appId === data.microappId);
+                            if (app) {
+                                router.push({
+                                    pathname: ScreenPaths.MICRO_APP,
+                                    params: {
+                                        webViewUri: app.webViewUri,
+                                        appName: app.name,
+                                        clientId: app.clientId,
+                                        exchangedToken: app.exchangedToken,
+                                        appId: app.appId,
+                                        displayMode: app.displayMode,
+                                    },
+                                });
+                            } else {
+                                console.warn("Microapp not found:", data.microappId);
+                            }
                         }
                     }
                 );
@@ -130,7 +147,7 @@ function NotificationManager() {
                 notificationListener.current();
             }
         };
-    }, [email, deviceToken, isRegistered, dispatch]);
+    }, [email, deviceToken, isRegistered, dispatch, apps]);
 
     return null;
 }

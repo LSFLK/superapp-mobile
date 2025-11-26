@@ -146,6 +146,11 @@ func (h *NotificationHandler) SendNotification(w http.ResponseWriter, r *http.Re
 		}
 	}
 
+	// Add microappId to data payload for deep linking
+	if req.MicroappID != "" {
+		dataStr["microappId"] = req.MicroappID
+	}
+
 	// Send notification via FCM
 	successCount, failureCount, err := h.fcmService.SendNotificationToMultiple(
 		r.Context(),
@@ -284,6 +289,10 @@ func (h *NotificationHandler) SendToGroups(w http.ResponseWriter, r *http.Reques
 			}
 		}
 	}
+
+	// Add microappId to data payload for deep linking (if provided in request)
+	// Note: SendToGroupsRequest doesn't have microappId field, but we keep this pattern for consistency
+	// If you want to add microappId support for groups, add it to the DTO first
 
 	// Send notification via FCM
 	successCount, failureCount, err := h.fcmService.SendNotificationToMultiple(
