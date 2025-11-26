@@ -19,6 +19,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/context/store";
 import { router } from "expo-router";
 import { ScreenPaths } from "@/constants/ScreenPaths";
+import * as Notifications from "expo-notifications";
 import {
     requestNotificationPermissions,
     getDevicePushToken,
@@ -93,6 +94,38 @@ function NotificationManager() {
                     }
                 } else {
                     console.warn("Failed to get device push token");
+                }
+
+                // Check if app was opened from a notification tap (when app was killed)
+                const lastNotificationResponse = await Notifications.getLastNotificationResponseAsync();
+                if (lastNotificationResponse) {
+                    console.log("App opened from notification (was killed):", lastNotificationResponse);
+                    const data = lastNotificationResponse.notification.request.content.data;
+
+                    // Store the notification
+                    dispatch(setLastNotification(lastNotificationResponse.notification));
+
+                    // Navigate to microapp if microappId is present
+                    if (data?.microappId) {
+                        console.log("Navigate to microapp from killed state:", data.microappId);
+                        const app = apps.find((a) => a.appId === data.microappId);
+                        if (app) {
+                            router.push({
+                                pathname: ScreenPaths.MICRO_APP,
+                                params: {
+                                    webViewUri: app.webViewUri,
+                                    appName: app.name,
+                                    clientId: app.clientId,
+                                    exchangedToken: app.exchangedToken,
+                                    appId: app.appId,
+                                    displayMode: app.displayMode,
+                                    notificationData: JSON.stringify(data),
+                                },
+                            });
+                        } else {
+                            console.warn("Microapp not found:", data.microappId);
+                        }
+                    }
                 }
 
                 // Set up notification listeners
