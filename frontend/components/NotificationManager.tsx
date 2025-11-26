@@ -124,6 +124,7 @@ function NotificationManager() {
                                         exchangedToken: app.exchangedToken,
                                         appId: app.appId,
                                         displayMode: app.displayMode,
+                                        notificationData: JSON.stringify(data),
                                     },
                                 });
                             } else {

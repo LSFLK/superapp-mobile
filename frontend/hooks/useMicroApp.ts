@@ -23,7 +23,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { tokenExchange } from "@/services/authService";
 import { logout } from "@/services/authService";
 import googleAuthenticationService from "@/services/googleService";
-import { getBridgeHandler, getResolveMethod, getRejectMethod } from "@/utils/bridgeRegistry";
+import {
+  getBridgeHandler,
+  getResolveMethod,
+  getRejectMethod,
+} from "@/utils/bridgeRegistry";
 import { BridgeContext } from "@/types/bridge.types";
 import { BRIDGE_FUNCTION as QR_REQUEST_BRIDGE_FUNCTION } from "@/utils/bridgeHandlers/qrRequest";
 import { RootState } from "@/context/store";
@@ -48,18 +52,19 @@ interface MicroAppParams {
   exchangedToken: string;
   appId: string;
   displayMode?: string;
+  notificationData?: string;
 }
 
 /**
  * Hook for managing MicroApp WebView bridge and state
  */
 export const useMicroApp = (params: MicroAppParams) => {
-  const { clientId, exchangedToken, appId } = params;
-  
+  const { clientId, exchangedToken, appId, notificationData } = params;
+
   const dispatch = useDispatch();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  
+
   // Get allowed bridge methods from Redux store configs
   const allowedBridgeMethods = useSelector((state: RootState) => {
     const app = state.apps.apps.find((app) => app.appId === appId);
@@ -67,15 +72,15 @@ export const useMicroApp = (params: MicroAppParams) => {
     const bridgeMethodsConfig = app.configs.find(
       (config) => config.configKey === ALLOWED_BRIDGE_METHODS_CONFIG_KEY
     );
-    
+
     return bridgeMethodsConfig?.configValue as string[] | undefined;
   });
-  
+
   const [isScannerVisible, setScannerVisible] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [token, setToken] = useState<string | null>();
   const [webUri, setWebUri] = useState<string>(DEVELOPER_APP_DEFAULT_URL);
-  
+
   const webviewRef = useRef<WebView>(null);
   const pendingTokenRequestsRef = useRef<((token: string) => void)[]>([]);
   const qrScanCallbackRef = useRef<((qrCode: string) => void) | null>(null);
@@ -118,6 +123,16 @@ export const useMicroApp = (params: MicroAppParams) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response]);
 
+  const sendTokenToWebView = (token: string) => {
+    if (!token) return;
+    sendResponseToWeb("resolveToken", token);
+
+    while (pendingTokenRequestsRef.current.length > 0) {
+      const resolve = pendingTokenRequestsRef.current.shift();
+      resolve?.(token);
+    }
+  };
+
   // Token exchange and refresh logic
   const fetchAndSetToken = async () => {
     try {
@@ -142,26 +157,35 @@ export const useMicroApp = (params: MicroAppParams) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId]);
 
-  const sendTokenToWebView = (token: string) => {
-    if (!token) return;
-    sendResponseToWeb("resolveToken", token);
-
-    while (pendingTokenRequestsRef.current.length > 0) {
-      const resolve = pendingTokenRequestsRef.current.shift();
-      resolve?.(token);
+  // Inject notification data if available
+  useEffect(() => {
+    if (notificationData) {
+      try {
+        const parsedData = JSON.parse(notificationData);
+        // Wait a bit for the webview to be ready, or just send it.
+        // Ideally the web app should request it, but pushing it is also fine if the bridge is ready.
+        // Since we don't know if the bridge is ready, we might want to retry or let the app pull it.
+        // For now, we push it.
+        setTimeout(() => {
+          sendResponseToWeb("resolveNotificationData", parsedData);
+        }, 1000);
+      } catch (e) {
+        console.error("Failed to parse notification data", e);
+      }
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notificationData]);
 
   const isBridgeMethodAllowed = (topic: string): boolean => {
     // If allowedBridgeMethods is undefined or null, block all methods (restrictive by default)
     if (!allowedBridgeMethods) return false;
-    
+
     // If it's an empty array, block all methods
     if (allowedBridgeMethods.length === 0) return false;
-    
+
     // Check if topic is in the allowed list
     return allowedBridgeMethods.includes(topic);
-  }
+  };
 
   // Handle WebView messages
   const onMessage = async (event: WebViewMessageEvent) => {
@@ -189,7 +213,9 @@ export const useMicroApp = (params: MicroAppParams) => {
         sendResponseToWeb: (method: string, data?: any, reqId?: string) => {
           const idToUse = reqId || requestId;
           webviewRef.current?.injectJavaScript(
-            `window.nativebridge.${method}(${JSON.stringify(data)}, "${idToUse}");`
+            `window.nativebridge.${method}(${JSON.stringify(
+              data
+            )}, "${idToUse}");`
           );
         },
         pendingTokenRequests: pendingTokenRequestsRef.current,
@@ -198,7 +224,9 @@ export const useMicroApp = (params: MicroAppParams) => {
           const methodName = getResolveMethod(topic);
           const idToUse = reqId || requestId;
           webviewRef.current?.injectJavaScript(
-            `window.nativebridge.${methodName}(${JSON.stringify(data)}, "${idToUse}");`
+            `window.nativebridge.${methodName}(${JSON.stringify(
+              data
+            )}, "${idToUse}");`
           );
         },
         reject: (error: string, reqId?: string) => {
@@ -217,6 +245,7 @@ export const useMicroApp = (params: MicroAppParams) => {
           right: insets.right,
         },
         qrScanCallback: qrScanCallbackRef.current || undefined,
+        notificationData: notificationData ? JSON.parse(notificationData) : undefined,
       };
 
       await handler(data, bridgeContext);
@@ -275,10 +304,10 @@ export const useMicroApp = (params: MicroAppParams) => {
     isDeveloper,
     isTotp,
     insets,
-    
+
     // Refs
     webviewRef,
-    
+
     // Handlers
     onMessage,
     handleError,

@@ -22,6 +22,7 @@ export type MicroAppParams = {
   exchangedToken: string;
   appId: string;
   displayMode?: DisplayMode;
+  notificationData?: string;
 };
 
 export type DisplayMode = typeof FULL_SCREEN_VIEWING_MODE | typeof DEFAULT_VIEWING_MODE;
