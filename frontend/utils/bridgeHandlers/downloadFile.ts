@@ -35,8 +35,9 @@ export const BRIDGE_FUNCTION = {
       const safResult = await saveWithSAF(localUri, filename, mimeType, base64);
       if (safResult) return context.resolve(safResult);
 
-      const mediaResult = await saveWithMediaLibrary(localUri);
-      if (mediaResult) return context.resolve(mediaResult);
+      // Disable media library fallback for now to avoid user confusion
+      // const mediaResult = await saveWithMediaLibrary(localUri);
+      // if (mediaResult) return context.resolve(mediaResult);
 
       const shareResult = await shareFallback(localUri, mimeType);
       if (shareResult) return context.resolve(shareResult);
@@ -107,8 +108,8 @@ export async function saveWithSAF(
     const data = base64
       ? base64
       : await FileSystem.readAsStringAsync(localUri, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
+        encoding: FileSystem.EncodingType.Base64,
+      });
 
     // @ts-ignore
     await FileSystem.StorageAccessFramework.writeAsStringAsync(dest, data, {
