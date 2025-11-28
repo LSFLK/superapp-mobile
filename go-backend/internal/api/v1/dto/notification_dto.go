@@ -13,16 +13,14 @@ type SendNotificationRequest struct {
 	Title      string                 `json:"title" validate:"required"`
 	Body       string                 `json:"body" validate:"required"`
 	Data       map[string]interface{} `json:"data,omitempty"`
-	MicroappID string                 `json:"microappId" validate:"required"`
 }
 
 // SendToGroupsRequest represents the request to send a notification to user groups
 type SendToGroupsRequest struct {
-	Groups     []string               `json:"groups" validate:"required,min=1"`
-	Title      string                 `json:"title" validate:"required"`
-	Body       string                 `json:"body" validate:"required"`
-	Data       map[string]interface{} `json:"data,omitempty"`
-	MicroappID *string                `json:"microappId,omitempty"`
+	Groups []string               `json:"groups" validate:"required,min=1"`
+	Title  string                 `json:"title" validate:"required"`
+	Body   string                 `json:"body" validate:"required"`
+	Data   map[string]interface{} `json:"data,omitempty"`
 }
 
 // NotificationResponse represents the response after sending notifications
