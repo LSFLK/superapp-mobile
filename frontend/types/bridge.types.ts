@@ -48,4 +48,7 @@ export interface BridgeContext {
 
   // QR scanner callback storage
   qrScanCallback?: (qrCode: string) => void;
+
+  // Notification data
+  notificationData?: any;
 }

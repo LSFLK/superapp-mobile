@@ -13,16 +13,18 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
-import { DEFAULT_VIEWING_MODE, FULL_SCREEN_VIEWING_MODE } from './../constants/Constants';
 
-export type MicroAppParams = {
-  webViewUri: string;
-  appName: string;
-  clientId: string;
-  exchangedToken: string;
-  appId: string;
-  displayMode?: DisplayMode;
-  notificationData?: string;
-};
+import { useNotifications } from "@/hooks/useNotifications";
 
-export type DisplayMode = typeof FULL_SCREEN_VIEWING_MODE | typeof DEFAULT_VIEWING_MODE;
+/**
+ * Notification Manager Component
+ * 
+ * A lightweight wrapper that initializes the notification system.
+ * The actual logic lives in the useNotifications hook.
+ * 
+ * This component should be rendered once at the app root level.
+ */
+export default function NotificationManager() {
+    useNotifications();
+    return null;
+}

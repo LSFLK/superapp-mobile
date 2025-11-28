@@ -29,12 +29,13 @@ import { persistor, store } from "@/context/store";
 import SplashModal from "@/components/SplashModal";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AppInitializer from "../components/AppInitializer";
+import NotificationManager from "../components/NotificationManager";
 import { Colors } from "@/constants/Colors";
 
 // Main Root Layout
 export default function RootLayout() {
   // Ensure the native splash is hidden; ignore if already hidden
-  SplashScreen.hideAsync?.().catch(() => {});
+  SplashScreen.hideAsync?.().catch(() => { });
   const colorScheme = useColorScheme();
   const { showSplash, onAppLoadComplete } = useAppLayout();
 
@@ -49,6 +50,7 @@ export default function RootLayout() {
           <Provider store={store}>
             <PersistGate loading={null} persistor={persistor}>
               <AppInitializer onReady={onAppLoadComplete} />
+              <NotificationManager />
               <Stack>
                 <Stack.Screen name="login" options={{ headerShown: false }} />
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"go-backend/internal/config"
+	"go-backend/internal/services"
 )
 
 const (
@@ -61,4 +62,46 @@ func writeError(w http.ResponseWriter, status int, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(map[string]string{"message": message})
+}
+
+// ServiceOAuthMiddleware validates the Bearer token using TokenService.
+func ServiceOAuthMiddleware(tokenService *services.TokenService) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// 1. Get the token from Authorization header (Authorization: Bearer <token>)
+			authHeaderValue := r.Header.Get(authHeader)
+			if authHeaderValue == "" {
+				slog.Warn("Missing Authorization header", "path", r.URL.Path, "method", r.Method)
+				writeError(w, http.StatusUnauthorized, "Missing Authorization header")
+				return
+			}
+
+			// 2. Extract Bearer token
+			parts := strings.Split(authHeaderValue, " ")
+			if len(parts) != headerContentPartCount || strings.ToLower(parts[bearerTypeIndex]) != "bearer" {
+				slog.Warn("Invalid Authorization header format", "path", r.URL.Path, "method", r.Method)
+				writeError(w, http.StatusUnauthorized, "Invalid Authorization header format. Expected: Bearer <token>")
+				return
+			}
+
+			tokenString := parts[tokenIndex]
+
+			// 3. Validate the token
+			claims, err := tokenService.ValidateToken(tokenString)
+			if err != nil {
+				slog.Error("Token validation failed", "error", err, "path", r.URL.Path, "method", r.Method)
+				writeError(w, http.StatusUnauthorized, "Invalid or expired token")
+				return
+			}
+
+			// 4. Set client info in context
+			// The subject (client_id) is the microapp ID
+			serviceInfo := &ServiceInfo{
+				ClientID: claims.Subject,
+			}
+			r = SetServiceInfo(r, serviceInfo)
+
+			next.ServeHTTP(w, r)
+		})
+	}
 }

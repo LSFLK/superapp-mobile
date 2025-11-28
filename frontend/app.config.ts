@@ -16,9 +16,9 @@
 import "dotenv/config";
 import type { ExpoConfig } from "expo/config";
 
-/* Uncomment the lines below if you want to use Firebase for iOS or Android */
-// import fs from "fs";
-// import path from "path";
+/* Firebase configuration for push notifications */
+import fs from "fs";
+import path from "path";
 
 const PRODUCTION = "production";
 const DEVELOPMENT = "development";
@@ -60,10 +60,10 @@ const IOS_URL_SCHEME = process.env.IOS_URL_SCHEME ?? "example.scheme";
  *
  * ======================================================= */
 
-// const here = (...p: string[]) => path.resolve(__dirname, ...p);
-// const fileIfExists = (p: string) => (fs.existsSync(p) ? p : undefined);
-// const iosPlist = fileIfExists(here("google-services/GoogleService-Info.plist"));
-// const androidJson = fileIfExists(here("google-services/google-services.json"));
+const here = (...p: string[]) => path.resolve(__dirname, ...p);
+const fileIfExists = (p: string) => (fs.existsSync(p) ? p : undefined);
+const iosPlist = fileIfExists(here("google-services/GoogleService-Info.plist"));
+const androidJson = fileIfExists(here("google-services/google-services.json"));
 
 const config: ExpoConfig = {
   name: APP_NAME,
@@ -77,7 +77,7 @@ const config: ExpoConfig = {
     supportsTablet: true,
     requireFullScreen: true,
     bundleIdentifier: BUNDLE_ID,
-    // googleServicesFile: iosPlist, // Uncomment this if you use Firebase for iOS
+    googleServicesFile: iosPlist,
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       UIBackgroundModes: ["remote-notification"],
@@ -93,7 +93,7 @@ const config: ExpoConfig = {
   },
   android: {
     package: ANDROID_PACKAGE,
-    // googleServicesFile: androidJson, // Uncomment this if you use Firebase for Android
+    googleServicesFile: androidJson,
     permissions: [
       // Core permissions already used by app
       "android.permission.CAMERA",
@@ -165,6 +165,14 @@ const config: ExpoConfig = {
     ],
     ["expo-screen-orientation", { initialOrientation: "DEFAULT" }],
     ["expo-font", { fonts: ["./assets/fonts/SpaceMono-Regular.ttf"] }],
+    [
+      "expo-notifications",
+      {
+        icon: "./assets/images/notification-icon.png",
+        color: "#476481",
+        sounds: [],
+      },
+    ],
     [
       "@react-native-google-signin/google-signin",
       { iosUrlScheme: IOS_URL_SCHEME },

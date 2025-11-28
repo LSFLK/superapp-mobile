@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -19,9 +21,22 @@ type Config struct {
 	JWKSURL     string
 	JWTIssuer   string
 	JWTAudience string
+
+	FirebaseCredentialsPath string
+
+	// OAuth2 Config - Reuses the same keys as user JWT validation
+	// For production: Use JWKS URL or load keys from the same source as user auth
+	JWTPrivateKeyPath string // Path to private key for signing service tokens
+	JWTPublicKeyPath  string // Optional: public key for validation
+	TokenExpiry       int    // Seconds
 }
 
 func Load() *Config {
+	// Load .env file if it exists (optional, won't error if missing)
+	if err := godotenv.Load(); err != nil {
+		slog.Warn("No .env file found, using environment variables or defaults")
+	}
+
 	cfg := &Config{
 		DBUser:         getEnv("DB_USER", "root"),
 		DBPassword:     getEnv("DB_PASSWORD", ""),
@@ -35,6 +50,12 @@ func Load() *Config {
 		JWKSURL:     getEnv("JWKS_URL", "fallback <idp-metadata-url>/jwks"),
 		JWTIssuer:   getEnv("JWT_ISSUER", "fallback <idp-issuer-url>"),
 		JWTAudience: getEnv("JWT_AUDIENCE", "fallback <target-audience-in-token>"),
+
+		FirebaseCredentialsPath: getEnv("FIREBASE_CREDENTIALS_PATH", ""),
+
+		JWTPrivateKeyPath: getEnv("JWT_PRIVATE_KEY_PATH", "private_key.pem"),
+		JWTPublicKeyPath:  getEnv("JWT_PUBLIC_KEY_PATH", "public_key.pem"),
+		TokenExpiry:       getEnvInt("TOKEN_EXPIRY", 120),
 	}
 
 	slog.Info("Configuration loaded", "server_port", cfg.ServerPort, "db_host", cfg.DBHost)
