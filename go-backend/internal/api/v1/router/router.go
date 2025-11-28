@@ -14,15 +14,23 @@ import (
 func NewV1Router(db *gorm.DB, fcmService *services.FCMService) http.Handler {
 	r := chi.NewRouter()
 
-	r.Mount("/micro-apps", microAppRoutes(db))
-	r.Mount("/device-tokens", deviceTokenRoutes(db, fcmService))
-	r.Mount("/notifications", notificationRoutes(db, fcmService))
+	r.Mount("/micro-apps", MicroAppRoutes(db))
+	r.Mount("/device-tokens", DeviceTokenRoutes(db, fcmService))
 
 	return r
 }
 
-// microAppRoutes sets up a sub-router for all endpoints prefixed with /micro-apps.
-func microAppRoutes(db *gorm.DB) http.Handler {
+// ServiceRoutes sets up a sub-router for all service-to-service endpoints.
+func NewV1ServiceRoutes(db *gorm.DB, fcmService *services.FCMService) http.Handler {
+	r := chi.NewRouter()
+
+	r.Mount("/notifications", NotificationRoutes(db, fcmService))
+
+	return r
+}
+
+// MicroAppRoutes sets up a sub-router for all endpoints prefixed with /micro-apps.
+func MicroAppRoutes(db *gorm.DB) http.Handler {
 	r := chi.NewRouter()
 
 	// Initialize Microapp Handlers
@@ -47,8 +55,8 @@ func microAppRoutes(db *gorm.DB) http.Handler {
 	return r
 }
 
-// deviceTokenRoutes sets up a sub-router for device token endpoints
-func deviceTokenRoutes(db *gorm.DB, fcmService *services.FCMService) http.Handler {
+// DeviceTokenRoutes sets up a sub-router for device token endpoints
+func DeviceTokenRoutes(db *gorm.DB, fcmService *services.FCMService) http.Handler {
 	r := chi.NewRouter()
 
 	notificationHandler := handler.NewNotificationHandler(db, fcmService)
@@ -59,17 +67,14 @@ func deviceTokenRoutes(db *gorm.DB, fcmService *services.FCMService) http.Handle
 	return r
 }
 
-// notificationRoutes sets up a sub-router for notification endpoints
-func notificationRoutes(db *gorm.DB, fcmService *services.FCMService) http.Handler {
+// NotificationRoutes sets up a sub-router for notification endpoints
+func NotificationRoutes(db *gorm.DB, fcmService *services.FCMService) http.Handler {
 	r := chi.NewRouter()
 
 	notificationHandler := handler.NewNotificationHandler(db, fcmService)
 
 	// POST /notifications/send
 	r.Post("/send", notificationHandler.SendNotification)
-
-	// POST /notifications/send-to-groups
-	r.Post("/send-to-groups", notificationHandler.SendToGroups)
 
 	return r
 }

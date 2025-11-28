@@ -7,6 +7,10 @@ type CustomJwtPayload struct {
 	Groups []string `json:"groups"`
 }
 
+type ServiceInfo struct {
+	ClientID string `json:"client_id"` // This is the microapp ID
+}
+
 type JWTHeader struct {
 	Alg string `json:"alg"`
 	Typ string `json:"typ"`
