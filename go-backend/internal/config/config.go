@@ -9,14 +9,17 @@ import (
 )
 
 type Config struct {
-	DBUser         string
-	DBPassword     string
-	DBHost         string
-	DBPort         string
-	DBName         string
-	DBMaxOpenConns int
-	DBMaxIdleConns int
-	ServerPort     string
+	DBUser            string
+	DBPassword        string
+	DBHost            string
+	DBPort            string
+	DBName            string
+	DBMaxOpenConns    int
+	DBMaxIdleConns    int
+	DBConnMaxLifetime int // in minutes
+	DBConnMaxIdleTime int // in minutes
+	DBConnectRetries  int
+	ServerPort        string
 
 	FirebaseCredentialsPath string
 
@@ -38,14 +41,17 @@ func Load() *Config {
 	}
 
 	cfg := &Config{
-		DBUser:         getEnv("DB_USER", "root"),
-		DBPassword:     getEnvRequired("DB_PASSWORD"), // Required
-		DBHost:         getEnv("DB_HOST", "localhost"),
-		DBPort:         getEnv("DB_PORT", "3306"),
-		DBName:         getEnv("DB_NAME", "testdb"),
-		DBMaxOpenConns: getEnvInt("DB_MAX_OPEN_CONNS", 25),
-		DBMaxIdleConns: getEnvInt("DB_MAX_IDLE_CONNS", 5),
-		ServerPort:     getEnv("SERVER_PORT", "9090"),
+		DBUser:            getEnv("DB_USER", "root"),
+		DBPassword:        getEnvRequired("DB_PASSWORD"), // Required
+		DBHost:            getEnv("DB_HOST", "localhost"),
+		DBPort:            getEnv("DB_PORT", "3306"),
+		DBName:            getEnv("DB_NAME", "testdb"),
+		DBMaxOpenConns:    getEnvInt("DB_MAX_OPEN_CONNS", 25),
+		DBMaxIdleConns:    getEnvInt("DB_MAX_IDLE_CONNS", 5),
+		DBConnMaxLifetime: getEnvInt("DB_CONN_MAX_LIFETIME_MIN", 30),
+		DBConnMaxIdleTime: getEnvInt("DB_CONN_MAX_IDLE_TIME_MIN", 5),
+		DBConnectRetries:  getEnvInt("DB_CONNECT_RETRIES", 5),
+		ServerPort:        getEnv("SERVER_PORT", "9090"),
 
 		FirebaseCredentialsPath: getEnv("FIREBASE_CREDENTIALS_PATH", ""),
 
