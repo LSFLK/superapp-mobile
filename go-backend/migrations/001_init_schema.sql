@@ -19,7 +19,10 @@ CREATE TABLE IF NOT EXISTS micro_app (
     updated_at TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP,
     active TINYINT(1) NOT NULL DEFAULT 1,
     mandatory TINYINT(1) NOT NULL DEFAULT 0,
-    UNIQUE INDEX idx_micro_app_id (micro_app_id)
+    UNIQUE INDEX idx_micro_app_id (micro_app_id),
+    INDEX idx_micro_app_active (active),
+    INDEX idx_micro_app_mandatory (mandatory),
+    INDEX idx_micro_app_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------------------------------------------------------
@@ -38,7 +41,12 @@ CREATE TABLE IF NOT EXISTS micro_app_version (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP,
     active TINYINT(1) NOT NULL DEFAULT 1,
+    UNIQUE KEY uq_mav_app_build (micro_app_id, build),
+    UNIQUE KEY uq_mav_app_version_build (micro_app_id, version, build),
     INDEX idx_micro_app_id (micro_app_id),
+    INDEX idx_mav_version (version),
+    INDEX idx_mav_build (build),
+    INDEX idx_mav_active (active),
     CONSTRAINT fk_version_microapp FOREIGN KEY (micro_app_id) 
         REFERENCES micro_app(micro_app_id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -55,7 +63,10 @@ CREATE TABLE IF NOT EXISTS micro_app_role (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP,
     active TINYINT(1) NOT NULL DEFAULT 1,
+    UNIQUE KEY uq_mar_app_role (micro_app_id, role),
     INDEX idx_micro_app_id (micro_app_id),
+    INDEX idx_mar_role (role),
+    INDEX idx_mar_active (active),
     CONSTRAINT fk_role_microapp FOREIGN KEY (micro_app_id) 
         REFERENCES micro_app(micro_app_id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -71,6 +82,9 @@ CREATE TABLE IF NOT EXISTS micro_app_config (
     created_by VARCHAR(319) NOT NULL,
     updated_by VARCHAR(319),
     PRIMARY KEY (micro_app_id, config_key),
+    INDEX idx_mac_app (micro_app_id),
+    INDEX idx_mac_key (config_key),
+    INDEX idx_mac_active (active),
     CONSTRAINT fk_config_microapp FOREIGN KEY (micro_app_id) 
         REFERENCES micro_app(micro_app_id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
