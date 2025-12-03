@@ -26,9 +26,10 @@ func NewFCMService(credentialsPath string) (*FCMService, error) {
 	if credentialsPath != "" {
 		// Initialize with credentials file and extract project ID
 		opt := option.WithCredentialsFile(credentialsPath)
-		
+
 		// Read project ID from credentials file
-		projectID, err := getProjectIDFromCredentials(credentialsPath)
+		var projectID string
+		projectID, err = getProjectIDFromCredentials(credentialsPath)
 		if err != nil {
 			return nil, fmt.Errorf("error reading project ID from credentials: %w", err)
 		}
@@ -36,7 +37,7 @@ func NewFCMService(credentialsPath string) (*FCMService, error) {
 		config := &firebase.Config{
 			ProjectID: projectID,
 		}
-		
+
 		app, err = firebase.NewApp(ctx, config, opt)
 	} else {
 		// Initialize with default credentials (for Cloud Run, etc.)
@@ -54,49 +55,6 @@ func NewFCMService(credentialsPath string) (*FCMService, error) {
 
 	slog.Info("FCM service initialized successfully")
 	return &FCMService{client: client}, nil
-}
-
-// SendNotification sends a notification to a single device
-func (s *FCMService) SendNotification(
-	ctx context.Context,
-	token string,
-	title string,
-	body string,
-	data map[string]string,
-) error {
-	message := &messaging.Message{
-		Token: token,
-		Notification: &messaging.Notification{
-			Title: title,
-			Body:  body,
-		},
-		Data: data,
-		APNS: &messaging.APNSConfig{
-			Payload: &messaging.APNSPayload{
-				Aps: &messaging.Aps{
-					Sound: "default",
-					Badge: intPtr(1),
-				},
-			},
-		},
-		Android: &messaging.AndroidConfig{
-			Priority: "high",
-			Notification: &messaging.AndroidNotification{
-				Sound:        "default",
-				ChannelID:    "default",
-				Priority:     messaging.PriorityHigh,
-				DefaultSound: true,
-			},
-		},
-	}
-
-	response, err := s.client.Send(ctx, message)
-	if err != nil {
-		return fmt.Errorf("error sending message: %w", err)
-	}
-
-	slog.Info("Successfully sent message", "response", response, "token", maskToken(token))
-	return nil
 }
 
 // SendNotificationToMultiple sends a notification to multiple devices
@@ -150,60 +108,10 @@ func (s *FCMService) SendNotificationToMultiple(
 	return response.SuccessCount, response.FailureCount, nil
 }
 
-// SendNotificationToTopic sends a notification to a topic
-func (s *FCMService) SendNotificationToTopic(
-	ctx context.Context,
-	topic string,
-	title string,
-	body string,
-	data map[string]string,
-) error {
-	message := &messaging.Message{
-		Topic: topic,
-		Notification: &messaging.Notification{
-			Title: title,
-			Body:  body,
-		},
-		Data: data,
-		APNS: &messaging.APNSConfig{
-			Payload: &messaging.APNSPayload{
-				Aps: &messaging.Aps{
-					Sound: "default",
-					Badge: intPtr(1),
-				},
-			},
-		},
-		Android: &messaging.AndroidConfig{
-			Priority: "high",
-			Notification: &messaging.AndroidNotification{
-				Sound:        "default",
-				ChannelID:    "default",
-				Priority:     messaging.PriorityHigh,
-				DefaultSound: true,
-			},
-		},
-	}
-
-	response, err := s.client.Send(ctx, message)
-	if err != nil {
-		return fmt.Errorf("error sending topic message: %w", err)
-	}
-
-	slog.Info("Successfully sent topic message", "response", response, "topic", topic)
-	return nil
-}
-
 // Helper functions
 
 func intPtr(i int) *int {
 	return &i
-}
-
-func maskToken(token string) string {
-	if len(token) <= 10 {
-		return "***"
-	}
-	return token[:5] + "..." + token[len(token)-5:]
 }
 
 // getProjectIDFromCredentials reads the project_id from the Firebase credentials JSON file

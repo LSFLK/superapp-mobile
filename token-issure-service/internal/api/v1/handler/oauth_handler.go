@@ -8,17 +8,19 @@ import (
 	"net/http"
 	"strings"
 
-	"go-backend/internal/models"
-	"go-backend/internal/services"
+	"go-idp/internal/models"
+	"go-idp/internal/services"
 
 	"gorm.io/gorm"
 )
 
 const (
 	grantTypeClientCredentials = "client_credentials"
+	grantTypeUserContext       = "user_context"
 	tokenTypeBearer            = "Bearer"
 
 	// OAuth2 error codes (RFC 6749)
+	errInvalidRequest   = "invalid_request"
 	errInvalidClient    = "invalid_client"
 	errUnsupportedGrant = "unsupported_grant_type"
 	errServerError      = "server_error"
@@ -50,6 +52,8 @@ type TokenResponse struct {
 
 // Token handles the OAuth2 token endpoint
 func (h *OAuthHandler) Token(w http.ResponseWriter, r *http.Request) {
+	limitRequestBody(w, r, 0)
+
 	// Parse request
 	// Support both JSON body and Form data (standard OAuth2 uses form data, but JSON is common in APIs)
 	var clientID, clientSecret, grantType string
@@ -58,7 +62,7 @@ func (h *OAuthHandler) Token(w http.ResponseWriter, r *http.Request) {
 	if strings.Contains(contentType, "application/json") {
 		var req TokenRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			http.Error(w, "invalid request body", http.StatusBadRequest)
+			writeError(w, http.StatusBadRequest, errInvalidRequest, "invalid request body")
 			return
 		}
 		clientID = req.ClientID
@@ -67,7 +71,7 @@ func (h *OAuthHandler) Token(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// Fallback to Form/Basic Auth
 		if err := r.ParseForm(); err != nil {
-			http.Error(w, "invalid form data", http.StatusBadRequest)
+			writeError(w, http.StatusBadRequest, errInvalidRequest, "invalid form data")
 			return
 		}
 		grantType = r.FormValue("grant_type")
@@ -84,12 +88,12 @@ func (h *OAuthHandler) Token(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if grantType != grantTypeClientCredentials {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": errUnsupportedGrant})
+		writeError(w, http.StatusBadRequest, errUnsupportedGrant, "")
 		return
 	}
 
 	if clientID == "" || clientSecret == "" {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": errInvalidClient})
+		writeError(w, http.StatusBadRequest, errInvalidClient, "client_id and client_secret are required")
 		return
 	}
 
@@ -97,7 +101,7 @@ func (h *OAuthHandler) Token(w http.ResponseWriter, r *http.Request) {
 	var OAuth2client models.OAuth2Client
 	if err := h.db.Where("client_id = ? AND is_active = ?", clientID, true).First(&OAuth2client).Error; err != nil {
 		slog.Warn("Client not found or inactive", "client_id", clientID)
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": errInvalidClient})
+		writeError(w, http.StatusUnauthorized, errInvalidClient, "")
 		return
 	}
 
@@ -107,7 +111,7 @@ func (h *OAuthHandler) Token(w http.ResponseWriter, r *http.Request) {
 	hashedSecret := hashSecret(clientSecret)
 	if hashedSecret != OAuth2client.ClientSecret {
 		slog.Warn("Invalid client secret", "client_id", clientID)
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": errInvalidClient})
+		writeError(w, http.StatusUnauthorized, errInvalidClient, "")
 		return
 	}
 
@@ -115,7 +119,7 @@ func (h *OAuthHandler) Token(w http.ResponseWriter, r *http.Request) {
 	token, err := h.tokenService.IssueToken(OAuth2client.ClientID, OAuth2client.Scopes)
 	if err != nil {
 		slog.Error("Failed to issue token", "error", err)
-		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": errServerError})
+		writeError(w, http.StatusInternalServerError, errServerError, "")
 		return
 	}
 

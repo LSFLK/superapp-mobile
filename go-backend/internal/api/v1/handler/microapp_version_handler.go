@@ -70,7 +70,7 @@ func (h *MicroAppVersionHandler) UpsertVersion(w http.ResponseWriter, r *http.Re
 			ReleaseNotes: req.ReleaseNotes,
 			IconURL:      req.IconURL,
 			DownloadURL:  req.DownloadURL,
-			Active:       1,
+			Active:       models.StatusActive,
 			UpdatedBy:    &userEmail,
 		}).
 		Attrs(models.MicroAppVersion{

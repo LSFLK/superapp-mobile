@@ -18,17 +18,17 @@ type Config struct {
 	DBMaxIdleConns int
 	ServerPort     string
 
-	JWKSURL     string
-	JWTIssuer   string
-	JWTAudience string
-
 	FirebaseCredentialsPath string
 
-	// OAuth2 Config - Reuses the same keys as user JWT validation
-	// For production: Use JWKS URL or load keys from the same source as user auth
-	JWTPrivateKeyPath string // Path to private key for signing service tokens
-	JWTPublicKeyPath  string // Optional: public key for validation
-	TokenExpiry       int    // Seconds
+	// External IDP (Asgardeo) - for user authentication
+	ExternalIdPJWKSURL  string
+	ExternalIdPIssuer   string
+	ExternalIdPAudience string
+
+	// Internal IDP (go-idp) - for service authentication
+	InternalIdPBaseURL  string
+	InternalIdPIssuer   string
+	InternalIdPAudience string
 }
 
 func Load() *Config {
@@ -39,7 +39,7 @@ func Load() *Config {
 
 	cfg := &Config{
 		DBUser:         getEnv("DB_USER", "root"),
-		DBPassword:     getEnv("DB_PASSWORD", ""),
+		DBPassword:     getEnvRequired("DB_PASSWORD"), // Required
 		DBHost:         getEnv("DB_HOST", "localhost"),
 		DBPort:         getEnv("DB_PORT", "3306"),
 		DBName:         getEnv("DB_NAME", "testdb"),
@@ -47,15 +47,17 @@ func Load() *Config {
 		DBMaxIdleConns: getEnvInt("DB_MAX_IDLE_CONNS", 5),
 		ServerPort:     getEnv("SERVER_PORT", "9090"),
 
-		JWKSURL:     getEnv("JWKS_URL", "fallback <idp-metadata-url>/jwks"),
-		JWTIssuer:   getEnv("JWT_ISSUER", "fallback <idp-issuer-url>"),
-		JWTAudience: getEnv("JWT_AUDIENCE", "fallback <target-audience-in-token>"),
-
 		FirebaseCredentialsPath: getEnv("FIREBASE_CREDENTIALS_PATH", ""),
 
-		JWTPrivateKeyPath: getEnv("JWT_PRIVATE_KEY_PATH", "private_key.pem"),
-		JWTPublicKeyPath:  getEnv("JWT_PUBLIC_KEY_PATH", "public_key.pem"),
-		TokenExpiry:       getEnvInt("TOKEN_EXPIRY", 120),
+		// External IDP (Asgardeo)
+		ExternalIdPJWKSURL:  getEnvRequired("EXTERNAL_IDP_JWKS_URL"),
+		ExternalIdPIssuer:   getEnvRequired("EXTERNAL_IDP_ISSUER"),
+		ExternalIdPAudience: getEnvRequired("EXTERNAL_IDP_AUDIENCE"),
+
+		// Internal IDP (go-idp)
+		InternalIdPBaseURL:  getEnvRequired("INTERNAL_IDP_BASE_URL"),
+		InternalIdPIssuer:   getEnvRequired("INTERNAL_IDP_ISSUER"),
+		InternalIdPAudience: getEnvRequired("INTERNAL_IDP_AUDIENCE"),
 	}
 
 	slog.Info("Configuration loaded", "server_port", cfg.ServerPort, "db_host", cfg.DBHost)
@@ -67,6 +69,18 @@ func getEnv(key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+func getEnvRequired(key string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		slog.Error("Missing required environment variable", "key", key)
+		// We panic here because the application cannot function without these values.
+		// In a production environment, this will cause the pod/container to crash loop,
+		// which is preferable to running in an undefined state.
+		panic(fmt.Sprintf("Missing required environment variable: %s", key))
+	}
+	return value
 }
 
 func getEnvInt(key string, fallback int) int {
