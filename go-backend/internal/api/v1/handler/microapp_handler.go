@@ -50,10 +50,10 @@ func (h *MicroAppHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	var apps []models.MicroApp
 
 	// Fetch only active micro apps with their active versions, roles, and configs that the user has access to
-	if err := h.db.Where("active = ? AND micro_app_id IN ?", 1, authorizedAppIDs).
-		Preload("Versions", "active = ?", 1).
-		Preload("Roles", "active = ?", 1).
-		Preload("Configs", "active = ?", 1).
+	if err := h.db.Where("active = ? AND micro_app_id IN ?", models.StatusActive, authorizedAppIDs).
+		Preload("Versions", "active = ?", models.StatusActive).
+		Preload("Roles", "active = ?", models.StatusActive).
+		Preload("Configs", "active = ?", models.StatusActive).
 		Find(&apps).Error; err != nil {
 		slog.Error("Failed to fetch micro apps from database", "error", err)
 		http.Error(w, "failed to fetch micro apps", http.StatusInternalServerError)
@@ -105,10 +105,10 @@ func (h *MicroAppHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var app models.MicroApp
-	if err := h.db.Where("micro_app_id = ? AND active = ?", id, 1).
-		Preload("Versions", "active = ?", 1).
-		Preload("Roles", "active = ?", 1).
-		Preload("Configs", "active = ?", 1).
+	if err := h.db.Where("micro_app_id = ? AND active = ?", id, models.StatusActive).
+		Preload("Versions", "active = ?", models.StatusActive).
+		Preload("Roles", "active = ?", models.StatusActive).
+		Preload("Configs", "active = ?", models.StatusActive).
 		First(&app).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			http.Error(w, "micro app not found", http.StatusNotFound)
@@ -164,7 +164,7 @@ func (h *MicroAppHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 				Description: req.Description,
 				IconURL:     req.IconURL,
 				Mandatory:   req.Mandatory,
-				Active:      1,
+				Active:      models.StatusActive,
 				UpdatedBy:   &userEmail,
 			}).
 			Attrs(models.MicroApp{
@@ -185,7 +185,7 @@ func (h *MicroAppHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 						ReleaseNotes: versionReq.ReleaseNotes,
 						IconURL:      versionReq.IconURL,
 						DownloadURL:  versionReq.DownloadURL,
-						Active:       1,
+						Active:       models.StatusActive,
 						UpdatedBy:    &userEmail,
 					}).
 					Attrs(models.MicroAppVersion{
@@ -207,7 +207,7 @@ func (h *MicroAppHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 				role := models.MicroAppRole{}
 				roleResult := tx.Where("micro_app_id = ? AND role = ?", req.AppID, roleReq.Role).
 					Assign(models.MicroAppRole{
-						Active:    1,
+						Active:    models.StatusActive,
 						UpdatedBy: &userEmail,
 					}).
 					Attrs(models.MicroAppRole{
@@ -229,7 +229,7 @@ func (h *MicroAppHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 				configResult := tx.Where("micro_app_id = ? AND config_key = ?", req.AppID, configReq.ConfigKey).
 					Assign(models.MicroAppConfig{
 						ConfigValue: configReq.ConfigValue,
-						Active:      1,
+						Active:      models.StatusActive,
 						UpdatedBy:   &userEmail,
 					}).
 					Attrs(models.MicroAppConfig{
@@ -256,9 +256,9 @@ func (h *MicroAppHandler) Upsert(w http.ResponseWriter, r *http.Request) {
 
 	// Reload with preloaded relations for response
 	if err := h.db.Where("micro_app_id = ?", req.AppID).
-		Preload("Versions", "active = ?", 1).
-		Preload("Roles", "active = ?", 1).
-		Preload("Configs", "active = ?", 1).
+		Preload("Versions", "active = ?", models.StatusActive).
+		Preload("Roles", "active = ?", models.StatusActive).
+		Preload("Configs", "active = ?", models.StatusActive).
 		First(&app).Error; err != nil {
 		slog.Error("Failed to reload micro app with relations", "error", err, "appID", req.AppID)
 		http.Error(w, "failed to fetch micro app", http.StatusInternalServerError)
@@ -294,16 +294,16 @@ func (h *MicroAppHandler) Deactivate(w http.ResponseWriter, r *http.Request) {
 
 	// Use transaction to ensure app, versions, roles, and configs are deactivated together
 	err := h.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&app).Update("active", 0).Error; err != nil {
+		if err := tx.Model(&app).Update("active", models.StatusInactive).Error; err != nil {
 			return err
 		}
-		if err := tx.Model(&models.MicroAppVersion{}).Where("micro_app_id = ?", id).Update("active", 0).Error; err != nil {
+		if err := tx.Model(&models.MicroAppVersion{}).Where("micro_app_id = ?", id).Update("active", models.StatusInactive).Error; err != nil {
 			return err
 		}
-		if err := tx.Model(&models.MicroAppRole{}).Where("micro_app_id = ?", id).Update("active", 0).Error; err != nil {
+		if err := tx.Model(&models.MicroAppRole{}).Where("micro_app_id = ?", id).Update("active", models.StatusInactive).Error; err != nil {
 			return err
 		}
-		if err := tx.Model(&models.MicroAppConfig{}).Where("micro_app_id = ?", id).Update("active", 0).Error; err != nil {
+		if err := tx.Model(&models.MicroAppConfig{}).Where("micro_app_id = ?", id).Update("active", models.StatusInactive).Error; err != nil {
 			return err
 		}
 		return nil
@@ -333,7 +333,7 @@ func (h *MicroAppHandler) getMicroAppIDsByGroups(groups []string) ([]string, err
 	var appIDs []string
 	if err := h.db.Model(&models.MicroAppRole{}).
 		Select("DISTINCT micro_app_id").
-		Where("active = ? AND role IN ?", 1, groups).
+		Where("active = ? AND role IN ?", models.StatusActive, groups).
 		Pluck("micro_app_id", &appIDs).Error; err != nil {
 		return nil, err
 	}

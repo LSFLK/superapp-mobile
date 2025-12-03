@@ -4,27 +4,45 @@ import (
 	"net/http"
 
 	"go-backend/internal/api/v1/handler"
+	"go-backend/internal/config"
 	"go-backend/internal/services"
 
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
 )
 
-// NewV1Router returns the main http.Handler configured with chi routes.
-func NewV1Router(db *gorm.DB, fcmService *services.FCMService) http.Handler {
+// NewUserRouter returns the http.Handler for user-authenticated routes (Asgardeo).
+func NewUserRouter(db *gorm.DB, fcmService services.NotificationService, cfg *config.Config) http.Handler {
 	r := chi.NewRouter()
 
 	r.Mount("/micro-apps", MicroAppRoutes(db))
 	r.Mount("/device-tokens", DeviceTokenRoutes(db, fcmService))
+	r.Mount("/token", TokenRoutes(cfg))
 
 	return r
 }
 
-// ServiceRoutes sets up a sub-router for all service-to-service endpoints.
-func NewV1ServiceRoutes(db *gorm.DB, fcmService *services.FCMService) http.Handler {
+// NewServiceRouter returns the http.Handler for service-authenticated routes (Internal IDP).
+func NewServiceRouter(db *gorm.DB, fcmService services.NotificationService) http.Handler {
 	r := chi.NewRouter()
 
 	r.Mount("/notifications", NotificationRoutes(db, fcmService))
+
+	return r
+}
+
+// NewAuthRouter returns the http.Handler for public/gateway routes (OAuth, JWKS).
+// These routes handle authentication protocols and do not require backend-level auth middleware.
+func NewAuthRouter(cfg *config.Config, serviceTokenValidator services.TokenValidator) http.Handler {
+	r := chi.NewRouter()
+
+	tokenHandler := handler.NewTokenHandler(cfg, serviceTokenValidator)
+
+	// OAuth  token endpoint - proxies to internal IDP for service token generation
+	r.Post("/oauth/token", tokenHandler.ProxyOAuthToken)
+
+	// JWKS endpoint - serves cached JWKS for microapp token validation
+	r.Get("/.well-known/jwks.json", tokenHandler.GetJWKS)
 
 	return r
 }
@@ -56,7 +74,7 @@ func MicroAppRoutes(db *gorm.DB) http.Handler {
 }
 
 // DeviceTokenRoutes sets up a sub-router for device token endpoints
-func DeviceTokenRoutes(db *gorm.DB, fcmService *services.FCMService) http.Handler {
+func DeviceTokenRoutes(db *gorm.DB, fcmService services.NotificationService) http.Handler {
 	r := chi.NewRouter()
 
 	notificationHandler := handler.NewNotificationHandler(db, fcmService)
@@ -68,13 +86,25 @@ func DeviceTokenRoutes(db *gorm.DB, fcmService *services.FCMService) http.Handle
 }
 
 // NotificationRoutes sets up a sub-router for notification endpoints
-func NotificationRoutes(db *gorm.DB, fcmService *services.FCMService) http.Handler {
+func NotificationRoutes(db *gorm.DB, fcmService services.NotificationService) http.Handler {
 	r := chi.NewRouter()
 
 	notificationHandler := handler.NewNotificationHandler(db, fcmService)
 
 	// POST /notifications/send
 	r.Post("/send", notificationHandler.SendNotification)
+
+	return r
+}
+
+// TokenRoutes sets up a sub-router for token endpoints
+func TokenRoutes(cfg *config.Config) http.Handler {
+	r := chi.NewRouter()
+
+	tokenHandler := handler.NewTokenHandler(cfg, nil) // nil as JWKS not needed for token exchange
+
+	// POST /token/exchange - Exchange user token for microapp token (requires user auth)
+	r.Post("/exchange", tokenHandler.ExchangeToken)
 
 	return r
 }
