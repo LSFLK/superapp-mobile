@@ -9,6 +9,8 @@ import (
 	"go-backend/internal/config"
 	"go-backend/internal/services"
 
+	"go-backend/plugins/fileservice"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"gorm.io/gorm"
@@ -61,19 +63,30 @@ func NewRouter(db *gorm.DB, cfg *config.Config) http.Handler {
 		slog.Warn("Firebase credentials path not configured, notification features will be unavailable")
 	}
 
+	// Initialize File Service
+	fileServiceConfig := cfg.GetFileServiceConfig()
+	fileServiceConfig["DB"] = db // Add the database connection access for default db file service
+	fileService, err := fileservice.Registry.Get(cfg.FileServiceType, fileServiceConfig)
+	if err != nil {
+		slog.Error("Failed to initialize File Service", "type", cfg.FileServiceType, "error", err)
+		// Depending on requirements, we might want to panic here or just warn if it's optional
+	} else {
+		slog.Info("File Service initialized successfully", "type", cfg.FileServiceType)
+	}
+
 	// set up routes
 	// v1
 
 	// Public Routes (no authentication required)
 	// Auth Router (Gateway/Public - OAuth, JWKS)
-	r.Mount("/", v1.NewNoAuthRouter(cfg, internalIDPValidator))
+	r.Mount("/", v1.NewNoAuthRouter(cfg, internalIDPValidator, fileService))
 
 	// User Authenticated Routes (validates against External IDP)
 	r.Route(userRoutesPrefix, func(r chi.Router) {
 		if externalIDPValidator != nil {
 			r.Use(auth.AuthMiddleware(externalIDPValidator))
 		}
-		r.Mount("/", v1.NewUserRouter(db, fcmService, cfg))
+		r.Mount("/", v1.NewUserRouter(db, fcmService, fileService, cfg))
 	})
 
 	// Service Routes (validates against Internal IDP)

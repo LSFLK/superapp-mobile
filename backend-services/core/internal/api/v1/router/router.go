@@ -6,18 +6,20 @@ import (
 	"go-backend/internal/api/v1/handler"
 	"go-backend/internal/config"
 	"go-backend/internal/services"
+	"go-backend/plugins/fileservice"
 
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
 )
 
 // NewUserRouter returns the http.Handler for user-authenticated routes (Asgardeo).
-func NewUserRouter(db *gorm.DB, fcmService services.NotificationService, cfg *config.Config) http.Handler {
+func NewUserRouter(db *gorm.DB, fcmService services.NotificationService, fileService fileservice.FileService, cfg *config.Config) http.Handler {
 	r := chi.NewRouter()
 
 	r.Mount("/micro-apps", MicroAppRoutes(db))
 	r.Mount("/device-tokens", DeviceTokenRoutes(db, fcmService))
 	r.Mount("/token", TokenRoutes(cfg))
+	r.Mount("/files", fileRoutes(fileService))
 
 	return r
 }
@@ -33,7 +35,7 @@ func NewServiceRouter(db *gorm.DB, fcmService services.NotificationService) http
 
 // NewNoAuthRouter returns the http.Handler for public/gateway routes (OAuth, JWKS).
 // These routes handle authentication protocols and do not require backend-level auth middleware.
-func NewNoAuthRouter(cfg *config.Config, serviceTokenValidator services.TokenValidator) http.Handler {
+func NewNoAuthRouter(cfg *config.Config, serviceTokenValidator services.TokenValidator, fileService fileservice.FileService) http.Handler {
 	r := chi.NewRouter()
 
 	tokenHandler := handler.NewTokenHandler(cfg, serviceTokenValidator)
@@ -43,6 +45,19 @@ func NewNoAuthRouter(cfg *config.Config, serviceTokenValidator services.TokenVal
 
 	// JWKS endpoint - serves cached JWKS for microapp token validation
 	r.Get("/.well-known/jwks.json", tokenHandler.GetJWKS)
+
+	// Other public routes
+	r.Mount("/public", PublicRoutes(fileService))
+
+	return r
+}
+
+// PublicRoutes sets up a sub-router for public routes
+func PublicRoutes(fileService fileservice.FileService) http.Handler {
+	r := chi.NewRouter()
+
+	// GET /public/micro-app-files/download/{fileName}
+	r.Get("/micro-app-files/download/{fileName}", handler.NewFileHandler(fileService).DownloadMicroAppFile)
 
 	return r
 }
@@ -105,6 +120,21 @@ func TokenRoutes(cfg *config.Config) http.Handler {
 
 	// POST /token/exchange - Exchange user token for microapp token (requires user auth)
 	r.Post("/exchange", tokenHandler.ExchangeToken)
+
+	return r
+}
+
+// fileRoutes sets up a sub-router for file operations.
+func fileRoutes(fileService fileservice.FileService) http.Handler {
+	r := chi.NewRouter()
+
+	fileHandler := handler.NewFileHandler(fileService)
+
+	// POST /files?fileName=xxx
+	r.Post("/", fileHandler.UploadFile)
+
+	// DELETE /files?fileName=xxx
+	r.Delete("/", fileHandler.DeleteFile)
 
 	return r
 }

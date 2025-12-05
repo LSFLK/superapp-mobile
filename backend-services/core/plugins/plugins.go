@@ -7,5 +7,5 @@ import (
 	// -------------------------------------------------------------------------
 
 	// File Service: Local Implementation
-	_ "go-backend/plugins/fileservice/local"
+	_ "go-backend/plugins/fileservice/db"
 )
