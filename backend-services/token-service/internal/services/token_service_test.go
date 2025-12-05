@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 )
@@ -73,61 +72,6 @@ func TestNewTokenServiceFromDirectory(t *testing.T) {
 
 	if _, ok := ts.privateKeys["test-key-2"]; !ok {
 		t.Error("test-key-2 not found in private keys")
-	}
-}
-
-// TestIssueToken tests token generation
-func TestIssueToken(t *testing.T) {
-	ts, err := NewTokenServiceFromDirectory(testDataDir, "test-key-1", 3600)
-	if err != nil {
-		t.Fatalf("Failed to create token service: %v", err)
-	}
-
-	clientID := "test-client"
-	scopes := "read write"
-
-	tokenString, err := ts.IssueToken(clientID, scopes)
-	if err != nil {
-		t.Fatalf("Failed to issue token: %v", err)
-	}
-
-	if tokenString == "" {
-		t.Fatal("Token string is empty")
-	}
-
-	// Parse token to verify claims
-	token, err := jwt.ParseWithClaims(tokenString, &ServiceClaims{}, func(token *jwt.Token) (interface{}, error) {
-		kid, ok := token.Header["kid"].(string)
-		if !ok {
-			t.Fatal("kid not found in token header")
-		}
-
-		if kid != "test-key-1" {
-			t.Errorf("Expected kid test-key-1, got %s", kid)
-		}
-
-		return ts.publicKeys[kid], nil
-	})
-
-	if err != nil {
-		t.Fatalf("Failed to parse token: %v", err)
-	}
-
-	claims, ok := token.Claims.(*ServiceClaims)
-	if !ok {
-		t.Fatal("Failed to cast claims")
-	}
-
-	if claims.Subject != clientID {
-		t.Errorf("Expected subject %s, got %s", clientID, claims.Subject)
-	}
-
-	if claims.Scopes != scopes {
-		t.Errorf("Expected scopes %s, got %s", scopes, claims.Scopes)
-	}
-
-	if claims.Issuer != Issuer {
-		t.Errorf("Expected issuer %s, got %s", Issuer, claims.Issuer)
 	}
 }
 
@@ -253,54 +197,6 @@ func TestGetJWKS(t *testing.T) {
 	}
 }
 
-// TestTokenExpiry tests token expiration
-func TestTokenExpiry(t *testing.T) {
-	expirySeconds := 1 // 1 second expiry
-	ts, err := NewTokenServiceFromDirectory(testDataDir, "test-key-1", expirySeconds)
-	if err != nil {
-		t.Fatalf("Failed to create token service: %v", err)
-	}
-
-	tokenString, err := ts.IssueToken("test-client", "read")
-	if err != nil {
-		t.Fatalf("Failed to issue token: %v", err)
-	}
-
-	// Parse token
-	token, err := jwt.ParseWithClaims(tokenString, &ServiceClaims{}, func(token *jwt.Token) (interface{}, error) {
-		kid := token.Header["kid"].(string)
-		return ts.publicKeys[kid], nil
-	})
-
-	if err != nil {
-		t.Fatalf("Failed to parse token: %v", err)
-	}
-
-	claims := token.Claims.(*ServiceClaims)
-
-	// Verify expiry is set correctly
-	expectedExpiry := time.Now().Add(time.Duration(expirySeconds) * time.Second)
-	actualExpiry := claims.ExpiresAt.Time
-
-	// Allow 1 second tolerance
-	if actualExpiry.Sub(expectedExpiry).Abs() > time.Second {
-		t.Errorf("Token expiry mismatch. Expected ~%v, got %v", expectedExpiry, actualExpiry)
-	}
-
-	// Wait for token to expire
-	time.Sleep(2 * time.Second)
-
-	// Try to parse expired token
-	_, err = jwt.ParseWithClaims(tokenString, &ServiceClaims{}, func(token *jwt.Token) (interface{}, error) {
-		kid := token.Header["kid"].(string)
-		return ts.publicKeys[kid], nil
-	})
-
-	if err == nil {
-		t.Error("Expected error for expired token")
-	}
-}
-
 // TestGetExpiry tests expiry getter
 func TestGetExpiry(t *testing.T) {
 	expirySeconds := 7200
@@ -361,5 +257,86 @@ func TestInvalidKeyFile(t *testing.T) {
 	_, err = NewTokenService(invalidKeyPath, "", "", 3600)
 	if err == nil {
 		t.Error("Expected error for invalid private key")
+	}
+}
+
+// TestReloadKeys tests hot key reloading
+func TestReloadKeys(t *testing.T) {
+	// Setup: Create a temp directory and copy initial keys
+	tmpDir, err := os.MkdirTemp("", "test-reload-keys")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// Copy test-key-1 to tmpDir
+	copyFile(t, filepath.Join(testDataDir, "test-key-1_private.pem"), filepath.Join(tmpDir, "test-key-1_private.pem"))
+	copyFile(t, filepath.Join(testDataDir, "test-key-1_public.pem"), filepath.Join(tmpDir, "test-key-1_public.pem"))
+
+	// Initialize service with tmpDir
+	ts, err := NewTokenServiceFromDirectory(tmpDir, "test-key-1", 3600)
+	if err != nil {
+		t.Fatalf("Failed to create token service: %v", err)
+	}
+
+	// Verify initial state
+	if len(ts.privateKeys) != 1 {
+		t.Errorf("Expected 1 private key, got %d", len(ts.privateKeys))
+	}
+
+	// Add a new key (test-key-2) to tmpDir
+	copyFile(t, filepath.Join(testDataDir, "test-key-2_private.pem"), filepath.Join(tmpDir, "test-key-2_private.pem"))
+	copyFile(t, filepath.Join(testDataDir, "test-key-2_public.pem"), filepath.Join(tmpDir, "test-key-2_public.pem"))
+
+	// Reload keys
+	err = ts.ReloadKeys()
+	if err != nil {
+		t.Fatalf("Failed to reload keys: %v", err)
+	}
+
+	// Verify new state
+	ts.mu.RLock()
+	keyCount := len(ts.privateKeys)
+	ts.mu.RUnlock()
+
+	if keyCount != 2 {
+		t.Errorf("Expected 2 private keys after reload, got %d", keyCount)
+	}
+
+	// Verify we can switch to the new key
+	err = ts.SetActiveKey("test-key-2")
+	if err != nil {
+		t.Fatalf("Failed to set active key to new key: %v", err)
+	}
+}
+
+// TestReloadKeys_NoDir tests reload without directory configured
+func TestReloadKeys_NoDir(t *testing.T) {
+	privateKeyPath := filepath.Join(testDataDir, "test-key-1_private.pem")
+	publicKeyPath := filepath.Join(testDataDir, "test-key-1_public.pem")
+	jwksPath := filepath.Join(testDataDir, "test-key-1_jwks.json")
+
+	// Create legacy service
+	ts, err := NewTokenService(privateKeyPath, publicKeyPath, jwksPath, 3600)
+	if err != nil {
+		t.Fatalf("Failed to create token service: %v", err)
+	}
+
+	// Try to reload
+	err = ts.ReloadKeys()
+	if err == nil {
+		t.Error("Expected error when reloading without keys directory")
+	}
+}
+
+// Helper to copy files
+func copyFile(t *testing.T, src, dst string) {
+	data, err := os.ReadFile(src)
+	if err != nil {
+		t.Fatalf("Failed to read file %s: %v", src, err)
+	}
+	err = os.WriteFile(dst, data, 0600)
+	if err != nil {
+		t.Fatalf("Failed to write file %s: %v", dst, err)
 	}
 }

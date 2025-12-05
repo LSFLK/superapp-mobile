@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS notification_logs (
 -- ----------------------------------------------------------------------------
 -- 7. OAUTH2 CLIENTS (for token-issure-service)
 -- ----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS oauth2_clients (
+CREATE TABLE IF NOT EXISTS o_auth2_clients (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     client_id VARCHAR(255) NOT NULL,
     client_secret VARCHAR(255) NOT NULL,

@@ -285,3 +285,164 @@ func TestOAuthHandler_Token_MissingCredentials(t *testing.T) {
 		t.Errorf("Expected status 400, got %d", w.Code)
 	}
 }
+
+// TestOAuthHandler_CreateClient_Success tests successful client creation
+func TestOAuthHandler_CreateClient_Success(t *testing.T) {
+	db := setupTestDB(t)
+	tokenService := setupTestTokenService(t)
+
+	handler := NewOAuthHandler(db, tokenService)
+
+	reqBody := CreateClientRequest{
+		ClientID: "new-client",
+		Name:     "New Test Client",
+		Scopes:   "read write admin",
+	}
+
+	body, _ := json.Marshal(reqBody)
+	req := httptest.NewRequest(http.MethodPost, "/oauth/clients", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	handler.CreateClient(w, req)
+
+	if w.Code != http.StatusCreated {
+		t.Errorf("Expected status 201, got %d. Body: %s", w.Code, w.Body.String())
+	}
+
+	var resp CreateClientResponse
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	if err != nil {
+		t.Fatalf("Failed to parse response: %v", err)
+	}
+
+	if resp.ClientID != "new-client" {
+		t.Errorf("Expected client_id 'new-client', got %s", resp.ClientID)
+	}
+
+	if resp.Name != "New Test Client" {
+		t.Errorf("Expected name 'New Test Client', got %s", resp.Name)
+	}
+
+	if resp.Scopes != "read write admin" {
+		t.Errorf("Expected scopes 'read write admin', got %s", resp.Scopes)
+	}
+
+	if resp.ClientSecret == "" {
+		t.Error("Client secret is empty")
+	}
+
+	if !resp.IsActive {
+		t.Error("Expected client to be active")
+	}
+
+	// Verify the client was actually created in the database
+	var dbClient models.OAuth2Client
+	if err := db.Where("client_id = ?", "new-client").First(&dbClient).Error; err != nil {
+		t.Errorf("Failed to find created client in database: %v", err)
+	}
+
+	// Verify the secret is hashed in the database
+	if dbClient.ClientSecret == resp.ClientSecret {
+		t.Error("Client secret should be hashed in database, but it's stored in plain text")
+	}
+}
+
+// TestOAuthHandler_CreateClient_DuplicateClientID tests creating a client with duplicate client_id
+func TestOAuthHandler_CreateClient_DuplicateClientID(t *testing.T) {
+	db := setupTestDB(t)
+	seedTestClient(t, db) // Creates "test-client"
+	tokenService := setupTestTokenService(t)
+
+	handler := NewOAuthHandler(db, tokenService)
+
+	reqBody := CreateClientRequest{
+		ClientID: "test-client", // Duplicate
+		Name:     "Duplicate Client",
+		Scopes:   "read",
+	}
+
+	body, _ := json.Marshal(reqBody)
+	req := httptest.NewRequest(http.MethodPost, "/oauth/clients", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	handler.CreateClient(w, req)
+
+	if w.Code != http.StatusConflict {
+		t.Errorf("Expected status 409, got %d. Body: %s", w.Code, w.Body.String())
+	}
+
+	var errResp map[string]string
+	json.Unmarshal(w.Body.Bytes(), &errResp)
+
+	if errResp["error"] != "invalid_request" {
+		t.Errorf("Expected error 'invalid_request', got %s", errResp["error"])
+	}
+
+	if !strings.Contains(errResp["error_description"], "already exists") {
+		t.Errorf("Expected error description to mention 'already exists', got %s", errResp["error_description"])
+	}
+}
+
+// TestOAuthHandler_CreateClient_MissingClientID tests creating a client without client_id
+func TestOAuthHandler_CreateClient_MissingClientID(t *testing.T) {
+	db := setupTestDB(t)
+	tokenService := setupTestTokenService(t)
+
+	handler := NewOAuthHandler(db, tokenService)
+
+	reqBody := CreateClientRequest{
+		Name:   "Test Client",
+		Scopes: "read",
+	}
+
+	body, _ := json.Marshal(reqBody)
+	req := httptest.NewRequest(http.MethodPost, "/oauth/clients", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	handler.CreateClient(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 400, got %d. Body: %s", w.Code, w.Body.String())
+	}
+
+	var errResp map[string]string
+	json.Unmarshal(w.Body.Bytes(), &errResp)
+
+	if !strings.Contains(errResp["error_description"], "client_id is required") {
+		t.Errorf("Expected error description to mention 'client_id is required', got %s", errResp["error_description"])
+	}
+}
+
+// TestOAuthHandler_CreateClient_MissingName tests creating a client without name
+func TestOAuthHandler_CreateClient_MissingName(t *testing.T) {
+	db := setupTestDB(t)
+	tokenService := setupTestTokenService(t)
+
+	handler := NewOAuthHandler(db, tokenService)
+
+	reqBody := CreateClientRequest{
+		ClientID: "test-client-2",
+		Scopes:   "read",
+	}
+
+	body, _ := json.Marshal(reqBody)
+	req := httptest.NewRequest(http.MethodPost, "/oauth/clients", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	handler.CreateClient(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 400, got %d. Body: %s", w.Code, w.Body.String())
+	}
+
+	var errResp map[string]string
+	json.Unmarshal(w.Body.Bytes(), &errResp)
+
+	if !strings.Contains(errResp["error_description"], "name is required") {
+		t.Errorf("Expected error description to mention 'name is required', got %s", errResp["error_description"])
+	}
+}

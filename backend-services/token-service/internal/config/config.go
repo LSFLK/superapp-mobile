@@ -2,8 +2,14 @@ package config
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
-	"strconv"
+
+	"github.com/joho/godotenv"
+)
+
+const (
+	rootEnvFile = ".env"
 )
 
 type Config struct {
@@ -23,6 +29,11 @@ type Config struct {
 }
 
 func Load() *Config {
+
+	if err := godotenv.Load(rootEnvFile); err != nil {
+		slog.Warn("No .env file found, using environment variables or defaults")
+	}
+
 	cfg := &Config{
 		Port:           getEnv("PORT", "8081"),
 		DBUser:         getEnv("DB_USER", "root"),
@@ -35,7 +46,7 @@ func Load() *Config {
 		JWKSPath:       getEnv("JWKS_PATH", "jwks.json"),
 		KeysDir:        getEnv("KEYS_DIR", ""), // Empty means use single-key mode
 		ActiveKeyID:    getEnv("ACTIVE_KEY_ID", "superapp-key-1"),
-		TokenExpiry:    getEnvAsInt("TOKEN_EXPIRY_SECONDS", 3600),
+		TokenExpiry:    getEnvInt("TOKEN_EXPIRY_SECONDS", 3600),
 	}
 
 	// Construct DSN
@@ -53,11 +64,13 @@ func getEnv(key, fallback string) string {
 	return fallback
 }
 
-func getEnvAsInt(key string, fallback int) int {
-	if value, ok := os.LookupEnv(key); ok {
-		if i, err := strconv.Atoi(value); err == nil {
-			return i
+func getEnvInt(key string, fallback int) int {
+	if value := os.Getenv(key); value != "" {
+		var intValue int
+		if _, err := fmt.Sscanf(value, "%d", &intValue); err == nil {
+			return intValue
 		}
+		slog.Warn("Invalid integer value for environment variable, using default", "key", key, "value", value, "default", fallback)
 	}
 	return fallback
 }

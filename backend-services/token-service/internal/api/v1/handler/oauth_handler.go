@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -48,6 +46,20 @@ type TokenResponse struct {
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`
 	ExpiresIn   int    `json:"expires_in"`
+}
+
+type CreateClientRequest struct {
+	ClientID string `json:"client_id"`
+	Name     string `json:"name"`
+	Scopes   string `json:"scopes"` // Comma-separated scopes
+}
+
+type CreateClientResponse struct {
+	ClientID     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"` // Plain text secret (only returned once)
+	Name         string `json:"name"`
+	Scopes       string `json:"scopes"`
+	IsActive     bool   `json:"is_active"`
 }
 
 // Token handles the OAuth2 token endpoint
@@ -106,8 +118,6 @@ func (h *OAuthHandler) Token(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Verify Secret (Hash comparison)
-	// In production, use bcrypt or argon2.
-	// For simplicity here use SHA256.
 	hashedSecret := hashSecret(clientSecret)
 	if hashedSecret != OAuth2client.ClientSecret {
 		slog.Warn("Invalid client secret", "client_id", clientID)
@@ -132,7 +142,69 @@ func (h *OAuthHandler) Token(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, resp)
 }
 
-func hashSecret(secret string) string {
-	hash := sha256.Sum256([]byte(secret))
-	return hex.EncodeToString(hash[:])
+// CreateClient handles the creation of new OAuth2 clients
+func (h *OAuthHandler) CreateClient(w http.ResponseWriter, r *http.Request) {
+	limitRequestBody(w, r, 0)
+
+	var req CreateClientRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, errInvalidRequest, "invalid request body")
+		return
+	}
+
+	// Validate required fields
+	if req.ClientID == "" {
+		writeError(w, http.StatusBadRequest, errInvalidRequest, "client_id is required")
+		return
+	}
+	if req.Name == "" {
+		writeError(w, http.StatusBadRequest, errInvalidRequest, "name is required")
+		return
+	}
+
+	// Check if client already exists
+	var existingClient models.OAuth2Client
+	if err := h.db.Where("client_id = ?", req.ClientID).First(&existingClient).Error; err == nil {
+		writeError(w, http.StatusConflict, errInvalidRequest, "client_id already exists")
+		return
+	}
+
+	// Generate a secure random client secret
+	clientSecret, err := generateSecureSecret(32)
+	if err != nil {
+		slog.Error("Failed to generate client secret", "error", err)
+		writeError(w, http.StatusInternalServerError, errServerError, "failed to generate client secret")
+		return
+	}
+
+	// Hash the secret for storage
+	hashedSecret := hashSecret(clientSecret)
+
+	// Create the new client
+	newClient := models.OAuth2Client{
+		ClientID:     req.ClientID,
+		ClientSecret: hashedSecret,
+		Name:         req.Name,
+		Scopes:       req.Scopes,
+		IsActive:     true,
+	}
+
+	if err := h.db.Create(&newClient).Error; err != nil {
+		slog.Error("Failed to create OAuth2 client", "error", err)
+		writeError(w, http.StatusInternalServerError, errServerError, "failed to create client")
+		return
+	}
+
+	slog.Info("OAuth2 client created successfully", "client_id", req.ClientID, "name", req.Name)
+
+	// Return the response with the plain text secret (only time it's visible)
+	resp := CreateClientResponse{
+		ClientID:     newClient.ClientID,
+		ClientSecret: clientSecret, // Return plain text secret
+		Name:         newClient.Name,
+		Scopes:       newClient.Scopes,
+		IsActive:     newClient.IsActive,
+	}
+
+	writeJSON(w, http.StatusCreated, resp)
 }

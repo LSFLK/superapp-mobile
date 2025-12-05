@@ -22,7 +22,11 @@ func NewRouter(db *gorm.DB, tokenService *services.TokenService) http.Handler {
 
 	r.Post("/oauth/token", oauthHandler.Token)
 	r.Post("/oauth/token/user", oauthHandler.GenerateUserToken)
+	r.Post("/oauth/clients", oauthHandler.CreateClient)
 	r.Get("/.well-known/jwks.json", keyHandler.GetJWKS)
+	r.Post("/admin/reload-keys", keyHandler.ReloadKeys)
+	r.Post("/admin/active-key", keyHandler.SetActiveKey)
 
 	return r
+
 }

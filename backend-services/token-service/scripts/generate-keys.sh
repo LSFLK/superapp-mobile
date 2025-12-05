@@ -9,7 +9,7 @@ NC='\033[0m' # No Color
 
 # Default values
 KEY_ID=${1:-"superapp-key-$(date +%s)"}
-OUTPUT_DIR=${2:-"./keys"}
+OUTPUT_DIR=${2:-"../keys"}
 KEY_SIZE=${3:-2048}
 
 echo -e "${GREEN}🔑 RSA Key Pair Generator${NC}"

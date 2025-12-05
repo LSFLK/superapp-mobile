@@ -10,34 +10,28 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 )
 
 const (
-	Audience = "superapp-api"
-	Issuer   = "superapp-idp"
-	KeyID    = "superapp-key-1"
+	Issuer = "superapp"
+	KeyID  = "superapp-key-1" // Default active kid
 )
 
 type TokenService struct {
+	mu          sync.RWMutex
 	privateKeys map[string]*rsa.PrivateKey // kid -> private key
 	publicKeys  map[string]*rsa.PublicKey  // kid -> public key
 	activeKeyID string                     // Current signing key
 	jwksData    []byte
 	expiry      time.Duration
+	keysDir     string // Directory for key reloading
 }
 
-type ServiceClaims struct {
-	jwt.RegisteredClaims
-	Scopes string `json:"scope"`
-}
-
-// NewTokenService creates a TokenService with support for multiple keys
-// It can load keys in two modes:
-// 1. Single key mode (backward compatible): privateKeyPath, publicKeyPath, jwksPath
-// 2. Directory mode: keysDir containing multiple key pairs
+// NewTokenService creates a TokenService with single key set -- only for backward compatibility
 func NewTokenService(privateKeyPath, publicKeyPath, jwksPath string, expirySeconds int) (*TokenService, error) {
 	ts := &TokenService{
 		privateKeys: make(map[string]*rsa.PrivateKey),
@@ -87,19 +81,87 @@ func NewTokenService(privateKeyPath, publicKeyPath, jwksPath string, expirySecon
 }
 
 // NewTokenServiceFromDirectory creates a TokenService by loading all keys from a directory
-// This enables zero-downtime key rotation by loading multiple keys simultaneously
 func NewTokenServiceFromDirectory(keysDir string, activeKeyID string, expirySeconds int) (*TokenService, error) {
+	privateKeys, publicKeys, err := loadKeysFromDirectory(keysDir)
+	if err != nil {
+		return nil, err
+	}
+
 	ts := &TokenService{
-		privateKeys: make(map[string]*rsa.PrivateKey),
-		publicKeys:  make(map[string]*rsa.PublicKey),
+		privateKeys: privateKeys,
+		publicKeys:  publicKeys,
 		activeKeyID: activeKeyID,
 		expiry:      time.Duration(expirySeconds) * time.Second,
+		keysDir:     keysDir,
 	}
+
+	// Verify active key exists
+	if _, ok := ts.privateKeys[activeKeyID]; !ok {
+		return nil, fmt.Errorf("active key %s not found in loaded keys", activeKeyID)
+	}
+
+	// Generate JWKS from all public keys
+	ts.jwksData, err = ts.generateJWKS()
+	if err != nil {
+		slog.Warn("Failed to generate JWKS", "error", err)
+	}
+
+	slog.Info("Token service initialized from directory",
+		"keys_loaded", len(privateKeys),
+		"active_key", activeKeyID)
+
+	return ts, nil
+}
+
+// ReloadKeys re-scans the keys directory and updates the service state without downtime
+func (s *TokenService) ReloadKeys() error {
+	if s.keysDir == "" {
+		return fmt.Errorf("keys directory not configured")
+	}
+
+	slog.Info("Reloading keys from directory", "dir", s.keysDir)
+
+	privateKeys, publicKeys, err := loadKeysFromDirectory(s.keysDir)
+	if err != nil {
+		return fmt.Errorf("failed to load keys: %w", err)
+	}
+
+	// Verify active key still exists
+	s.mu.RLock()
+	activeKeyID := s.activeKeyID
+	s.mu.RUnlock()
+
+	if _, ok := privateKeys[activeKeyID]; !ok {
+		return fmt.Errorf("active key %s not found in new keys", activeKeyID)
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.privateKeys = privateKeys
+	s.publicKeys = publicKeys
+
+	// Regenerate JWKS
+	jwksData, err := s.generateJWKS()
+	if err != nil {
+		slog.Warn("Failed to generate JWKS during reload", "error", err)
+	} else {
+		s.jwksData = jwksData
+	}
+
+	slog.Info("Keys reloaded successfully", "keys_loaded", len(privateKeys))
+	return nil
+}
+
+// loadKeysFromDirectory is a helper to load keys from a directory
+func loadKeysFromDirectory(keysDir string) (map[string]*rsa.PrivateKey, map[string]*rsa.PublicKey, error) {
+	privateKeys := make(map[string]*rsa.PrivateKey)
+	publicKeys := make(map[string]*rsa.PublicKey)
 
 	// Read all files in the directory
 	entries, err := os.ReadDir(keysDir)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read keys directory: %w", err)
+		return nil, nil, fmt.Errorf("failed to read keys directory: %w", err)
 	}
 
 	keysLoaded := 0
@@ -131,7 +193,7 @@ func NewTokenServiceFromDirectory(keysDir string, activeKeyID string, expirySeco
 			slog.Warn("Failed to parse private key", "key_id", keyID, "error", err)
 			continue
 		}
-		ts.privateKeys[keyID] = privateKey
+		privateKeys[keyID] = privateKey
 
 		// Load corresponding public key
 		pubKeyPath := filepath.Join(keysDir, keyID+"_public.pem")
@@ -139,7 +201,7 @@ func NewTokenServiceFromDirectory(keysDir string, activeKeyID string, expirySeco
 		if err == nil {
 			publicKey, err := jwt.ParseRSAPublicKeyFromPEM(pubKeyBytes)
 			if err == nil {
-				ts.publicKeys[keyID] = publicKey
+				publicKeys[keyID] = publicKey
 			} else {
 				slog.Warn("Failed to parse public key", "key_id", keyID, "error", err)
 			}
@@ -150,25 +212,10 @@ func NewTokenServiceFromDirectory(keysDir string, activeKeyID string, expirySeco
 	}
 
 	if keysLoaded == 0 {
-		return nil, fmt.Errorf("no valid key pairs found in directory: %s", keysDir)
+		return nil, nil, fmt.Errorf("no valid key pairs found in directory: %s", keysDir)
 	}
 
-	// Verify active key exists
-	if _, ok := ts.privateKeys[activeKeyID]; !ok {
-		return nil, fmt.Errorf("active key %s not found in loaded keys", activeKeyID)
-	}
-
-	// Generate JWKS from all public keys
-	ts.jwksData, err = ts.generateJWKS()
-	if err != nil {
-		slog.Warn("Failed to generate JWKS", "error", err)
-	}
-
-	slog.Info("Token service initialized from directory",
-		"keys_loaded", keysLoaded,
-		"active_key", activeKeyID)
-
-	return ts, nil
+	return privateKeys, publicKeys, nil
 }
 
 // loadAndUpdateJWKS loads the JWKS template and updates the N value from the public key
@@ -232,36 +279,11 @@ func (s *TokenService) generateJWKS() ([]byte, error) {
 	return json.Marshal(jwks)
 }
 
-// IssueToken generates a signed JWT for a client
-// The clientID serves as both the OAuth client identifier and the microapp identifier (sub claim)
-func (s *TokenService) IssueToken(clientID, scopes string) (string, error) {
-	now := time.Now()
-	claims := ServiceClaims{
-		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    Issuer,
-			Subject:   clientID, // This is the microapp ID
-			Audience:  jwt.ClaimStrings{Audience},
-			ExpiresAt: jwt.NewNumericDate(now.Add(s.expiry)),
-			IssuedAt:  jwt.NewNumericDate(now),
-			NotBefore: jwt.NewNumericDate(now),
-		},
-		Scopes: scopes,
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	token.Header["kid"] = s.activeKeyID
-
-	// Get the active private key
-	privateKey, ok := s.privateKeys[s.activeKeyID]
-	if !ok {
-		return "", fmt.Errorf("active key %s not found", s.activeKeyID)
-	}
-
-	return token.SignedString(privateKey)
-}
-
 // GetJWKS returns the cached JWKS data
 func (s *TokenService) GetJWKS() ([]byte, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
 	if len(s.jwksData) == 0 {
 		return nil, fmt.Errorf("JWKS not available")
 	}
@@ -276,6 +298,9 @@ func (s *TokenService) GetExpiry() int {
 // SetActiveKey sets the active signing key
 // This allows for key rotation without restarting the service
 func (s *TokenService) SetActiveKey(keyID string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	if _, ok := s.privateKeys[keyID]; !ok {
 		return fmt.Errorf("key %s not found in private keys", keyID)
 	}
@@ -286,5 +311,7 @@ func (s *TokenService) SetActiveKey(keyID string) error {
 
 // GetActiveKeyID returns the current active key ID
 func (s *TokenService) GetActiveKeyID() string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	return s.activeKeyID
 }
