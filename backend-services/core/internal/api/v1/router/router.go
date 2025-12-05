@@ -31,9 +31,9 @@ func NewServiceRouter(db *gorm.DB, fcmService services.NotificationService) http
 	return r
 }
 
-// NewAuthRouter returns the http.Handler for public/gateway routes (OAuth, JWKS).
+// NewNoAuthRouter returns the http.Handler for public/gateway routes (OAuth, JWKS).
 // These routes handle authentication protocols and do not require backend-level auth middleware.
-func NewAuthRouter(cfg *config.Config, serviceTokenValidator services.TokenValidator) http.Handler {
+func NewNoAuthRouter(cfg *config.Config, serviceTokenValidator services.TokenValidator) http.Handler {
 	r := chi.NewRouter()
 
 	tokenHandler := handler.NewTokenHandler(cfg, serviceTokenValidator)

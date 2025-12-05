@@ -15,7 +15,9 @@ import (
 )
 
 const (
-	apiV1Prefix = "/api/v1"
+	apiV1Prefix         = "/api/v1"
+	userRoutesPrefix    = apiV1Prefix
+	serviceRoutesPrefix = apiV1Prefix + "/services"
 )
 
 func NewRouter(db *gorm.DB, cfg *config.Config) http.Handler {
@@ -64,10 +66,10 @@ func NewRouter(db *gorm.DB, cfg *config.Config) http.Handler {
 
 	// Public Routes (no authentication required)
 	// Auth Router (Gateway/Public - OAuth, JWKS)
-	r.Mount("/", v1.NewAuthRouter(cfg, internalIDPValidator))
+	r.Mount("/", v1.NewNoAuthRouter(cfg, internalIDPValidator))
 
 	// User Authenticated Routes (validates against External IDP)
-	r.Route(apiV1Prefix, func(r chi.Router) {
+	r.Route(userRoutesPrefix, func(r chi.Router) {
 		if externalIDPValidator != nil {
 			r.Use(auth.AuthMiddleware(externalIDPValidator))
 		}
@@ -75,7 +77,7 @@ func NewRouter(db *gorm.DB, cfg *config.Config) http.Handler {
 	})
 
 	// Service Routes (validates against Internal IDP)
-	r.Route(apiV1Prefix+"/services", func(r chi.Router) {
+	r.Route(serviceRoutesPrefix, func(r chi.Router) {
 		if internalIDPValidator != nil {
 			r.Use(auth.ServiceOAuthMiddleware(internalIDPValidator))
 		}
