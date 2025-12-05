@@ -8,6 +8,8 @@ import (
 	"go-backend/internal/config"
 	"go-backend/internal/database"
 	"go-backend/internal/router"
+
+	_ "go-backend/plugins"
 )
 
 func main() {

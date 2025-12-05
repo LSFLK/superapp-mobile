@@ -4,8 +4,14 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
+)
+
+const (
+	fileServiceConfigPrefix = "FILE_SERVICE_"
+	userServiceConfigPrefix = "USER_SERVICE_"
 )
 
 type Config struct {
@@ -32,12 +38,26 @@ type Config struct {
 	InternalIdPBaseURL  string
 	InternalIdPIssuer   string
 	InternalIdPAudience string
+
+	// File Service
+	FileServiceType string
+	// RawEnv stores all environment variables for plugins
+	RawEnv map[string]any
 }
 
 func Load() *Config {
 	// Load .env file if it exists (optional, won't error if missing)
 	if err := godotenv.Load(); err != nil {
 		slog.Warn("No .env file found, using environment variables or defaults")
+	}
+
+	// Capture all environment variables
+	rawEnv := make(map[string]any)
+	for _, env := range os.Environ() {
+		pair := strings.SplitN(env, "=", 2)
+		if len(pair) == 2 {
+			rawEnv[pair[0]] = pair[1]
+		}
 	}
 
 	cfg := &Config{
@@ -64,6 +84,10 @@ func Load() *Config {
 		InternalIdPBaseURL:  getEnvRequired("INTERNAL_IDP_BASE_URL"),
 		InternalIdPIssuer:   getEnvRequired("INTERNAL_IDP_ISSUER"),
 		InternalIdPAudience: getEnvRequired("INTERNAL_IDP_AUDIENCE"),
+
+		// File Service
+		FileServiceType: getEnv("FILE_SERVICE_TYPE", "local"),
+		RawEnv:          rawEnv,
 	}
 
 	slog.Info("Configuration loaded", "server_port", cfg.ServerPort, "db_host", cfg.DBHost)
@@ -98,4 +122,25 @@ func getEnvInt(key string, fallback int) int {
 		slog.Warn("Invalid integer value for environment variable, using default", "key", key, "value", value, "default", fallback)
 	}
 	return fallback
+}
+
+// get file service config
+func (c *Config) GetFileServiceConfig() map[string]any {
+	return c.GetPluginConfig(fileServiceConfigPrefix)
+}
+
+// get user service config
+func (c *Config) GetUserServiceConfig() map[string]any {
+	return c.GetPluginConfig(userServiceConfigPrefix)
+}
+
+// GetPluginConfig returns a map of environment variables that start with the given prefix.
+func (c *Config) GetPluginConfig(prefix string) map[string]any {
+	filtered := make(map[string]any)
+	for k, v := range c.RawEnv {
+		if strings.HasPrefix(k, prefix) {
+			filtered[k] = v
+		}
+	}
+	return filtered
 }
