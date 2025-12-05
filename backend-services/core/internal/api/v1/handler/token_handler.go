@@ -14,7 +14,10 @@ import (
 	"go-backend/internal/api/v1/dto"
 	"go-backend/internal/auth"
 	"go-backend/internal/config"
+	"go-backend/internal/models"
 	"go-backend/internal/services"
+
+	"gorm.io/gorm"
 )
 
 const (
@@ -39,13 +42,15 @@ const (
 )
 
 type TokenHandler struct {
+	db                    *gorm.DB
 	cfg                   *config.Config
 	httpClient            *http.Client
 	serviceTokenValidator services.TokenValidator
 }
 
-func NewTokenHandler(cfg *config.Config, serviceTokenValidator services.TokenValidator) *TokenHandler {
+func NewTokenHandler(db *gorm.DB, cfg *config.Config, serviceTokenValidator services.TokenValidator) *TokenHandler {
 	return &TokenHandler{
+		db:                    db,
 		cfg:                   cfg,
 		httpClient:            &http.Client{Timeout: defaultHTTPTimeout},
 		serviceTokenValidator: serviceTokenValidator,
@@ -76,6 +81,19 @@ func (h *TokenHandler) ExchangeToken(w http.ResponseWriter, r *http.Request) {
 	// Validate request
 	if req.MicroappID == "" {
 		http.Error(w, "microapp_id is required", http.StatusBadRequest)
+		return
+	}
+
+	// Validate that the microapp exists and is active
+	var microapp models.MicroApp
+	if err := h.db.Where("micro_app_id = ? AND active = ?", req.MicroappID, models.StatusActive).First(&microapp).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			slog.Warn("Microapp not found or inactive", "microappID", req.MicroappID, "user", userInfo.Email)
+			http.Error(w, "microapp not found or inactive", http.StatusNotFound)
+		} else {
+			slog.Error("Failed to validate microapp", "error", err, "microappID", req.MicroappID)
+			http.Error(w, "failed to validate microapp", http.StatusInternalServerError)
+		}
 		return
 	}
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"go-backend/plugins/fileservice"
+	fileservice "go-backend/plugins/file-service"
 
 	"gorm.io/gorm"
 )

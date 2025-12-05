@@ -41,6 +41,10 @@ type Config struct {
 
 	// File Service
 	FileServiceType string
+
+	// User Service
+	UserServiceType string
+
 	// RawEnv stores all environment variables for plugins
 	RawEnv map[string]any
 }
@@ -86,8 +90,12 @@ func Load() *Config {
 		InternalIdPAudience: getEnvRequired("INTERNAL_IDP_AUDIENCE"),
 
 		// File Service
-		FileServiceType: getEnv("FILE_SERVICE_TYPE", "local"),
-		RawEnv:          rawEnv,
+		FileServiceType: getEnv("FILE_SERVICE_TYPE", "db"),
+
+		// User Service
+		UserServiceType: getEnv("USER_SERVICE_TYPE", "db"),
+
+		RawEnv: rawEnv,
 	}
 
 	slog.Info("Configuration loaded", "server_port", cfg.ServerPort, "db_host", cfg.DBHost)

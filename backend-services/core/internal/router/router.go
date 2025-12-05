@@ -9,7 +9,9 @@ import (
 	"go-backend/internal/config"
 	"go-backend/internal/services"
 
-	"go-backend/plugins/fileservice"
+	// pluggable services
+	fileservice "go-backend/plugins/file-service"
+	userservice "go-backend/plugins/user-service"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -43,7 +45,7 @@ func NewRouter(db *gorm.DB, cfg *config.Config) http.Handler {
 	}
 
 	// Initialize Service Token Validator (Internal IDP)
-	internalIDPValidator, err := services.NewTokenValidator(cfg.InternalIdPBaseURL)
+	internalIDPValidator, err := services.NewTokenValidator(cfg.InternalIdPBaseURL, cfg.InternalIdPIssuer, cfg.InternalIdPAudience)
 	if err != nil {
 		slog.Error("Failed to initialize Internal IDP Validator", "error", err)
 	} else {
@@ -65,13 +67,24 @@ func NewRouter(db *gorm.DB, cfg *config.Config) http.Handler {
 
 	// Initialize File Service
 	fileServiceConfig := cfg.GetFileServiceConfig()
-	fileServiceConfig["DB"] = db // Add the database connection access for default db file service
+	fileServiceConfig["DB"] = db // Add the database connection access for default db file service (and db user service)
 	fileService, err := fileservice.Registry.Get(cfg.FileServiceType, fileServiceConfig)
 	if err != nil {
 		slog.Error("Failed to initialize File Service", "type", cfg.FileServiceType, "error", err)
-		// Depending on requirements, we might want to panic here or just warn if it's optional
+		panic(err)
 	} else {
 		slog.Info("File Service initialized successfully", "type", cfg.FileServiceType)
+	}
+
+	// Initialize User Service
+	userConfig := cfg.GetUserServiceConfig()
+	userConfig["DB"] = db // Add the database connection access for default db user service
+	userService, err := userservice.Registry.Get(cfg.UserServiceType, userConfig)
+	if err != nil {
+		slog.Error("Failed to initialize User Service", "type", cfg.UserServiceType, "error", err)
+		panic(err)
+	} else {
+		slog.Info("User Service initialized successfully", "type", cfg.UserServiceType)
 	}
 
 	// set up routes
@@ -79,14 +92,14 @@ func NewRouter(db *gorm.DB, cfg *config.Config) http.Handler {
 
 	// Public Routes (no authentication required)
 	// Auth Router (Gateway/Public - OAuth, JWKS)
-	r.Mount("/", v1.NewNoAuthRouter(cfg, internalIDPValidator, fileService))
+	r.Mount("/", v1.NewNoAuthRouter(db, cfg, internalIDPValidator, fileService))
 
 	// User Authenticated Routes (validates against External IDP)
 	r.Route(userRoutesPrefix, func(r chi.Router) {
 		if externalIDPValidator != nil {
 			r.Use(auth.AuthMiddleware(externalIDPValidator))
 		}
-		r.Mount("/", v1.NewUserRouter(db, fcmService, fileService, cfg))
+		r.Mount("/", v1.NewUserRouter(db, fcmService, fileService, userService, cfg))
 	})
 
 	// Service Routes (validates against Internal IDP)

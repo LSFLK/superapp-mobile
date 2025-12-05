@@ -6,20 +6,24 @@ import (
 	"go-backend/internal/api/v1/handler"
 	"go-backend/internal/config"
 	"go-backend/internal/services"
-	"go-backend/plugins/fileservice"
+
+	fileservice "go-backend/plugins/file-service"
+	userservice "go-backend/plugins/user-service"
 
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
 )
 
 // NewUserRouter returns the http.Handler for user-authenticated routes (Asgardeo).
-func NewUserRouter(db *gorm.DB, fcmService services.NotificationService, fileService fileservice.FileService, cfg *config.Config) http.Handler {
+func NewUserRouter(db *gorm.DB, fcmService services.NotificationService, fileService fileservice.FileService, userService userservice.UserService, cfg *config.Config) http.Handler {
 	r := chi.NewRouter()
 
 	r.Mount("/micro-apps", MicroAppRoutes(db))
 	r.Mount("/device-tokens", DeviceTokenRoutes(db, fcmService))
-	r.Mount("/token", TokenRoutes(cfg))
+	r.Mount("/token", TokenRoutes(db, cfg))
 	r.Mount("/files", fileRoutes(fileService))
+	r.Mount("/users", userRoutes(db, userService))
+	r.Mount("/user-info", userInfoRoutes(userService))
 
 	return r
 }
@@ -35,10 +39,10 @@ func NewServiceRouter(db *gorm.DB, fcmService services.NotificationService) http
 
 // NewNoAuthRouter returns the http.Handler for public/gateway routes (OAuth, JWKS).
 // These routes handle authentication protocols and do not require backend-level auth middleware.
-func NewNoAuthRouter(cfg *config.Config, serviceTokenValidator services.TokenValidator, fileService fileservice.FileService) http.Handler {
+func NewNoAuthRouter(db *gorm.DB, cfg *config.Config, serviceTokenValidator services.TokenValidator, fileService fileservice.FileService) http.Handler {
 	r := chi.NewRouter()
 
-	tokenHandler := handler.NewTokenHandler(cfg, serviceTokenValidator)
+	tokenHandler := handler.NewTokenHandler(db, cfg, serviceTokenValidator)
 
 	// OAuth  token endpoint - proxies to internal IDP for service token generation
 	r.Post("/oauth/token", tokenHandler.ProxyOAuthToken)
@@ -113,10 +117,10 @@ func NotificationRoutes(db *gorm.DB, fcmService services.NotificationService) ht
 }
 
 // TokenRoutes sets up a sub-router for token endpoints
-func TokenRoutes(cfg *config.Config) http.Handler {
+func TokenRoutes(db *gorm.DB, cfg *config.Config) http.Handler {
 	r := chi.NewRouter()
 
-	tokenHandler := handler.NewTokenHandler(cfg, nil) // nil as JWKS not needed for token exchange
+	tokenHandler := handler.NewTokenHandler(db, cfg, nil) // nil as JWKS not needed for token exchange
 
 	// POST /token/exchange - Exchange user token for microapp token (requires user auth)
 	r.Post("/exchange", tokenHandler.ExchangeToken)
@@ -135,6 +139,44 @@ func fileRoutes(fileService fileservice.FileService) http.Handler {
 
 	// DELETE /files?fileName=xxx
 	r.Delete("/", fileHandler.DeleteFile)
+
+	return r
+}
+
+// userInfoRoutes sets up a sub-router for /user-info endpoint.
+func userInfoRoutes(userService userservice.UserService) http.Handler {
+	r := chi.NewRouter()
+
+	userHandler := handler.NewUserHandler(userService)
+
+	// GET /user-info - Get current logged-in user's info
+	r.Get("/", userHandler.GetUserInfo)
+
+	return r
+}
+
+// userRoutes sets up a sub-router for all endpoints prefixed with /users.
+func userRoutes(db *gorm.DB, userService userservice.UserService) http.Handler {
+	r := chi.NewRouter()
+
+	// Initialize User Config Handler
+	userConfigHandler := handler.NewUserConfigHandler(db)
+	userHandler := handler.NewUserHandler(userService)
+
+	// GET /users
+	r.Get("/", userHandler.GetAll)
+
+	// POST /users
+	r.Post("/", userHandler.Upsert)
+
+	// DELETE /users/{email}
+	r.Delete("/{email}", userHandler.Delete)
+
+	// GET /users/app-configs
+	r.Get("/app-configs", userConfigHandler.GetAppConfigs)
+
+	// POST /users/app-configs
+	r.Post("/app-configs", userConfigHandler.UpsertAppConfig)
 
 	return r
 }

@@ -6,6 +6,7 @@ import (
 	// Import the service implementations you want to include in the build here.
 	// -------------------------------------------------------------------------
 
-	// File Service: Local Implementation
-	_ "go-backend/plugins/fileservice/db"
+	// Default Implementations
+	_ "go-backend/plugins/file-service/default-db"
+	_ "go-backend/plugins/user-service/default-db"
 )

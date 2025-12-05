@@ -16,8 +16,6 @@ import (
 )
 
 const (
-	Audience = "superapp-api" // Audience for internal IDP
-	Issuer   = "superapp"     // Issuer for internal IDP
 
 	// Timeouts and Intervals
 	defaultHTTPTimeout      = 10 * time.Second
@@ -57,9 +55,9 @@ type JWK struct {
 }
 
 // NewTokenValidator creates a TokenValidator from an IDP base URL (for internal IDP)
-func NewTokenValidator(idpBaseURL string) (TokenValidator, error) {
+func NewTokenValidator(idpBaseURL, issuer, audience string) (TokenValidator, error) {
 	jwksURL := fmt.Sprintf("%s/.well-known/jwks.json", idpBaseURL)
-	return NewTokenValidatorWithJWKSURL(jwksURL, Issuer, Audience)
+	return NewTokenValidatorWithJWKSURL(jwksURL, issuer, audience)
 }
 
 // NewTokenValidatorWithJWKSURL creates a TokenValidator with explicit JWKS URL and validation (for external IDP)
