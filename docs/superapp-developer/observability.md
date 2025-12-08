@@ -183,5 +183,5 @@ GF_SERVER_CERT_KEY=/etc/grafana/ssl/key.pem
 ## Next Steps
 
 - [Deployment Guide](deployment.md) - Deploy backend services
-- [Managing Services](../admin/managing-services.md) - Admin monitoring guide
+- [Admin Portal Guide](../admin/portal-guide.md) - Admin monitoring guide
 - [Architecture Overview](../architecture/overview.md) - System architecture

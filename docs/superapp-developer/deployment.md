@@ -239,7 +239,7 @@ curl -X POST http://localhost:8081/admin/reload-keys
 curl -X POST "http://localhost:8081/admin/active-key?key_id=prod-key-2024-12"
 ```
 
-> 📚 [Full Key Rotation Guide](../../backend-services/token-service/docs/KEY_ROTATION.md)
+> 📚 [Full Key Rotation Guide](backend-token-service.md#zero-downtime-key-rotation)
 
 ---
 
