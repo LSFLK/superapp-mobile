@@ -47,7 +47,7 @@ export const apiRequest = async (
   onLogout: () => Promise<void>
 ) => {
   let accessToken = await getAccessToken(); // Get stored access token
-
+  console.log("Access Token:", accessToken);
   // If no access token, return early
   if (!accessToken) return;
 
@@ -80,7 +80,7 @@ export const apiRequest = async (
   } catch (error: any) {
     const duration = Date.now() - startTime;
     const statusCode = error.response?.status;
-    
+
     if (error.response?.status === 401) {
       const newAuthData = await refreshAccessToken(onLogout);
       if (newAuthData?.accessToken) {
@@ -90,10 +90,21 @@ export const apiRequest = async (
 
         try {
           const retryResponse = await axios(config);
-          recordApiMetrics(method, endpoint, Date.now() - retryStartTime, retryResponse.status);
+          recordApiMetrics(
+            method,
+            endpoint,
+            Date.now() - retryStartTime,
+            retryResponse.status
+          );
           return retryResponse;
         } catch (retryError: any) {
-          recordApiMetrics(method, endpoint, Date.now() - retryStartTime, retryError.response?.status, true);
+          recordApiMetrics(
+            method,
+            endpoint,
+            Date.now() - retryStartTime,
+            retryError.response?.status,
+            true
+          );
           // 401 after refresh: Likely another issue, not token expiration
           throw retryError;
         }

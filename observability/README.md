@@ -183,19 +183,7 @@ This setup is for **local development only**. For production:
 
 See comments in `frontend/.env.example` for production configuration details.
 
----
 
-## 🏗️ Architecture
-
-```
-Mobile App (React Native)
-    ↓ OTLP HTTP (10s interval)
-OpenTelemetry Collector (localhost:4318)
-    ↓ Prometheus Remote Write
-Prometheus (localhost:9090, 30d retention)
-    ↓ PromQL queries
-Grafana (localhost:3000, dashboards)
-```
 
 **Stack Components:**
 

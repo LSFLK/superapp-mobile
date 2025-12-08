@@ -102,7 +102,7 @@ export const getAccessToken = async (
         };
 
         await SecureStorage.setItem(AUTH_DATA, JSON.stringify(authData)); // Persist data
-        
+
         // Record login metric
         recordAuthLogin("asgardeo");
         return authData;
@@ -291,8 +291,11 @@ export const getBackendToken = async (
     }
 
     const response = await axios.post(
-      `${BASE_URL}/tokens`,
-      { microAppId },
+      `${BASE_URL}/token/exchange`,
+      {
+        microapp_id: microAppId,
+        scope: "backend_access",
+      },
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -302,8 +305,8 @@ export const getBackendToken = async (
       }
     );
 
-    if (response.status === 201 && response.data) {
-      return response.data;
+    if (response.status === 200 && response.data) {
+      return response.data.access_token;
     } else {
       console.error(
         `Backend token request failed: ${response.status} - ${response.data}`
@@ -331,9 +334,7 @@ export const tokenExchange = async (
     if (USE_BACKEND_TOKEN_EXCHANGE) {
       const backendToken = await getBackendToken(appId, onLogout);
       if (backendToken) {
-        dispatch(
-          updateExchangedToken({ appId, exchangedToken: backendToken })
-        );
+        dispatch(updateExchangedToken({ appId, exchangedToken: backendToken }));
       }
       return backendToken;
     }
@@ -470,12 +471,11 @@ export const isTokenExpiringSoon = (token: string): boolean => {
     const decoded = jwtDecode<{ exp: number }>(token);
     const now = Math.floor(Date.now() / 1000);
     const bufferTime = 60; // 60 seconds buffer
-    return now >= (decoded.exp - bufferTime);
+    return now >= decoded.exp - bufferTime;
   } catch {
     return true; // Assume expired if decoding fails
   }
 };
-
 
 /**
  * Process authentication data from react-native-app-auth
