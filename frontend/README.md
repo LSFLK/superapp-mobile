@@ -4,7 +4,7 @@ The **Mobile App** is an all-in-one platform designed to bring essential tools a
 
 ---
 
-📚 **[View Complete Documentation](../docs/)** - Deployment guides, API references, and architecture details 
+📚 **[View Complete Documentation](https://opensource.lk/superapp-mobile/)** - Deployment guides, API references, and architecture details 
 
 ## 🚀 Getting Started
 

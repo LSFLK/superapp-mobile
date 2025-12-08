@@ -16,7 +16,7 @@ This repository serves as the foundation for hosting multiple micro-apps with se
 
 ---
 
-📚 **[View Complete Documentation](../docs/)** - Deployment guides, API references, and architecture details 
+📚 **[View Complete Documentation](https://opensource.lk/superapp-mobile/)** - Deployment guides, API references, and architecture details 
 
 ## 🧭 Project Structure
 

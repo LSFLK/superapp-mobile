@@ -2,7 +2,7 @@
 
 This directory contains all backend services for the LSF Super App platform. The services are designed to be independently deployable microservices that work together to power the mobile application.
 
-📚 **[View Complete Documentation](../docs/)** - Deployment guides, API references, and architecture details 
+📚 **[View Complete Documentation](https://opensource.lk/superapp-mobile/)** - Deployment guides, API references, and architecture details 
 
 ## Services
 
