@@ -60,4 +60,4 @@ Ready to dive in? Head over to our [Getting Started Guide](getting-started/insta
 
 - **Issues**: [GitHub Issues](https://github.com/LSFLK/superapp-mobile/issues)
 - **License**: Apache 2.0
-- **Contributing**: Check out the latest development version on the main branch
+- **Contributing**: Check out the latest development version on the main branch. 
