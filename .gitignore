@@ -33,3 +33,6 @@ Config.toml
 *.env
 react-app-env.d.ts
 node_modules
+
+# mkdocs build
+site/

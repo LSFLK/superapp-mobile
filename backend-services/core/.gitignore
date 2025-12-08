@@ -23,8 +23,7 @@ go.work
 .env.local
 
 # Firebase credentials
-firebase-admin-key.json
-*.json
+*firebase-adminsdk*.json
 
 # IDE
 .idea/
