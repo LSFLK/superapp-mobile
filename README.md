@@ -72,7 +72,11 @@ Here’s a high-level view of the flow:
 
 ## 🚀 Getting Started
 
-Each part of this repository has its own setup guide. Pick the guide that matches what you want to do:
+To get up and running quickly, follow the step-by-step guide in our documentation:
+
+👉 [Getting Started Guide](https://opensource.lk/superapp-mobile/getting-started)
+
+This guide covers prerequisites, setup instructions, and how to launch the Super App Mobile project locally.
 
 ## 🐞 Reporting Issues
 
