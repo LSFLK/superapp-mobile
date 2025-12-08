@@ -16,31 +16,26 @@ This repository serves as the foundation for hosting multiple micro-apps with se
 
 ---
 
+📚 **[View Complete Documentation](../docs/)** - Deployment guides, API references, and architecture details 
+
 ## 🧭 Project Structure
 
 ```bash
 .
-├── backend/                  # Ballerina backend service for SuperApp
-│   └── README.md             # Backend setup and API docs
-├── docs/                     # Documentation and guides
-│   ├── DEPLOYMENT_GUIDE.md   # End-to-end deployment instructions
-│   └── FUTURE_IMPROVEMENTS.md # Planned enhancements
-├── frontend/                 # React Native (Expo) frontend for SuperApp
-│   └── README.md             # Frontend setup and usage docs
-├── observability/            # OpenTelemetry metrics and monitoring setup
-│   └── README.md             # Observability configuration
+├── backend-services/         # Go microservices for SuperApp backend
+│   ├── core/                 # Main API service
+│   ├── token-service/        # OAuth2/JWT service
+│   └── README.md             
+├── docs/                     # Documentation (MkDocs)
+├── frontend/                 # React Native (Expo) mobile app
+├── observability/            # Monitoring stack (Prometheus, Grafana, Jaeger)
+├── sample-microapps/         # Example microapps for demonstration
+├── superapp-admin-portal/    # React admin web portal
 ├── resources/                # Images, diagrams, and assets
-├── sample-microapps/         # Example micro-apps for demonstration
-│   └── government-calendar/
-│       ├── frontend/         # React frontend
-│       └── README.md         # Micro-app documentation
-├── scripts/                  # Utility scripts for development and deployment
-├── superapp-admin-portal/    # React web portal for uploading and managing micro-apps
-│   └── README.md             # Admin portal documentation
 ├── LICENSE                   # Apache 2.0 license
-├── README.md                 # Project root documentation (you're here)
-├── issue_template.md         # GitHub issue template
+├── mkdocs.yml                # Documentation site configuration
 ├── package.json              # Root package configuration
+├── issue_template.md         # GitHub issue template
 └── pull_request_template.md  # GitHub pull request template
 ```
 
@@ -48,7 +43,7 @@ This repository serves as the foundation for hosting multiple micro-apps with se
 
 ### Backend
 
-- **Language**: [Ballerina](https://ballerina.io/)
+- **Language**: [Go](https://go.dev/)
 
 ### Frontend
 
@@ -65,9 +60,6 @@ Here’s a high-level view of the flow:
 <br></br>
 <img src="./resources/architecture_diagram.png?" alt="Architecture Diagram" width="700"/>
 
-## 🧱 Authentication Flow
-
-<img src="./resources/auth_flow.png?" alt="Authentication Flow Diagram" width="700"/>
 
 ### Key Concepts
 
@@ -77,64 +69,10 @@ Here’s a high-level view of the flow:
 - **MicroApps**: Individual web applications loaded in WebViews, each serving specific functionality
 - **Bridge**: Communication layer between SuperApp and MicroApps (see `frontend/docs/BRIDGE_GUIDE.md`)
 
-#### How Micro-Apps Work
-
-1. Micro-apps are listed in the Super App Store.
-2. Users can download micro-apps from the store.
-3. Downloaded micro-apps are stored using AsyncStorage.
-4. (if required) When launched, microapp specific tokens are issued by the superapp for access.
-5. The micro-app uses micro-app specific access tokens to communicate with the respective backends.
 
 ## 🚀 Getting Started
 
 Each part of this repository has its own setup guide. Pick the guide that matches what you want to do:
-
-### End-to-End Setup
-
-- **[Super App Deployment Guide](./docs/DEPLOYMENT_GUIDE.md)**: Step-by-step instructions for setting up the entire SuperApp stack locally, including infrastructure (database, IdP), configuration. Ideal for new contributors or those working on the complete system.
-
-### Component-Specific Development
-
-- **SuperApp Core Deployer** (main app, backend, admin portal):
-
-  - [Frontend Setup](./frontend/README.md): React Native mobile app development and local testing
-  - [Backend Setup](./backend/README.md): Ballerina API service development
-  - [Admin Portal Setup](./superapp-admin-portal/README.md): Web portal for managing micro-apps
-
-- **Micro-App Developers** (third-party or in-house apps):
-  - [Micro-App Developer Guide](./frontend/docs/MICROAPP_DEVELOPER_GUIDE.md): Building, integrating, and deploying micro-apps within the SuperApp
-  - [Sample Micro-Apps](./sample-microapps/): Reference implementations and examples
-
-## 📡 Observability (OpenTelemetry Metrics)
-
-The mobile app sends performance metrics to an OpenTelemetry Collector, which exports to Prometheus.
-
-### Quick Start (Local Development)
-
-```sh
-cd observability
-docker compose up -d
-```
-
-View metrics at **http://localhost:9090** (Prometheus)
-
-### Configure the App
-
-Set in `frontend/.env`:
-
-```
-EXPO_PUBLIC_OTEL_ENABLED=true
-EXPO_PUBLIC_OTEL_COLLECTOR_URL=http://10.0.2.2:4318
-```
-
-### Metrics Available
-
-- `api_request_count_total`, `api_request_duration_bucket`
-- `microapp_load_count_total`, `microapp_load_duration_bucket`
-- `auth_token_refresh_count_total`
-- `app_start_time_bucket`
-
-See `observability/README.md` for details.
 
 ## 🐞 Reporting Issues
 
