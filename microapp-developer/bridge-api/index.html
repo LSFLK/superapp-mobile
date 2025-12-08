@@ -1,0 +1,2653 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../getting-started/">
+      
+      
+        <link rel="next" href="../push-notifications/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Bridge Guide - Open SuperApp Framework</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.618322db.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#bridge-communication-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Open SuperApp Framework" class="md-header__button md-logo" aria-label="Open SuperApp Framework" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m13.13 22.19-1.63-3.83c1.57-.58 3.04-1.36 4.4-2.27zM5.64 12.5l-3.83-1.63 6.1-2.77C7 9.46 6.22 10.93 5.64 12.5M21.61 2.39S16.66.269 11 5.93c-2.19 2.19-3.5 4.6-4.35 6.71-.28.75-.09 1.57.46 2.13l2.13 2.12c.55.56 1.37.74 2.12.46A19.1 19.1 0 0 0 18.07 13c5.66-5.66 3.54-10.61 3.54-10.61m-7.07 7.07c-.78-.78-.78-2.05 0-2.83s2.05-.78 2.83 0c.77.78.78 2.05 0 2.83s-2.05.78-2.83 0m-5.66 7.07-1.41-1.41zM6.24 22l3.64-3.64c-.34-.09-.67-.24-.97-.45L4.83 22zM2 22h1.41l4.77-4.76-1.42-1.41L2 20.59zm0-2.83 4.09-4.08c-.21-.3-.36-.62-.45-.97L2 17.76z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Open SuperApp Framework
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Bridge Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="teal"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../superapp-developer/deployment/" class="md-tabs__link">
+          
+  
+  
+  For SuperApp Developers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../getting-started/" class="md-tabs__link">
+          
+  
+  
+  For MicroApp Developers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../admin/portal-guide/" class="md-tabs__link">
+          
+  
+  
+  For Admins
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../api/reference/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Open SuperApp Framework" class="md-nav__button md-logo" aria-label="Open SuperApp Framework" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m13.13 22.19-1.63-3.83c1.57-.58 3.04-1.36 4.4-2.27zM5.64 12.5l-3.83-1.63 6.1-2.77C7 9.46 6.22 10.93 5.64 12.5M21.61 2.39S16.66.269 11 5.93c-2.19 2.19-3.5 4.6-4.35 6.71-.28.75-.09 1.57.46 2.13l2.13 2.12c.55.56 1.37.74 2.12.46A19.1 19.1 0 0 0 18.07 13c5.66-5.66 3.54-10.61 3.54-10.61m-7.07 7.07c-.78-.78-.78-2.05 0-2.83s2.05-.78 2.83 0c.77.78.78 2.05 0 2.83s-2.05.78-2.83 0m-5.66 7.07-1.41-1.41zM6.24 22l3.64-3.64c-.34-.09-.67-.24-.97-.45L4.83 22zM2 22h1.41l4.77-4.76-1.42-1.41L2 20.59zm0-2.83 4.09-4.08c-.21-.3-.36-.62-.45-.97L2 17.76z"/></svg>
+
+    </a>
+    Open SuperApp Framework
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    For SuperApp Developers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    For SuperApp Developers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../superapp-developer/deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../superapp-developer/backend-core/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core Service
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../superapp-developer/backend-token-service/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Token Service
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../superapp-developer/mobile-app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mobile App
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bridge Guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bridge Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#underlying-technology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Underlying Technology
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#developer-roles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Developer Roles
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Developer Roles">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#superapp-developer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SuperApp Developer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#microapp-developer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MicroApp Developer
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#for-superapp-developers-adding-bridge-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For SuperApp Developers: Adding Bridge Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="For SuperApp Developers: Adding Bridge Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bridge-function-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bridge Function Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#context-object" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context Object
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-new-bridge-function" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a New Bridge Function
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#best-practices-for-superapp-developers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Best Practices for SuperApp Developers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#security-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security Considerations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#for-microapp-developers-using-bridge-apis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For MicroApp Developers: Using Bridge APIs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="For MicroApp Developers: Using Bridge APIs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#initialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Initialization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#making-requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Making Requests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#promise-based-best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Promise-based Best Practices
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#available-bridge-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Available Bridge Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Available Bridge Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#authentication-identity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authentication &amp; Identity
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Authentication &amp; Identity">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#token-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Token Management
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#user-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User Interface
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="User Interface">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#alert-dialog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Alert Dialog
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confirmation-dialog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Confirmation Dialog
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#close-webview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Close WebView
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#device-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Device Features
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Device Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qr-code-scanner" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        QR Code Scanner
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#device-safe-area-insets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Device Safe Area Insets
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Storage
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Storage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#save-local-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Save Local Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-local-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Get Local Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#google-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Google Services
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Google Services">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#google-authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Google Authentication
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check-google-auth-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check Google Auth State
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-google-user-info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Get Google User Info
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upload-to-google-drive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Upload to Google Drive
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restore-from-google-drive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Restore from Google Drive
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-downloads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Downloads
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#totp-time-based-one-time-password" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TOTP (Time-based One-Time Password)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="TOTP (Time-based One-Time Password)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#totp-qr-migration-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TOTP QR Migration Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#development-debugging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Development &amp; Debugging
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Development &amp; Debugging">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#native-log" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Native Log
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-backward-compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appendix: Backward Compatibility
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Appendix: Backward Compatibility">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#event-based-approach-legacy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Event-Based Approach (Legacy)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../superapp-developer/pluggable-services/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pluggable Services
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../superapp-developer/observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability Stack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    For MicroApp Developers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    For MicroApp Developers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bridge Guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bridge Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#underlying-technology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Underlying Technology
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#developer-roles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Developer Roles
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Developer Roles">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#superapp-developer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SuperApp Developer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#microapp-developer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MicroApp Developer
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#for-superapp-developers-adding-bridge-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For SuperApp Developers: Adding Bridge Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="For SuperApp Developers: Adding Bridge Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bridge-function-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bridge Function Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#context-object" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context Object
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-new-bridge-function" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a New Bridge Function
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#best-practices-for-superapp-developers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Best Practices for SuperApp Developers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#security-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security Considerations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#for-microapp-developers-using-bridge-apis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For MicroApp Developers: Using Bridge APIs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="For MicroApp Developers: Using Bridge APIs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#initialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Initialization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#making-requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Making Requests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#promise-based-best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Promise-based Best Practices
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#available-bridge-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Available Bridge Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Available Bridge Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#authentication-identity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authentication &amp; Identity
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Authentication &amp; Identity">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#token-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Token Management
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#user-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        User Interface
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="User Interface">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#alert-dialog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Alert Dialog
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#confirmation-dialog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Confirmation Dialog
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#close-webview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Close WebView
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#device-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Device Features
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Device Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qr-code-scanner" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        QR Code Scanner
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#device-safe-area-insets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Device Safe Area Insets
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Storage
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Storage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#save-local-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Save Local Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-local-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Get Local Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#google-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Google Services
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Google Services">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#google-authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Google Authentication
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check-google-auth-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check Google Auth State
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-google-user-info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Get Google User Info
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upload-to-google-drive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Upload to Google Drive
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restore-from-google-drive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Restore from Google Drive
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-downloads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Downloads
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#totp-time-based-one-time-password" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TOTP (Time-based One-Time Password)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="TOTP (Time-based One-Time Password)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#totp-qr-migration-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TOTP QR Migration Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#development-debugging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Development &amp; Debugging
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Development &amp; Debugging">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#native-log" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Native Log
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-backward-compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appendix: Backward Compatibility
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Appendix: Backward Compatibility">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#event-based-approach-legacy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Event-Based Approach (Legacy)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../push-notifications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Push Notifications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    For Admins
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    For Admins
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../admin/portal-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Admin Portal Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core Service API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="bridge-communication-guide">Bridge Communication Guide</h1>
+<h2 id="overview">Overview</h2>
+<p>The Bridge is a communication layer that enables secure, bidirectional messaging between the SuperApp (React Native) and embedded MicroApps (web applications running in WebViews). This architecture allows MicroApps to access native device capabilities and SuperApp services while maintaining security boundaries.</p>
+<h3 id="underlying-technology">Underlying Technology</h3>
+<p>The Bridge leverages React Native's WebView component and the <code>postMessage</code> API for cross-context communication:</p>
+<ul>
+<li><strong>Message Passing</strong>: Uses <code>window.ReactNativeWebView.postMessage()</code> for MicroApp → SuperApp communication</li>
+<li><strong>Promise System</strong>: Promise-based responses for SuperApp → MicroApp communication</li>
+<li><strong>Type Safety</strong>: Auto-generated TypeScript definitions ensure compile-time safety</li>
+<li><strong>Registry Pattern</strong>: Centralized function registry for maintainable bridge management</li>
+</ul>
+<h3 id="architecture">Architecture</h3>
+<p><img alt="Architecture" src="../../images/bridge.png" /></p>
+<h2 id="developer-roles">Developer Roles</h2>
+<h3 id="superapp-developer">SuperApp Developer</h3>
+<p>Responsible for maintaining the bridge infrastructure and implementing native functionality. This includes:</p>
+<ul>
+<li>Adding new bridge functions to the registry</li>
+<li>Implementing native handlers with device/platform access</li>
+<li>Managing security and permissions</li>
+<li>Updating bridge types and documentation</li>
+</ul>
+<h3 id="microapp-developer">MicroApp Developer</h3>
+<p>Develops web applications that integrate with the SuperApp through the bridge. Responsibilities include:</p>
+<ul>
+<li>Using bridge APIs to access native features via promises</li>
+<li>Handling asynchronous responses with async/await</li>
+<li>Managing bridge state and error conditions</li>
+<li>Following security best practices for cross-origin communication</li>
+</ul>
+<h2 id="for-superapp-developers-adding-bridge-functions">For SuperApp Developers: Adding Bridge Functions</h2>
+<h3 id="bridge-function-structure">Bridge Function Structure</h3>
+<p>Each bridge function is defined in <code>frontend/utils/bridgeRegistry.ts</code> with the following interface:</p>
+<div class="language-typescript highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kd">interface</span><span class="w"> </span><span class="nx">BridgeFunction</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nx">topic</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span><span class="w"> </span><span class="c1">// Unique identifier for the function</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="nx">handler</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">params</span><span class="o">:</span><span class="w"> </span><span class="kt">any</span><span class="p">,</span><span class="w"> </span><span class="nx">context</span><span class="o">:</span><span class="w"> </span><span class="kt">BridgeContext</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="ow">void</span><span class="o">&gt;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="ow">void</span><span class="p">;</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="c1">// Method names are auto-generated from topic:</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="c1">// - request: `request${camelCase(topic)}`</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="c1">// - resolve: `resolve${camelCase(topic)}`</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="c1">// - reject: `reject${camelCase(topic)}`</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="c1">// - helper: `get${camelCase(topic)}`</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="context-object">Context Object</h3>
+<p>The handler receives a <code>BridgeContext</code> object, which provides convenient access to relevant data and utility methods for bridge operations. This context includes:</p>
+<div class="language-typescript highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kd">interface</span><span class="w"> </span><span class="nx">BridgeContext</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="c1">// Core data</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nx">topic</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span><span class="w"> </span><span class="c1">// Current bridge topic (auto-injected)</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nx">appID</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">;</span><span class="w"> </span><span class="c1">// Current MicroApp ID</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nx">token</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span><span class="w"> </span><span class="c1">// Authentication token</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="c1">// UI controls</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="nx">setScannerVisible</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">visible</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span><span class="p">;</span><span class="w"> </span><span class="c1">// Control QR scanner visibility</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="c1">// Communication</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">  </span><span class="nx">sendResponseToWeb</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">method</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">data?</span><span class="o">:</span><span class="w"> </span><span class="kt">any</span><span class="p">,</span><span class="w"> </span><span class="nx">requestId?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span><span class="p">;</span><span class="w"> </span><span class="c1">// Send custom response to MicroApp</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span><span class="nx">pendingTokenRequests</span><span class="o">:</span><span class="w"> </span><span class="p">((</span><span class="nx">token</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span><span class="p">)[];</span><span class="w"> </span><span class="c1">// Token request queue</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">  </span><span class="c1">// Convenience methods that auto-generate method names from topic</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">  </span><span class="nx">resolve</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">data?</span><span class="o">:</span><span class="w"> </span><span class="kt">any</span><span class="p">,</span><span class="w"> </span><span class="nx">requestId?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span><span class="p">;</span><span class="w"> </span><span class="c1">// Auto-generates resolve method name</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">  </span><span class="nx">reject</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="nx">error</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">requestId?</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span><span class="p">;</span><span class="w"> </span><span class="c1">// Auto-generates reject method name</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">  </span><span class="c1">// Optional features (available based on context)</span>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">  </span><span class="nx">promptAsync</span><span class="o">?:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="nx">any</span><span class="o">&gt;</span><span class="p">;</span><span class="w"> </span><span class="c1">// Google authentication prompt</span>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">  </span><span class="nx">router</span><span class="o">?:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">back</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span><span class="w"> </span><span class="p">};</span><span class="w"> </span><span class="c1">// Navigation router</span>
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">  </span><span class="nx">insets</span><span class="o">?:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">    </span><span class="c1">// Safe area insets for device</span>
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">    </span><span class="nx">top</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="w">    </span><span class="nx">bottom</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">    </span><span class="nx">left</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="w">    </span><span class="nx">right</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="p">;</span>
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="w">  </span><span class="p">};</span>
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="w">  </span><span class="nx">qrScanCallback</span><span class="o">?:</span><span class="w"> </span><span class="p">(</span><span class="nx">qrCode</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="ow">void</span><span class="p">;</span><span class="w"> </span><span class="c1">// QR scanner result callback</span>
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="adding-a-new-bridge-function">Adding a New Bridge Function</h3>
+<p>Each bridge function lives in its own file under <code>frontend/utils/bridgeHandlers/</code>, and <code>frontend/utils/bridgeHandlers/index.ts</code> aggregates all handlers into the <code>BRIDGE_REGISTRY</code> array which the runtime uses.</p>
+<p><strong>1. Create a handler file:</strong>   </p>
+<p>Path: <code>frontend/utils/bridgeHandlers/&lt;your_topic&gt;.ts</code></p>
+<p>Export a <code>BRIDGE_FUNCTION</code> object with <code>topic</code> and <code>handler</code>. Example template:</p>
+<div class="language-ts highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1">// frontend/utils/bridgeHandlers/example_handler.ts</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">import</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">BridgeFunction</span><span class="p">,</span><span class="w"> </span><span class="nx">BridgeContext</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="kr">from</span><span class="w"> </span><span class="s2">&quot;./bridgeTypes&quot;</span><span class="p">;</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="k">export</span><span class="w"> </span><span class="kd">const</span><span class="w"> </span><span class="nx">BRIDGE_FUNCTION</span><span class="o">:</span><span class="w"> </span><span class="kt">BridgeFunction</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="nx">topic</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;example_topic&quot;</span><span class="p">,</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="nx">handler</span><span class="o">:</span><span class="w"> </span><span class="kt">async</span><span class="w"> </span><span class="p">(</span><span class="nx">params</span><span class="o">:</span><span class="w"> </span><span class="kt">any</span><span class="p">,</span><span class="w"> </span><span class="nx">context</span><span class="o">:</span><span class="w"> </span><span class="kt">BridgeContext</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nx">params</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">        </span><span class="nx">context</span><span class="p">.</span><span class="nx">reject</span><span class="p">(</span><span class="s2">&quot;Missing parameters&quot;</span><span class="p">);</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">        </span><span class="k">return</span><span class="p">;</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">      </span><span class="p">}</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">      </span><span class="c1">// Your logic here</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">      </span><span class="kd">const</span><span class="w"> </span><span class="nx">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">ok</span><span class="o">:</span><span class="w"> </span><span class="kt">true</span><span class="p">,</span><span class="w"> </span><span class="nx">received</span><span class="o">:</span><span class="w"> </span><span class="kt">params</span><span class="w"> </span><span class="p">};</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">      </span><span class="nx">context</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">result</span><span class="p">);</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">      </span><span class="nx">context</span><span class="p">.</span><span class="nx">reject</span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><span class="ow">instanceof</span><span class="w"> </span><span class="ne">Error</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="nx">err.message</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="kt">String</span><span class="p">(</span><span class="nx">err</span><span class="p">));</span>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="p">};</span>
+</span></code></pre></div>
+<p><strong>2. Register the handler:</strong></p>
+<p>Import the new file in <code>frontend/utils/bridgeHandlers/index.ts</code> and include the exported <code>BRIDGE_FUNCTION</code> in the exported <code>BRIDGE_REGISTRY</code> array. The registry file is imported by the runtime (<code>frontend/utils/bridgeRegistry.ts</code>)</p>
+<p>and that's it! :)</p>
+<h3 id="best-practices-for-superapp-developers">Best Practices for SuperApp Developers</h3>
+<ul>
+<li><strong>Use descriptive topic names</strong>: Prefer <code>user_profile</code> over <code>data</code></li>
+<li><strong>Implement proper error handling</strong>: Always wrap operations in try/catch</li>
+<li><strong>Validate parameters</strong>: Check required fields before processing</li>
+<li><strong>Use async/await</strong>: For operations that may block the UI thread</li>
+<li><strong>Handle callbacks properly</strong>: For UI-triggered events, use context callback storage pattern</li>
+<li><strong>Maintain backward compatibility</strong>: When adding new features, ensure existing MicroApps continue to work</li>
+</ul>
+<h3 id="security-considerations">Security Considerations</h3>
+<ul>
+<li><strong>Input Validation</strong>: Always validate parameters from MicroApps</li>
+<li><strong>Permission Checks</strong>: Verify user permissions before executing sensitive operations</li>
+<li><strong>Token Security</strong>: Never log or expose tokens in plain text</li>
+<li><strong>Cross-Origin</strong>: Bridge only works within authorized WebViews</li>
+<li><strong>Data Sanitization</strong>: Clean user inputs before processing</li>
+</ul>
+<h2 id="for-microapp-developers-using-bridge-apis">For MicroApp Developers: Using Bridge APIs</h2>
+<h3 id="initialization">Initialization</h3>
+<p>The bridge is automatically injected into MicroApps via WebView JavaScript injection. Access it through:</p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">// Check if bridge is available</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">window</span><span class="p">.</span><span class="nx">nativebridge</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="c1">// Bridge is ready to use</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="making-requests">Making Requests</h3>
+<p>All bridge functions now return promises for cleaner asynchronous handling:</p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1">// Example: Request token</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nb">window</span><span class="p">.</span><span class="nx">nativebridge</span><span class="p">.</span><span class="nx">requestToken</span><span class="p">();</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s2">&quot;Token request failed:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">error</span><span class="p">);</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="promise-based-best-practices">Promise-based Best Practices</h3>
+<ul>
+<li><strong>Use async/await</strong>: For cleaner, more readable asynchronous code</li>
+<li><strong>Handle errors</strong>: Always wrap bridge calls in try/catch blocks</li>
+<li><strong>Type responses</strong>: Use TypeScript for better development experience</li>
+<li><strong>Avoid blocking</strong>: Don't call bridge functions in render loops</li>
+</ul>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1">// Example with proper error handling</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">loadUserData</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nb">window</span><span class="p">.</span><span class="nx">nativebridge</span><span class="p">.</span><span class="nx">requestToken</span><span class="p">();</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="c1">// const { sub } = decodeJwt(token)</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">error</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s2">&quot;Failed to load user data:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">error</span><span class="p">);</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">    </span><span class="c1">// Handle error appropriately</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="p">}</span>
+</span></code></pre></div>
+<h2 id="available-bridge-functions">Available Bridge Functions</h2>
+<h3 id="authentication-identity">Authentication &amp; Identity</h3>
+<h4 id="token-management">Token Management</h4>
+<ul>
+<li><strong>Request</strong>: <code>await window.nativebridge.requestToken()</code> → <code>Promise&lt;string&gt;</code></li>
+<li><strong>Purpose</strong>: Retrieve authentication token for API calls</li>
+<li><strong>Note</strong>: Token is automatically sent when available, also supports request-based retrieval</li>
+</ul>
+<h3 id="user-interface">User Interface</h3>
+<h4 id="alert-dialog">Alert Dialog</h4>
+<ul>
+<li><strong>Request</strong>: <code>await window.nativebridge.requestAlert({"title": title, "message": message,"buttonText": buttonText})</code></li>
+<li><strong>Purpose</strong>: Display native alert dialog</li>
+</ul>
+<h4 id="confirmation-dialog">Confirmation Dialog</h4>
+<ul>
+<li><strong>Request</strong>: <code>await window.nativebridge.requestConfirmAlert({title, message, confirmButtonText, cancelButtonText})</code> → <code>Promise&lt;"confirm" | "cancel"&gt;</code></li>
+<li><strong>Purpose</strong>: Display native confirmation dialog with two options</li>
+</ul>
+<h4 id="close-webview">Close WebView</h4>
+<ul>
+<li><strong>Request</strong>: <code>window.nativebridge.requestCloseWebview()</code></li>
+<li><strong>Purpose</strong>: Navigate back/close the current MicroApp WebView</li>
+</ul>
+<h3 id="device-features">Device Features</h3>
+<h4 id="qr-code-scanner">QR Code Scanner</h4>
+<ul>
+<li><strong>Request</strong>: <code>await window.nativebridge.requestQRCode()</code> → <code>Promise&lt;string&gt;</code></li>
+<li><strong>Purpose</strong>: Activate native QR code scanner and get scanned code</li>
+<li><strong>Returns</strong>: Promise that resolves with the scanned QR code string</li>
+</ul>
+<h4 id="device-safe-area-insets">Device Safe Area Insets</h4>
+<ul>
+<li><strong>Request</strong>: <code>await window.nativebridge.requestDeviceSafeAreaInsets()</code> → <code>Promise&lt;{top, bottom, left, right}&gt;</code></li>
+<li><strong>Purpose</strong>: Get device safe area insets for proper UI layout</li>
+</ul>
+<h3 id="data-storage">Data Storage</h3>
+<h4 id="save-local-data">Save Local Data</h4>
+<ul>
+<li><strong>Request</strong>: <code>await window.nativebridge.requestSaveLocalData({key, value})</code> → <code>Promise&lt;void&gt;</code></li>
+<li><strong>Purpose</strong>: Persist data using AsyncStorage</li>
+<li><strong>Note</strong>: Value will be stored as a string</li>
+</ul>
+<h4 id="get-local-data">Get Local Data</h4>
+<ul>
+<li><strong>Request</strong>: <code>await window.nativebridge.requestGetLocalData({key})</code> → <code>Promise&lt;{value: string | null}&gt;</code></li>
+<li><strong>Purpose</strong>: Retrieve persisted data from AsyncStorage</li>
+</ul>
+<h3 id="google-services">Google Services</h3>
+<h4 id="google-authentication">Google Authentication</h4>
+<ul>
+<li><strong>Request</strong>: <code>await window.nativebridge.requestAuthenticateWithGoogle()</code> → <code>Promise&lt;UserInfo&gt;</code></li>
+<li><strong>Purpose</strong>: Initiate Google OAuth flow and get user information</li>
+</ul>
+<h4 id="check-google-auth-state">Check Google Auth State</h4>
+<ul>
+<li><strong>Request</strong>: <code>await window.nativebridge.requestCheckGoogleAuthState()</code> → <code>Promise&lt;boolean | UserInfo&gt;</code></li>
+<li><strong>Purpose</strong>: Check if user is authenticated with Google</li>
+</ul>
+<h4 id="get-google-user-info">Get Google User Info</h4>
+<ul>
+<li><strong>Request</strong>: <code>await window.nativebridge.requestGoogleUserInfo()</code> → <code>Promise&lt;UserInfo&gt;</code></li>
+<li><strong>Purpose</strong>: Get authenticated Google user's information</li>
+</ul>
+<h4 id="upload-to-google-drive">Upload to Google Drive</h4>
+<ul>
+<li><strong>Request</strong>: <code>await window.nativebridge.requestUploadToGoogleDrive(data)</code> → <code>Promise&lt;{id: string}&gt;</code></li>
+<li><strong>Purpose</strong>: Upload data/file to user's Google Drive</li>
+</ul>
+<h4 id="restore-from-google-drive">Restore from Google Drive</h4>
+<ul>
+<li><strong>Request</strong>: <code>await window.nativebridge.requestRestoreGoogleDriveBackup()</code> → <code>Promise&lt;any&gt;</code></li>
+<li><strong>Purpose</strong>: Restore latest backup data from Google Drive</li>
+</ul>
+<h4 id="file-downloads">File Downloads</h4>
+<ul>
+<li><strong>Request</strong>: <code>await window.nativebridge.requestDownloadFile({ url, filename? })</code> → <code>Promise&lt;{ localPath: string }&gt;</code></li>
+<li><strong>Purpose</strong>: Download a file from a URL (or base64 data) into the device app storage and return the local path; the native layer may optionally offer a share/save UI.</li>
+<li><strong>Params</strong>:</li>
+<li><code>url</code> (string): HTTP(S) URL of the file to download</li>
+<li><code>filename</code> (optional string): Desired filename on the device. If omitted, filename is derived from the URL or a timestamp is used.</li>
+<li><strong>Returns</strong>: <code>{ localPath }</code> — local file URI in the device's document directory</li>
+<li><strong>Note</strong>: The handler will try to use native sharing APIs when available to let users open or save the file elsewhere.</li>
+<li><strong>Note</strong>: On Android, the handler attempts to save directly to the public Downloads folder (<code>/storage/emulated/0/Download</code>) when permitted; it may request runtime <code>WRITE_EXTERNAL_STORAGE</code> on older devices. If permission is denied or unsupported, it falls back to the app's external storage folder (e.g., <code>Android/data/&lt;package&gt;/files/Download</code>).</li>
+<li><strong>Behavior</strong>: When <code>url</code> is provided, the bridge opens the URL via the user's browser (<code>Linking.openURL</code>) so the browser handles the full download and the MicroApp itself does not perform the write. When <code>base64</code> content is provided, the bridge writes the file into the app cache and opens the system share/save dialog so the user can pick where to save the file (e.g., Downloads).</li>
+<li><strong>Behavior</strong>: When <code>url</code> is provided, the bridge opens the URL via the user's browser (<code>Linking.openURL</code>) so the browser handles the full download and the MicroApp itself does not perform the write. When <code>base64</code> content is provided, the bridge first tries to open a data-URL HTML wrapper that will trigger a browser download (this works in many mobile browsers). If that fails (data URL too large or the browser doesn't support it), the bridge falls back to writing the file into the app cache and opening the system share/save dialog so the user can pick where to save the file (e.g., Downloads).</li>
+<li><strong>Option</strong>: Pass <code>saveToDownloads: true</code> with <code>base64</code> payload on Android to use Storage Access Framework (SAF) and let the user pick a directory (choose Downloads) — this saves the file directly into that directory.</li>
+</ul>
+<p><strong>Usage</strong>:</p>
+<div class="language-js highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1">// From a MicroApp running inside the WebView:</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">localPath</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nb">window</span><span class="p">.</span><span class="nx">nativebridge</span><span class="p">.</span><span class="nx">requestDownloadFile</span><span class="p">({</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="nx">url</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;https://example.com/somefile.pdf&quot;</span><span class="p">,</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="nx">filename</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;example.pdf&quot;</span><span class="p">,</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span><span class="p">});</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Downloaded to&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">localPath</span><span class="p">);</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s2">&quot;Download failed&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">);</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="totp-time-based-one-time-password">TOTP (Time-based One-Time Password)</h3>
+<h4 id="totp-qr-migration-data">TOTP QR Migration Data</h4>
+<ul>
+<li><strong>Request</strong>: <code>await window.nativebridge.requestTotpQrMigrationData()</code> → <code>Promise&lt;{data: string}&gt;</code></li>
+<li><strong>Purpose</strong>: Get TOTP migration data for QR code generation</li>
+</ul>
+<h3 id="development-debugging">Development &amp; Debugging</h3>
+<h4 id="native-log">Native Log</h4>
+<ul>
+<li><strong>Request</strong>: <code>window.nativebridge.requestNativeLog({level, message, data})</code></li>
+<li><strong>Purpose</strong>: Log messages to native console (only works in development mode)</li>
+<li><strong>Levels</strong>: <code>"info"</code>, <code>"warn"</code>, <code>"error"</code></li>
+</ul>
+<hr />
+<h2 id="appendix-backward-compatibility">Appendix: Backward Compatibility</h2>
+<h3 id="event-based-approach-legacy">Event-Based Approach (Legacy)</h3>
+<p>The bridge system maintains backward compatibility with legacy event-based implementations. While the <strong>promise-based approach is recommended</strong> for new development, the bridge continues to support the older pattern.</p>
+<p><strong>Legacy Pattern (Pre-defined Callbacks):</strong></p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1">// example usage for `save_local_data` function</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nb">window</span><span class="p">.</span><span class="nx">ReactNativeWebView</span><span class="p">.</span><span class="nx">postMessage</span><span class="p">(</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="nb">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="nx">topic</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;save_local_data&quot;</span><span class="p">,</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">key</span><span class="p">,</span><span class="w"> </span><span class="nx">value</span><span class="w"> </span><span class="p">},</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="p">})</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="p">);</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="c1">// Pre-define callbacks on the bridge object</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="nb">window</span><span class="p">.</span><span class="nx">nativebridge</span><span class="p">.</span><span class="nx">resolveSaveLocalData</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nx">data</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Success:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="p">);</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="p">};</span>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="nb">window</span><span class="p">.</span><span class="nx">nativebridge</span><span class="p">.</span><span class="nx">rejectSaveLocalData</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nx">error</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s2">&quot;Failed:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">error</span><span class="p">);</span>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="p">};</span>
+</span></code></pre></div>
+<p>The bridge auto-generates method names from topics using a <code>capitalize</code> function that converts snake_case to PascalCase and appends the relevant prefix afterwards. For example:</p>
+<ul>
+<li>Topic: <code>save_local_data</code> → Methods: <code>requestSaveLocalData</code>, <code>resolveSaveLocalData</code>, <code>rejectSaveLocalData</code></li>
+<li>Topic: <code>google_login</code> → Methods: <code>requestGoogleLogin</code>, <code>resolveGoogleLogin</code>, <code>rejectGoogleLogin</code></li>
+</ul>
+<p>When handlers call <code>context.resolve(data)</code> or <code>context.reject(error)</code>, the bridge:</p>
+<ol>
+<li><strong>Resolves/rejects the promise</strong> (modern approach)</li>
+<li><strong>Calls the pre-defined callback</strong> if it exists (legacy compatibility)</li>
+</ol>
+<p><strong>Note:</strong> New MicroApps should use the promise-based approach. The event-based pattern with pre-defined callbacks is maintained only for backward compatibility with existing implementations.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.instant", "navigation.instant.prefetch", "toc.integrate", "toc.follow", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+    
+  </body>
+</html>

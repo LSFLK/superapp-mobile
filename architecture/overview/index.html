@@ -1,0 +1,2158 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../../superapp-developer/observability/">
+      
+      
+        <link rel="next" href="../../microapp-developer/getting-started/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Architecture - Open SuperApp Framework</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.618322db.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#architecture-overview" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Open SuperApp Framework" class="md-header__button md-logo" aria-label="Open SuperApp Framework" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m13.13 22.19-1.63-3.83c1.57-.58 3.04-1.36 4.4-2.27zM5.64 12.5l-3.83-1.63 6.1-2.77C7 9.46 6.22 10.93 5.64 12.5M21.61 2.39S16.66.269 11 5.93c-2.19 2.19-3.5 4.6-4.35 6.71-.28.75-.09 1.57.46 2.13l2.13 2.12c.55.56 1.37.74 2.12.46A19.1 19.1 0 0 0 18.07 13c5.66-5.66 3.54-10.61 3.54-10.61m-7.07 7.07c-.78-.78-.78-2.05 0-2.83s2.05-.78 2.83 0c.77.78.78 2.05 0 2.83s-2.05.78-2.83 0m-5.66 7.07-1.41-1.41zM6.24 22l3.64-3.64c-.34-.09-.67-.24-.97-.45L4.83 22zM2 22h1.41l4.77-4.76-1.42-1.41L2 20.59zm0-2.83 4.09-4.08c-.21-.3-.36-.62-.45-.97L2 17.76z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Open SuperApp Framework
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Architecture
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="teal"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/installation/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../superapp-developer/deployment/" class="md-tabs__link">
+          
+  
+  
+  For SuperApp Developers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../microapp-developer/getting-started/" class="md-tabs__link">
+          
+  
+  
+  For MicroApp Developers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../admin/portal-guide/" class="md-tabs__link">
+          
+  
+  
+  For Admins
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../api/reference/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Open SuperApp Framework" class="md-nav__button md-logo" aria-label="Open SuperApp Framework" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m13.13 22.19-1.63-3.83c1.57-.58 3.04-1.36 4.4-2.27zM5.64 12.5l-3.83-1.63 6.1-2.77C7 9.46 6.22 10.93 5.64 12.5M21.61 2.39S16.66.269 11 5.93c-2.19 2.19-3.5 4.6-4.35 6.71-.28.75-.09 1.57.46 2.13l2.13 2.12c.55.56 1.37.74 2.12.46A19.1 19.1 0 0 0 18.07 13c5.66-5.66 3.54-10.61 3.54-10.61m-7.07 7.07c-.78-.78-.78-2.05 0-2.83s2.05-.78 2.83 0c.77.78.78 2.05 0 2.83s-2.05.78-2.83 0m-5.66 7.07-1.41-1.41zM6.24 22l3.64-3.64c-.34-.09-.67-.24-.97-.45L4.83 22zM2 22h1.41l4.77-4.76-1.42-1.41L2 20.59zm0-2.83 4.09-4.08c-.21-.3-.36-.62-.45-.97L2 17.76z"/></svg>
+
+    </a>
+    Open SuperApp Framework
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    For SuperApp Developers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    For SuperApp Developers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../superapp-developer/deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../superapp-developer/backend-core/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core Service
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../superapp-developer/backend-token-service/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Token Service
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../superapp-developer/mobile-app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mobile App
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../microapp-developer/bridge-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bridge Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../superapp-developer/pluggable-services/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pluggable Services
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../superapp-developer/observability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Observability Stack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#system-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        System Architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="System Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#major-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Major Components
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pluggable-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pluggable Services
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database Schema
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Database Schema">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#entity-relationship-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Entity Relationship Diagram
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table-descriptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table Descriptions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Table Descriptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core-tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core Tables
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other Tables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#foreign-key-relationships" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Foreign Key Relationships
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#indexing-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Indexing Strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-types-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Types &amp; Constraints
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Flow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#flow-1-user-authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flow 1: User Authentication
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flow-2-microapp-loading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flow 2: MicroApp Loading
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#authentication-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Authentication Architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Authentication Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dual-idp-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dual IDP Design
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#token-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Token Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-tokens-are-used" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Tokens are used
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How Tokens are used">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pattern-1-user-data-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pattern 1: User Data Access
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pattern-2-microapp-data-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pattern 2: MicroApp Data Access
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pattern-3-service-to-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pattern 3: Service-to-Service
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scalability-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scalability &amp; Performance
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Scalability &amp; Performance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#horizontal-scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Horizontal Scaling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caching-strategies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Caching Strategies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#observability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Observability
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#key-metrics-collected-for-monitoring-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Metrics Collected for monitoring performance
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    For MicroApp Developers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    For MicroApp Developers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../microapp-developer/getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../microapp-developer/bridge-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bridge Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../microapp-developer/push-notifications/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Push Notifications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    For Admins
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    For Admins
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../admin/portal-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Admin Portal Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core Service API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="architecture-overview">Architecture Overview</h1>
+<p>This document provides a comprehensive overview of LSF SuperApp Mobile architecture, including major components, technologies, and data flows.</p>
+<h2 id="system-architecture">System Architecture</h2>
+<p><img alt="System Architecture" src="../../images/architecture_diagram.png" /></p>
+<h3 id="major-components">Major Components</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Location</th>
+<th>Primary Technologies</th>
+<th>Key Responsibilities</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Mobile Application</strong></td>
+<td><code>frontend/</code></td>
+<td>React Native, Expo SDK, Redux Toolkit, TypeScript, React Navigation, Expo WebView</td>
+<td>User authentication, MicroApp container &amp; lifecycle, WebView bridge, Push notifications, Local secure storage, OpenTelemetry</td>
+</tr>
+<tr>
+<td><strong>Core Service</strong></td>
+<td><code>backend-services/core/</code></td>
+<td>Go, Chi Router, GORM, Firebase Admin SDK, JWT validation</td>
+<td>MicroApp CRUD &amp; versioning, User management, Device token registration, Push notification dispatch, File I/O, Token exchange, Auth middleware</td>
+</tr>
+<tr>
+<td><strong>Token Service</strong></td>
+<td><code>backend-services/token-service/</code></td>
+<td>Go, Chi Router, GORM, JWT, OAuth2</td>
+<td>JWT generation (S2S), JWKS endpoint, OAuth2 client credentials, User context tokens, Zero-downtime key rotation, Client secret management</td>
+</tr>
+<tr>
+<td><strong>Admin Portal</strong></td>
+<td><code>superapp-admin-portal/</code></td>
+<td>React, Vite, TypeScript, Axios</td>
+<td>MicroApp upload &amp; configuration, Version management, Role-based access control, User management interface</td>
+</tr>
+</tbody>
+</table>
+<h3 id="pluggable-services">Pluggable Services</h3>
+<p>The SuperApp architecture supports pluggable services, allowing for flexible integration of various functionalities. These services can be independently developed, deployed, and scaled.</p>
+<ul>
+<li><a href="../../superapp-developer/pluggable-services/">Pluggable Services Overview</a></li>
+</ul>
+<h3 id="api-documentation">API Documentation</h3>
+<p>See API documentation for more details.</p>
+<ul>
+<li><a href="../../api/reference/">API Documentation</a></li>
+</ul>
+<h2 id="database-schema">Database Schema</h2>
+<p>The SuperApp uses MySQL 8.0+ with a normalized relational schema supporting microapps, users, notifications, and OAuth clients.</p>
+<h3 id="entity-relationship-diagram">Entity Relationship Diagram</h3>
+<pre class="mermaid"><code>erDiagram
+    users ||--o{ user_config : "has"
+    users {
+        varchar(100) email PK "Primary Key"
+        varchar(50) firstName
+        varchar(50) lastName
+        varchar(255) userThumbnail
+        varchar(100) location
+    }
+
+    user_config {
+        bigint id PK "Auto Increment"
+        varchar(191) email FK "Foreign Key"
+        varchar(191) config_key
+        json config_value
+        tinyint active "1=active, 0=inactive"
+        varchar(191) created_by
+        varchar(191) updated_by
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    micro_app ||--o{ micro_app_version : "has versions"
+    micro_app ||--o{ micro_app_role : "has roles"
+    micro_app ||--o{ micro_app_config : "has config"
+    micro_app {
+        int id PK "Auto Increment"
+        varchar(255) micro_app_id UK "Unique Key"
+        varchar(1024) name
+        text description
+        varchar(1024) promo_text
+        varchar(2083) icon_url
+        varchar(2083) banner_image_url
+        varchar(319) created_by
+        varchar(319) updated_by
+        datetime created_at
+        datetime updated_at
+        tinyint active "1=active, 0=deleted"
+        tinyint mandatory "1=mandatory, 0=optional"
+    }
+
+    micro_app_version {
+        int id PK "Auto Increment"
+        varchar(255) micro_app_id FK "Foreign Key"
+        varchar(32) version "e.g., 1.0.0"
+        int build "Build number"
+        text release_notes
+        varchar(2083) icon_url
+        varchar(2083) download_url
+        varchar(319) created_by
+        varchar(319) updated_by
+        datetime created_at
+        datetime updated_at
+        tinyint active
+    }
+
+    micro_app_role {
+        int id PK "Auto Increment"
+        varchar(255) micro_app_id FK "Foreign Key"
+        varchar(255) role "Role name"
+        tinyint active
+        varchar(319) created_by
+        varchar(319) updated_by
+        datetime created_at
+        datetime updated_at
+    }
+
+    micro_app_config {
+        bigint id PK "Auto Increment"
+        varchar(255) micro_app_id FK "Foreign Key"
+        varchar(191) config_key
+        json config_value
+        tinyint active
+        varchar(319) created_by
+        varchar(319) updated_by
+        datetime created_at
+        datetime updated_at
+    }
+
+    device_tokens {
+        bigint id PK "Auto Increment"
+        varchar(255) user_email "References users.email"
+        text device_token "FCM/APNS token"
+        enum platform "ios, android"
+        timestamp created_at
+        timestamp updated_at
+        tinyint is_active
+    }
+
+    notification_logs {
+        bigint id PK "Auto Increment"
+        varchar(255) user_email "References users.email"
+        varchar(255) title
+        text body
+        json data
+        timestamp sent_at
+        varchar(50) status "sent, failed"
+        varchar(100) microapp_id "References micro_app"
+    }
+
+    o_auth2_clients {
+        bigint id PK "Auto Increment"
+        varchar(255) client_id UK "Unique Key"
+        varchar(255) client_secret "SHA256 hashed"
+        varchar(255) name
+        varchar(1024) scopes "Comma-separated"
+        tinyint is_active
+        timestamp created_at
+        timestamp updated_at
+        timestamp deleted_at "Soft delete"
+    }
+
+    micro_apps_storage {
+        varchar(255) file_name PK "Primary Key"
+        mediumblob blob_content "Binary file data"
+    }</code></pre>
+<h3 id="table-descriptions">Table Descriptions</h3>
+<h4 id="core-tables">Core Tables</h4>
+<table>
+<thead>
+<tr>
+<th>Table Name</th>
+<th>Description</th>
+<th>Primary Key</th>
+<th>Foreign Key</th>
+<th>Unique Constraints</th>
+<th>Other Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>users</strong></td>
+<td>Stores user profile information</td>
+<td><code>email</code></td>
+<td>-</td>
+<td>-</td>
+<td>No timestamps (managed externally by IDP)</td>
+</tr>
+<tr>
+<td><strong>user_config</strong></td>
+<td>User-specific configuration settings (JSON)</td>
+<td>-</td>
+<td><code>email</code> → <code>users.email</code> (CASCADE)</td>
+<td>(<code>email</code>, <code>config_key</code>)</td>
+<td>-</td>
+</tr>
+<tr>
+<td><strong>micro_app</strong></td>
+<td>MicroApp metadata and catalog information</td>
+<td>-</td>
+<td>-</td>
+<td><code>micro_app_id</code> (business identifier)</td>
+<td>Soft delete via <code>active</code> flag</td>
+</tr>
+<tr>
+<td><strong>micro_app_version</strong></td>
+<td>Version history for each microapp</td>
+<td>-</td>
+<td><code>micro_app_id</code> → <code>micro_app.micro_app_id</code> (CASCADE)</td>
+<td>(<code>micro_app_id</code>, <code>build</code>)</td>
+<td>-</td>
+</tr>
+<tr>
+<td><strong>micro_app_role</strong></td>
+<td>Role-based access control for microapps</td>
+<td>-</td>
+<td><code>micro_app_id</code> → <code>micro_app.micro_app_id</code> (CASCADE)</td>
+<td>(<code>micro_app_id</code>, <code>role</code>)</td>
+<td>-</td>
+</tr>
+<tr>
+<td><strong>micro_app_config</strong></td>
+<td>Per-microapp configuration (JSON)</td>
+<td>-</td>
+<td><code>micro_app_id</code> → <code>micro_app.micro_app_id</code> (CASCADE)</td>
+<td>(<code>micro_app_id</code>, <code>config_key</code>)</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<h4 id="other-tables">Other Tables</h4>
+<table>
+<thead>
+<tr>
+<th>Table Name</th>
+<th>Description</th>
+<th>Primary Key</th>
+<th>Foreign Key</th>
+<th>Unique Constraints</th>
+<th>Other Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>device_tokens</strong></td>
+<td>FCM/APNS device tokens for push notifications</td>
+<td><code>id</code></td>
+<td>-</td>
+<td>-</td>
+<td>Indexed on: <code>user_email</code>, <code>platform</code>, <code>is_active</code>. No FK (flexible design for external user systems)</td>
+</tr>
+<tr>
+<td><strong>notification_logs</strong></td>
+<td>Audit log of all sent notifications</td>
+<td><code>id</code></td>
+<td>-</td>
+<td>-</td>
+<td>Indexed on: <code>user_email</code>, <code>microapp_id</code>, <code>sent_at</code>, <code>status</code>. No FK (flexible design)</td>
+</tr>
+<tr>
+<td><strong>o_auth2_clients</strong></td>
+<td>OAuth2 client credentials for microapp backends</td>
+<td><code>id</code></td>
+<td>-</td>
+<td><code>client_id</code></td>
+<td>Soft delete via <code>deleted_at</code> timestamp. Secrets stored as SHA256 hash</td>
+</tr>
+<tr>
+<td><strong>micro_apps_storage</strong></td>
+<td>Binary file storage for microapp packages</td>
+<td><code>file_name</code></td>
+<td>-</td>
+<td>-</td>
+<td>Stores up to 16MB per file (MEDIUMBLOB)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="foreign-key-relationships">Foreign Key Relationships</h3>
+<pre class="mermaid"><code>graph TD
+    users[users&lt;br/&gt;PK: email] --&gt;|CASCADE| user_config[user_config&lt;br/&gt;FK: email]
+
+    micro_app[micro_app&lt;br/&gt;PK: micro_app_id] --&gt;|CASCADE| micro_app_version[micro_app_version&lt;br/&gt;FK: micro_app_id]
+    micro_app --&gt;|CASCADE| micro_app_role[micro_app_role&lt;br/&gt;FK: micro_app_id]
+    micro_app --&gt;|CASCADE| micro_app_config[micro_app_config&lt;br/&gt;FK: micro_app_id]
+
+</code></pre>
+<p><strong>CASCADE Rules:</strong>
+- When a <code>micro_app</code> is deleted, all related versions, roles, and configs are automatically deleted
+- When a <code>user</code> is deleted, all their configurations are automatically deleted
+- When a <code>micro_app_id</code> is updated, it propagates to all related tables</p>
+<h3 id="indexing-strategy">Indexing Strategy</h3>
+<p><strong>Primary Indexes:</strong></p>
+<ul>
+<li>All tables have primary keys (auto-increment or natural key).  </li>
+<li>Unique constraints on business identifiers (<code>micro_app_id</code>, <code>client_id</code>, <code>email</code>).  </li>
+</ul>
+<p><strong>Foreign Key Indexes:</strong></p>
+<ul>
+<li>All FK columns are indexed for JOIN performance.  </li>
+<li>Composite unique indexes on (<code>micro_app_id</code>, <code>build</code>), (<code>email</code>, <code>config_key</code>).  </li>
+</ul>
+<p><strong>Query Optimization Indexes:</strong></p>
+<ul>
+<li><code>active</code> flags for soft-delete queries.  </li>
+<li><code>user_email</code> for user-specific lookups.  </li>
+<li><code>platform</code>, <code>status</code>, <code>sent_at</code> for filtering.  </li>
+<li><code>created_at</code> for time-based queries.  </li>
+</ul>
+<h3 id="data-types-constraints">Data Types &amp; Constraints</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Usage</th>
+<th>Max Size</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>VARCHAR(100-319)</code></td>
+<td>Emails, names</td>
+<td>319 chars (max email)</td>
+</tr>
+<tr>
+<td><code>VARCHAR(2083)</code></td>
+<td>URLs</td>
+<td>2083 chars (IE max URL)</td>
+</tr>
+<tr>
+<td><code>TEXT</code></td>
+<td>Large text</td>
+<td>64KB</td>
+</tr>
+<tr>
+<td><code>MEDIUMBLOB</code></td>
+<td>Binary files</td>
+<td>16MB</td>
+</tr>
+<tr>
+<td><code>JSON</code></td>
+<td>Structured config</td>
+<td>1GB (theoretical)</td>
+</tr>
+<tr>
+<td><code>DATETIME</code></td>
+<td>Timestamps</td>
+<td>Date + Time</td>
+</tr>
+<tr>
+<td><code>TIMESTAMP</code></td>
+<td>Auto-updated</td>
+<td>Date + Time</td>
+</tr>
+<tr>
+<td><code>TINYINT(1)</code></td>
+<td>Boolean flags</td>
+<td>0 or 1</td>
+</tr>
+<tr>
+<td><code>ENUM</code></td>
+<td>Fixed values</td>
+<td>Platform types</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Character Set:</strong> <code>utf8mb4</code> (full Unicode including emojis)<br />
+<strong>Collation:</strong> <code>utf8mb4_0900_ai_ci</code> (accent-insensitive, case-insensitive)</p>
+<hr />
+<h2 id="data-flow">Data Flow</h2>
+<h3 id="flow-1-user-authentication">Flow 1: User Authentication</h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant User
+    participant App as Mobile App
+    participant ExternalIDP as External IDP
+    participant CS as Core Service
+
+    User-&gt;&gt;App: Opens mobile app
+    User-&gt;&gt;App: Taps on login
+    App-&gt;&gt;ExternalIDP: Redirects for authentication
+    User-&gt;&gt;ExternalIDP: Enters credentials
+    ExternalIDP--&gt;&gt;App: Returns user access token (after validation)
+    App-&gt;&gt;App: Stores token securely
+    App-&gt;&gt;CS: Calls Core Service with token (fetch user profile)
+    CS--&gt;&gt;App: Returns user profile
+    App-&gt;&gt;User: Displays home screen</code></pre>
+<h3 id="flow-2-microapp-loading">Flow 2: MicroApp Loading</h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant User
+    participant App as Mobile App
+    participant CS as Core Service
+    participant TS as Token Service
+    participant MicroAppFE as MicroApp Frontend
+
+    User-&gt;&gt;App: Navigates to "My Apps"
+    App-&gt;&gt;User: Displays installed MicroApps
+
+    User-&gt;&gt;App: Taps "Store"
+    App-&gt;&gt;CS: Requests MicroApp Catalog
+    CS--&gt;&gt;App: Returns MicroApp Catalog
+    App-&gt;&gt;User: Displays MicroApp Store/Catalog
+
+    User-&gt;&gt;App: Selects and taps "Install MicroApp X"
+    App-&gt;&gt;CS: Requests MicroApp X manifest/assets
+    CS--&gt;&gt;App: Returns MicroApp X manifest/assets
+    App-&gt;&gt;App: Stores MicroApp X locally (manifest, assets)
+    App-&gt;&gt;App: Adds MicroApp X to "My Apps" list
+    App-&gt;&gt;User: Displays updated "My Apps" list
+
+    User-&gt;&gt;App: Taps on installed MicroApp X
+    App-&gt;&gt;App: Initializes WebView
+    App-&gt;&gt;TS: Requests MicroApp Token (if needed, with user/MicroApp context)
+    TS--&gt;&gt;App: Returns MicroApp Token
+    App-&gt;&gt;MicroAppFE: Loads MicroApp X in WebView (with token if applicable)
+    MicroAppFE--&gt;&gt;App: Loads MicroApp X content
+    App-&gt;&gt;User: Displays MicroApp X in WebView</code></pre>
+<hr />
+<h2 id="authentication-architecture">Authentication Architecture</h2>
+<h3 id="dual-idp-design">Dual IDP Design</h3>
+<p>The platform uses <strong>two separate Identity Providers</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>IDP</th>
+<th>Purpose</th>
+<th>Technology</th>
+<th>Audience</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>External IdP</strong></td>
+<td>User authentication</td>
+<td>OIDC/OAuth2</td>
+<td>Mobile app users, Admin Portal users</td>
+</tr>
+<tr>
+<td><strong>Token Service</strong> (Internal)</td>
+<td>Service authentication</td>
+<td>OAuth2 + JWT</td>
+<td>MicroApp backends</td>
+</tr>
+</tbody>
+</table>
+<h3 id="token-types">Token Types</h3>
+<table>
+<thead>
+<tr>
+<th>Token Type</th>
+<th>Issuer</th>
+<th>Audience</th>
+<th>Subject</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>User Token</strong></td>
+<td>External IdP</td>
+<td>SuperApp</td>
+<td>User email</td>
+<td>Mobile app → Core Service</td>
+</tr>
+<tr>
+<td><strong>MicroApp Token</strong></td>
+<td>Token Service</td>
+<td>MicroApp ID</td>
+<td>User email</td>
+<td>MicroApp frontend → MicroApp backend</td>
+</tr>
+<tr>
+<td><strong>Service Token</strong></td>
+<td>Token Service</td>
+<td><code>superapp-api</code></td>
+<td>MicroApp ID</td>
+<td>MicroApp backend → Core Service</td>
+</tr>
+</tbody>
+</table>
+<h3 id="how-tokens-are-used">How Tokens are used</h3>
+<h4 id="pattern-1-user-data-access">Pattern 1: User Data Access</h4>
+<pre class="mermaid"><code>sequenceDiagram
+    participant MA as Mobile App
+    participant CS as Core Service
+    participant AJ as External IdP JWKS
+
+    MA-&gt;&gt;CS: User Token (for user data)
+    CS-&gt;&gt;CS: Check JWKS cache
+    alt JWKS not cached or expired
+        CS-&gt;&gt;AJ: Request JWKS
+        AJ--&gt;&gt;CS: JWKS
+        CS-&gt;&gt;CS: Cache JWKS
+    end
+    alt Token Validation
+        CS-&gt;&gt;CS: Validate User Token using JWKS
+        alt Validation success
+            CS--&gt;&gt;MA: User-specific data
+        else Validation fails
+            CS--&gt;&gt;MA: Error: Invalid Token
+        end
+    end</code></pre>
+<h4 id="pattern-2-microapp-data-access">Pattern 2: MicroApp Data Access</h4>
+<pre class="mermaid"><code>sequenceDiagram
+    participant MAF as MicroApp Frontend
+    participant SAF as SuperApp Frontend
+    participant CS as Core Service
+    participant TS as Token Service
+    participant MAB as MicroApp Backend
+
+    MAF-&gt;&gt;SAF: Request MicroApp Token (via Bridge)
+    SAF-&gt;&gt;CS: Request MicroApp Token
+    CS-&gt;&gt;CS: Validate User's Access Token (via External IdP JWKS)
+    CS-&gt;&gt;CS: Extract User Information from Access Token
+    CS-&gt;&gt;TS: Generate MicroApp Token (microapp_id, user_email)
+    TS--&gt;&gt;CS: MicroApp Token
+    CS--&gt;&gt;SAF: MicroApp Token
+    SAF--&gt;&gt;MAF: MicroApp Token
+    MAF-&gt;&gt;MAB: API Call (MicroApp Token)
+    MAB-&gt;&gt;CS: Request Token Service's JWKS
+    CS-&gt;&gt;TS : Fetch JWKS
+    TS--&gt;&gt;CS: JWKS
+    CS--&gt;&gt;MAB: JWKS
+    MAB-&gt;&gt;MAB: Validate MicroApp Token using JWKS
+    MAB--&gt;&gt;MAF: send requested data</code></pre>
+<h4 id="pattern-3-service-to-service">Pattern 3: Service-to-Service</h4>
+<pre class="mermaid"><code>sequenceDiagram
+    participant MAB as MicroApp Backend
+    participant CS as Core Service
+    participant TS as Token Service
+
+    MAB-&gt;&gt;CS: Request Service specific Access Token (client_id, client_secret)
+    CS-&gt;&gt;TS: Request Service specific Access Token (client_id, client_secret)
+    TS-&gt;&gt;TS: Validate client_id and client_secret
+    alt Validation successful
+        TS--&gt;&gt;TS: Generate Service Token
+        TS--&gt;&gt;CS: Service Token
+        CS--&gt;&gt;MAB: Service Token
+        MAB-&gt;&gt;CS: Call Core Service Endpoint (Service Token)
+        CS-&gt;&gt;CS: Validate Service Token (via Token Service's JWKS)
+        alt Token valid
+            CS-&gt;&gt;CS: Invoke requested service
+            CS--&gt;&gt;MAB: Service Response
+        else Token invalid
+            CS--&gt;&gt;MAB: Error: Invalid Service Token
+        end
+    else Validation failed
+        TS--&gt;&gt;CS: Error: Invalid Credentials
+        CS--&gt;&gt;MAB: Error: Service Token Generation Failed
+    end</code></pre>
+<h2 id="scalability-performance">Scalability &amp; Performance</h2>
+<h3 id="horizontal-scaling">Horizontal Scaling</h3>
+<ul>
+<li><strong>Stateless Services</strong>: Core and Token services are stateless</li>
+<li><strong>Database Connection Pooling</strong>: Configurable pool sizes</li>
+<li><strong>Load Balancing</strong>: Services can run multiple instances</li>
+</ul>
+<h3 id="caching-strategies">Caching Strategies</h3>
+<ul>
+<li><strong>JWKS Caching</strong>: Clients cache public keys (1 hour TTL)</li>
+<li><strong>MicroApp Caching</strong>: Mobile app stores MicroApps locally</li>
+<li><strong>Database Indexing</strong>: Optimized queries on frequently accessed tables</li>
+</ul>
+<h3 id="observability">Observability</h3>
+<ul>
+<li><strong>OpenTelemetry</strong>: Metrics collection from mobile app</li>
+<li><strong>Prometheus</strong>: Time-series metrics storage</li>
+<li><strong>Structured Logging</strong>: JSON logs with <code>slog</code> (Go services)</li>
+</ul>
+<h3 id="key-metrics-collected-for-monitoring-performance">Key Metrics Collected for monitoring performance</h3>
+<ul>
+<li><code>api_request_count_total</code>  </li>
+<li><code>api_request_duration_bucket</code>  </li>
+<li><code>microapp_load_count_total</code>  </li>
+<li><code>auth_token_refresh_count_total</code>  </li>
+</ul>
+<h2 id="next-steps">Next Steps</h2>
+<ul>
+<li><strong><a href="../../api/reference/">API Reference</a></strong>: Explore all available endpoints</li>
+<li><strong><a href="../../getting-started/installation/">Installation Guide</a></strong>: Set up the development environment</li>
+<li><strong><a href="https://github.com/LSFLK/superapp-mobile/blob/main/frontend/docs/MICROAPP_DEVELOPER_GUIDE.md">MicroApp Development</a></strong>: Build your first MicroApp</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.instant", "navigation.instant.prefetch", "toc.integrate", "toc.follow", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+    
+  </body>
+</html>
