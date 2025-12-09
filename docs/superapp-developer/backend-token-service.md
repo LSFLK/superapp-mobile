@@ -531,5 +531,3 @@ if hex.EncodeToString(hash[:]) != storedHash {
     return error
 }
 ```
-
-> **Note:** For higher security, consider upgrading to bcrypt or argon2.

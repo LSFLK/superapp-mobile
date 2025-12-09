@@ -1,4 +1,4 @@
-# [WIP]SuperApp Production Deployment Guide
+# SuperApp Production Deployment Guide
 
 > Follow these phases in order. Each phase links to detailed component documentation.
 
@@ -13,8 +13,6 @@ graph TD
     C --> D[Phase 4: Core Service]
     D --> E[Phase 5: Admin Portal]
     E --> F[Phase 6: Mobile App]
-
-
 ```
 
 ---
@@ -46,7 +44,7 @@ Create an organization for the project
 
 - Type: Web Application
 - Grant: Authorization Code
-- Redirect URI: `https://admin.yourdomain.com/callback`
+- Redirect URI: `https://admin.yourdomain.com/`
 - Use for: Admin portal authentication
 - **Important:** Configure conditional authentication to restrict access to `superapp-admin` user group
 
@@ -101,7 +99,7 @@ FLUSH PRIVILEGES;
 
 **Run migrations:**
 
-See [Backend(Core) - Databaset Setup](./backend-core.md#database-setup)
+See [Backend (Core) - Database Setup](./backend-core.md#database-setup)
 
 ---
 
@@ -158,7 +156,6 @@ sudo chmod 600 /opt/superapp/core/firebase-admin-sdk.json
 
 **Follow:** [backend-core.md - Environment Setup](./backend-core.md#environment-setup)
 
-
 **Verify deployment:**
 
 ```bash
@@ -171,7 +168,11 @@ curl http://localhost:9090/health
 
 **Deploy the web-based management interface.**
 
+### 5.1 Configure and Deploy
+
 **Follow:** [Admin Portal README - Getting Started](https://github.com/LSFLK/superapp-mobile/blob/main/superapp-admin-portal/README.md)
+
+⚠️ **Security:** Ensure the External IDP (e.g., Asgardeo) is configured with conditional authentication to restrict access to the `superapp-admin` user group only.
 
 ---
 
@@ -196,11 +197,14 @@ curl http://localhost:9090/health
 
 - [ ] All services are running and healthy
 - [ ] HTTPS/TLS enabled for all public endpoints
-- [ ] Database backups configured
-- [ ] Private keys secured in secrets manager
-- [ ] Admin portal and its endpoints restricted to `superapp-admin` group
+- [ ] Database backups configured (automated daily backups recommended)
+- [ ] Private keys secured in secrets manager (never stored in code repository)
+- [ ] Admin portal access restricted to `superapp-admin` group via IDP conditional authentication
 - [ ] Mobile app can authenticate and load microapps
-- [ ] Push notifications working
+- [ ] Push notifications working (test with Firebase)
+- [ ] Monitoring and logging configured for all services
+- [ ] Rate limiting enabled on public endpoints
+- [ ] Firewall rules configured to restrict database access
 
 ---
 
@@ -243,6 +247,31 @@ curl -X POST "http://localhost:8081/admin/active-key?key_id=prod-key-2024-12"
 
 ---
 
+## Troubleshooting
+
+### Common Issues
+
+**Token Service JWKS not accessible:**
+- Verify Token Service is running: `curl http://<token-service-host>:8081/.well-known/jwks.json`
+- Check firewall rules allow Core Service to access Token Service
+- Verify key files exist in the configured `KEYS_DIR`
+
+**Core Service cannot connect to database:**
+- Verify database credentials in environment variables
+- Check database user has correct privileges: `SHOW GRANTS FOR 'coreservice'@'%';`
+- Test connection: `mysql -u coreservice -p superapp_production`
+
+**Push notifications not working:**
+- Verify Firebase Admin SDK JSON file path is correct
+- Check Firebase project configuration matches mobile app
+- Review Firebase console for error logs
+
+**Mobile app authentication fails:**
+- Verify OAuth2 redirect URI matches exactly in IDP configuration
+- Check client ID is correct in mobile app environment variables
+- Review IDP logs for authentication errors
+
+---
 
 ## Additional Resources
 

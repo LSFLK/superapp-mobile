@@ -1,6 +1,6 @@
 # API Reference
 
-Complete reference for all API endpoints in the LSF SuperApp Mobile platform.
+Complete reference for all API endpoints in the OpenSuperApp SuperApp Mobile platform.
 
 ## Base URLs
 
@@ -11,6 +11,47 @@ Complete reference for all API endpoints in the LSF SuperApp Mobile platform.
 
 ---
 
+## API Overview
+
+### Core Service Endpoints
+
+| Method | Endpoint | Description | Auth | Details |
+|--------|----------|-------------|------|---------|
+| **User Management** |||||
+| GET | `/api/v1/users/me` | Get current user info | User | [↓](#get-current-user-info) |
+| GET | `/api/v1/users` | Get all users | User | [↓](#get-all-users) |
+| POST | `/api/v1/users` | Create/update user | User | [↓](#create-or-update-user) |
+| DELETE | `/api/v1/users/{email}` | Delete user | User | [↓](#delete-user) |
+| **MicroApp Management** |||||
+| GET | `/api/v1/microapps` | Get all MicroApps | User | [↓](#get-all-microapps) |
+| GET | `/api/v1/microapps/{id}` | Get MicroApp by ID | User | [↓](#get-microapp-by-id) |
+| POST | `/api/v1/microapps` | Create/update MicroApp | User | [↓](#create-or-update-microapp) |
+| DELETE | `/api/v1/microapps/{id}` | Deactivate MicroApp | User | [↓](#deactivate-microapp) |
+| **User Configuration** |||||
+| GET | `/api/v1/user-config` | Get user configuration | User | [↓](#get-user-configuration) |
+| POST | `/api/v1/user-config` | Update user configuration | User | [↓](#update-user-configuration) |
+| **Push Notifications** |||||
+| POST | `/api/v1/notifications/register` | Register device token | User | [↓](#register-device-token) |
+| POST | `/api/v1/services/notifications/send` | Send push notification | Service | [↓](#send-notification-service-endpoint) |
+| **Token Exchange** |||||
+| POST | `/api/v1/oauth/exchange` | Exchange user token for MicroApp token | User | [↓](#exchange-user-token-for-microapp-token) |
+| GET | `/api/v1/.well-known/jwks.json` | Get JWKS (public keys) | Public | [↓](#get-jwks-public-keys) |
+| **File Management** |||||
+| POST | `/api/v1/files` | Upload file | User | [↓](#upload-file) |
+| DELETE | `/api/v1/files` | Delete file | User | [↓](#delete-file) |
+| GET | `/api/v1/public/micro-app-files/download/{fileName}` | Download file | Public | [↓](#download-file-public) |
+
+### Token Service Endpoints
+
+| Method | Endpoint | Description | Auth | Details |
+|--------|----------|-------------|------|---------|
+| POST | `/oauth/token` | Get service token (Client Credentials) | Basic Auth | [↓](#oauth-token-client-credentials) |
+| POST | `/oauth/clients` | Create OAuth client | None | [↓](#create-oauth-client) |
+| POST | `/oauth/token/user` | Get user context token | None | [↓](#user-context-token) |
+| GET | `/.well-known/jwks.json` | Get JWKS | Public | [↓](#get-jwks) |
+
+---
+
 ## Core Service API
 
 ### Authentication
@@ -18,7 +59,7 @@ Complete reference for all API endpoints in the LSF SuperApp Mobile platform.
 All user-authenticated endpoints require an `Authorization` header:
 
 ```
-Authorization: Bearer <asgardeo_user_token>
+Authorization: Bearer <External_IdP_user_token>
 ```
 
 Service-authenticated endpoints require a service token:

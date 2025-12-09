@@ -4,7 +4,7 @@
 
 The SuperApp Mobile is an open-source unified platform powered by **micro app architecture**, enabling seamless integration of multiple web applications within a single container. This project serves as the foundation for hosting multiple micro-apps with centralized authentication, integration, and management capabilities.
 
-The platform consists of three main components: a **React Native mobile application** (built with Expo) that serves as the container for micro-apps, **Go-based backend services** providing API and authentication capabilities, and a **React-based admin portal** for managing micro-apps. The system supports dynamic micro-app loading, dual IDP authentication (external IdP for users and internal token service for microapp backend services), push notifications via Firebase, and comprehensive observability through OpenTelemetry.
+The platform consists of three main components: a **React Native mobile application** (built with Expo) that serves as the container for micro-apps, **Go-based backend services** providing API and authentication capabilities, and a **React-based admin portal** for managing micro-apps. The system supports dynamic micro-app loading, IDP based user management, push notifications via Firebase, and comprehensive observability through OpenTelemetry.
 
 ![SuperApp Architecture](images/snapshots.png)
 
@@ -21,11 +21,12 @@ Ready to dive in? Head over to our [Getting Started Guide](getting-started/insta
 ## Key Features
 
 - **Micro App Architecture**: Load and run multiple web applications within a single mobile container
-- **Dual Authentication**: External IDP for users, internal token service for microapp backends
+- **User Authentication**: OAuth2.0 OIDC based user authentication
+- **Secure Microapp Communication**: Token service for microapps to securely communicate with their backend
 - **Push Notifications**: Firebase Cloud Messaging integration for targeted notifications
 - **Admin Portal**: Web-based management interface for uploading and configuring micro-apps
 - **Observability**: OpenTelemetry metrics collection with Prometheus integration
-- **Pluggable Services**: Extensible architecture for file storage and user management
+- **Extensible Framework**: Allows customization of data storage and user management via a pluggable architecture. Standards based and no vendor lock-in
 
 ## Key Concepts
 
@@ -40,8 +41,7 @@ Ready to dive in? Head over to our [Getting Started Guide](getting-started/insta
 1. Micro-apps are listed in the Super App Store.
 2. Users can download micro-apps from the store.
 3. Downloaded micro-apps are stored locally.
-4. (if required) When launched, microapp specific tokens are issued by the superapp for access.
-5. The micro-app uses micro-app specific access tokens to communicate with the respective backends.
+4. When launched, the micro-app receives micro-app–specific access tokens from the superapp, which it uses to securely communicate with the respective backends.
 
 ## Technology Stack
 

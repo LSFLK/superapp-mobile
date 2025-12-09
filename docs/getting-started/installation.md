@@ -34,7 +34,7 @@ Select the role that best describes what you want to do:
     
     - [Architecture Overview](../architecture/overview.md) - Understand the system
     - [Core Service Guide](../superapp-developer/backend-core.md) - Main API service
-    - [Token Service Guide](../superapp-developer/backend-token-service.md) - Authentication service
+    - [Token Service Guide](../superapp-developer/backend-token-service.md) - Internal OAuth2/JWT service
     - [Mobile App Guide](../superapp-developer/mobile-app.md) - Mobile app setup
     - [Observability](../superapp-developer/observability.md) - Monitoring setup
     - [Pluggable Backend Services](../superapp-developer/pluggable-services.md) - Custom File and User Management Services

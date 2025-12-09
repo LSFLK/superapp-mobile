@@ -78,7 +78,7 @@ cd superapp-mobile/frontend
 </ul>
 </li>
 </ul>
-<p>Create a folder named <code>google-services</code> inside <code>frontend/</code> and include the Firebase artifacts inside it.</p>
+<p>Create a folder named <code>google-services</code> inside <code>frontend/</code> and include the Firebase artifacts ( <code>google-services.json</code> and <code>GoogleService-Info.plist</code>) inside it.</p>
 
 <p>For branding changes, refer to the <code>assets</code> folder and <code>constant/colors.ts</code>.</p>
 </li>
