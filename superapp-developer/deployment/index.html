@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#wipsuperapp-production-deployment-guide" class="md-skip">
+        <a href="#superapp-production-deployment-guide" class="md-skip">
           Skip to content
         </a>
       
@@ -327,11 +327,31 @@
     
     
       <li class="md-tabs__item">
+        <a href="../../microapp-developer/bridge-api/" class="md-tabs__link">
+          
+  
+  
+  Bridge API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
         <a href="../../api/reference/" class="md-tabs__link">
           
   
   
-  API Reference
+  Backend API Reference
 
         </a>
       </li>
@@ -781,6 +801,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Phase 5: Admin Portal Deployment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-configure-and-deploy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Configure and Deploy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -861,6 +898,34 @@
     <span class="md-ellipsis">
       
         Key Rotation (Every 90 days)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Issues
       
     </span>
   </a>
@@ -963,34 +1028,6 @@
     
   
     Mobile App
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../microapp-developer/bridge-api/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Bridge Guide
   
 
     
@@ -1182,34 +1219,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../microapp-developer/bridge-api/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Bridge Guide
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../microapp-developer/push-notifications/" class="md-nav__link">
         
   
@@ -1355,7 +1364,7 @@
   <span class="md-ellipsis">
     
   
-    API Reference
+    Bridge API Reference
   
 
     
@@ -1371,7 +1380,94 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    API Reference
+    Bridge API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../microapp-developer/bridge-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bridge Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backend API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Backend API Reference
   
 
           </label>
@@ -1429,7 +1525,7 @@
 
 
 
-<h1 id="wipsuperapp-production-deployment-guide">[WIP]SuperApp Production Deployment Guide</h1>
+<h1 id="superapp-production-deployment-guide">SuperApp Production Deployment Guide</h1>
 <blockquote>
 <p>Follow these phases in order. Each phase links to detailed component documentation.</p>
 </blockquote>
@@ -1440,9 +1536,7 @@
     B --&gt; C[Phase 3: Token Service]
     C --&gt; D[Phase 4: Core Service]
     D --&gt; E[Phase 5: Admin Portal]
-    E --&gt; F[Phase 6: Mobile App]
-
-</code></pre>
+    E --&gt; F[Phase 6: Mobile App]</code></pre>
 <hr />
 <h2 id="phase-1-prerequisites">Phase 1: Prerequisites</h2>
 <h3 id="11-infrastructure-setup">1.1 Infrastructure Setup</h3>
@@ -1466,7 +1560,7 @@
 <ul>
 <li>Type: Web Application</li>
 <li>Grant: Authorization Code</li>
-<li>Redirect URI: <code>https://admin.yourdomain.com/callback</code></li>
+<li>Redirect URI: <code>https://admin.yourdomain.com/</code></li>
 <li>Use for: Admin portal authentication</li>
 <li><strong>Important:</strong> Configure conditional authentication to restrict access to <code>superapp-admin</code> user group</li>
 </ul>
@@ -1513,7 +1607,7 @@
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="n">FLUSH</span><span class="w"> </span><span class="k">PRIVILEGES</span><span class="p">;</span>
 </span></code></pre></div>
 <p><strong>Run migrations:</strong></p>
-<p>See <a href="../backend-core/#database-setup">Backend(Core) - Databaset Setup</a></p>
+<p>See <a href="../backend-core/#database-setup">Backend (Core) - Database Setup</a></p>
 <hr />
 <h2 id="phase-3-token-service-deployment">Phase 3: Token Service Deployment</h2>
 <p><strong>Deploy the internal OAuth2/JWT token issuer.</strong></p>
@@ -1554,7 +1648,9 @@
 <hr />
 <h2 id="phase-5-admin-portal-deployment">Phase 5: Admin Portal Deployment</h2>
 <p><strong>Deploy the web-based management interface.</strong></p>
+<h3 id="51-configure-and-deploy">5.1 Configure and Deploy</h3>
 <p><strong>Follow:</strong> <a href="https://github.com/LSFLK/superapp-mobile/blob/main/superapp-admin-portal/README.md">Admin Portal README - Getting Started</a></p>
+<p>⚠️ <strong>Security:</strong> Ensure the External IDP (e.g., Asgardeo) is configured with conditional authentication to restrict access to the <code>superapp-admin</code> user group only.</p>
 <hr />
 <h2 id="phase-6-mobile-app-build">Phase 6: Mobile App Build</h2>
 <p><strong>Build and deploy the React Native mobile application.</strong></p>
@@ -1568,11 +1664,14 @@
 <ul class="task-list">
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> All services are running and healthy</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> HTTPS/TLS enabled for all public endpoints</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Database backups configured</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Private keys secured in secrets manager</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Admin portal and its endpoints restricted to <code>superapp-admin</code> group</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Database backups configured (automated daily backups recommended)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Private keys secured in secrets manager (never stored in code repository)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Admin portal access restricted to <code>superapp-admin</code> group via IDP conditional authentication</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Mobile app can authenticate and load microapps</li>
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Push notifications working</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Push notifications working (test with Firebase)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Monitoring and logging configured for all services</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Rate limiting enabled on public endpoints</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Firewall rules configured to restrict database access</li>
 </ul>
 <hr />
 <h2 id="verification">Verification</h2>
@@ -1604,6 +1703,25 @@
 <blockquote>
 <p>📚 <a href="../backend-token-service/#zero-downtime-key-rotation">Full Key Rotation Guide</a></p>
 </blockquote>
+<hr />
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="common-issues">Common Issues</h3>
+<p><strong>Token Service JWKS not accessible:</strong>
+- Verify Token Service is running: <code>curl http://&lt;token-service-host&gt;:8081/.well-known/jwks.json</code>
+- Check firewall rules allow Core Service to access Token Service
+- Verify key files exist in the configured <code>KEYS_DIR</code></p>
+<p><strong>Core Service cannot connect to database:</strong>
+- Verify database credentials in environment variables
+- Check database user has correct privileges: <code>SHOW GRANTS FOR 'coreservice'@'%';</code>
+- Test connection: <code>mysql -u coreservice -p superapp_production</code></p>
+<p><strong>Push notifications not working:</strong>
+- Verify Firebase Admin SDK JSON file path is correct
+- Check Firebase project configuration matches mobile app
+- Review Firebase console for error logs</p>
+<p><strong>Mobile app authentication fails:</strong>
+- Verify OAuth2 redirect URI matches exactly in IDP configuration
+- Check client ID is correct in mobile app environment variables
+- Review IDP logs for authentication errors</p>
 <hr />
 <h2 id="additional-resources">Additional Resources</h2>
 <ul>
@@ -1644,6 +1762,46 @@
       
         <footer class="md-footer">
   
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../../getting-started/installation/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Installation">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Installation
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../backend-core/" class="md-footer__link md-footer__link--next" aria-label="Next: Core Service">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Core Service
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
       <div class="md-copyright">
@@ -1669,7 +1827,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.instant", "navigation.instant.prefetch", "toc.integrate", "toc.follow", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "navigation.instant", "navigation.instant.prefetch", "navigation.footer", "toc.integrate", "toc.follow", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
       <script src="../../assets/javascripts/bundle.e71a0d61.min.js"></script>
