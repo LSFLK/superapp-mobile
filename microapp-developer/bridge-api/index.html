@@ -1089,6 +1089,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#quick-reference-available-bridge-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Reference (Available Bridge Functions)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#overview" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1600,34 +1611,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#appendix-backward-compatibility" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Appendix: Backward Compatibility
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Appendix: Backward Compatibility">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#event-based-approach-legacy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Event-Based Approach (Legacy)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1749,6 +1732,99 @@
 
 
 <h1 id="bridge-communication-guide">Bridge Communication Guide</h1>
+<h2 id="quick-reference-available-bridge-functions">Quick Reference (Available Bridge Functions)</h2>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Returns</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#token-management"><code>requestToken()</code></a></td>
+<td><code>Promise&lt;string&gt;</code></td>
+<td>Retrieve authentication token for API calls</td>
+</tr>
+<tr>
+<td><a href="#alert-dialog"><code>requestAlert({...})</code></a></td>
+<td><code>Promise&lt;void&gt;</code></td>
+<td>Display native alert dialog</td>
+</tr>
+<tr>
+<td><a href="#confirmation-dialog"><code>requestConfirmAlert({...})</code></a></td>
+<td><code>Promise&lt;"confirm" \| "cancel"&gt;</code></td>
+<td>Display native confirmation dialog</td>
+</tr>
+<tr>
+<td><a href="#close-webview"><code>requestCloseWebview()</code></a></td>
+<td><code>void</code></td>
+<td>Navigate back/close current MicroApp</td>
+</tr>
+<tr>
+<td><a href="#qr-code-scanner"><code>requestQRCode()</code></a></td>
+<td><code>Promise&lt;string&gt;</code></td>
+<td>Activate QR scanner and get scanned code</td>
+</tr>
+<tr>
+<td><a href="#device-safe-area-insets"><code>requestDeviceSafeAreaInsets()</code></a></td>
+<td><code>Promise&lt;{top, bottom, left, right}&gt;</code></td>
+<td>Get device safe area insets</td>
+</tr>
+<tr>
+<td><a href="#save-local-data"><code>requestSaveLocalData({...})</code></a></td>
+<td><code>Promise&lt;void&gt;</code></td>
+<td>Persist data using AsyncStorage</td>
+</tr>
+<tr>
+<td><a href="#get-local-data"><code>requestGetLocalData({...})</code></a></td>
+<td><code>Promise&lt;{value: string \| null}&gt;</code></td>
+<td>Retrieve data from AsyncStorage</td>
+</tr>
+<tr>
+<td><a href="#google-authentication"><code>requestAuthenticateWithGoogle()</code></a></td>
+<td><code>Promise&lt;UserInfo&gt;</code></td>
+<td>Initiate Google OAuth flow</td>
+</tr>
+<tr>
+<td><a href="#check-google-auth-state"><code>requestCheckGoogleAuthState()</code></a></td>
+<td><code>Promise&lt;boolean \| UserInfo&gt;</code></td>
+<td>Check Google auth status</td>
+</tr>
+<tr>
+<td><a href="#get-google-user-info"><code>requestGoogleUserInfo()</code></a></td>
+<td><code>Promise&lt;UserInfo&gt;</code></td>
+<td>Get Google user information</td>
+</tr>
+<tr>
+<td><a href="#upload-to-google-drive"><code>requestUploadToGoogleDrive(data)</code></a></td>
+<td><code>Promise&lt;{id: string}&gt;</code></td>
+<td>Upload to Google Drive</td>
+</tr>
+<tr>
+<td><a href="#restore-from-google-drive"><code>requestRestoreGoogleDriveBackup()</code></a></td>
+<td><code>Promise&lt;any&gt;</code></td>
+<td>Restore backup from Google Drive</td>
+</tr>
+<tr>
+<td><a href="#file-downloads"><code>requestDownloadFile({...})</code></a></td>
+<td><code>Promise&lt;{localPath: string}&gt;</code></td>
+<td>Download file to device</td>
+</tr>
+<tr>
+<td><a href="#totp-qr-migration-data"><code>requestTotpQrMigrationData()</code></a></td>
+<td><code>Promise&lt;{data: string}&gt;</code></td>
+<td>Get TOTP migration QR data</td>
+</tr>
+<tr>
+<td><a href="#native-log"><code>requestNativeLog({...})</code></a></td>
+<td><code>void</code></td>
+<td>Log to native console (dev only)</td>
+</tr>
+</tbody>
+</table>
+<hr />
 <h2 id="overview">Overview</h2>
 <p>The Bridge is a communication layer that enables secure, bidirectional messaging between the SuperApp (React Native) and embedded MicroApps (web applications running in WebViews). This architecture allows MicroApps to access native device capabilities and SuperApp services while maintaining security boundaries.</p>
 <h3 id="underlying-technology">Underlying Technology</h3>
@@ -1878,7 +1954,7 @@
 </span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="p">}</span>
 </span></code></pre></div>
 <h3 id="making-requests">Making Requests</h3>
-<p>All bridge functions now return promises for cleaner asynchronous handling:</p>
+<p>All bridge functions return promises for cleaner asynchronous handling:</p>
 <div class="language-javascript highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1">// Example: Request token</span>
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="k">try</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nb">window</span><span class="p">.</span><span class="nx">nativebridge</span><span class="p">.</span><span class="nx">requestToken</span><span class="p">();</span>
@@ -2017,39 +2093,6 @@
 <li><strong>Purpose</strong>: Log messages to native console (only works in development mode)</li>
 <li><strong>Levels</strong>: <code>"info"</code>, <code>"warn"</code>, <code>"error"</code></li>
 </ul>
-<hr />
-<h2 id="appendix-backward-compatibility">Appendix: Backward Compatibility</h2>
-<h3 id="event-based-approach-legacy">Event-Based Approach (Legacy)</h3>
-<p>The bridge system maintains backward compatibility with legacy event-based implementations. While the <strong>promise-based approach is recommended</strong> for new development, the bridge continues to support the older pattern.</p>
-<p><strong>Legacy Pattern (Pre-defined Callbacks):</strong></p>
-<div class="language-javascript highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1">// example usage for `save_local_data` function</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nb">window</span><span class="p">.</span><span class="nx">ReactNativeWebView</span><span class="p">.</span><span class="nx">postMessage</span><span class="p">(</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="nb">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="nx">topic</span><span class="o">:</span><span class="w"> </span><span class="s2">&quot;save_local_data&quot;</span><span class="p">,</span>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="nx">data</span><span class="o">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">key</span><span class="p">,</span><span class="w"> </span><span class="nx">value</span><span class="w"> </span><span class="p">},</span>
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="p">})</span>
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="p">);</span>
-</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>
-</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="c1">// Pre-define callbacks on the bridge object</span>
-</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="nb">window</span><span class="p">.</span><span class="nx">nativebridge</span><span class="p">.</span><span class="nx">resolveSaveLocalData</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nx">data</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Success:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="p">);</span>
-</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="p">};</span>
-</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>
-</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="nb">window</span><span class="p">.</span><span class="nx">nativebridge</span><span class="p">.</span><span class="nx">rejectSaveLocalData</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nx">error</span><span class="p">)</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s2">&quot;Failed:&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">error</span><span class="p">);</span>
-</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="p">};</span>
-</span></code></pre></div>
-<p>The bridge auto-generates method names from topics using a <code>capitalize</code> function that converts snake_case to PascalCase and appends the relevant prefix afterwards. For example:</p>
-<ul>
-<li>Topic: <code>save_local_data</code> → Methods: <code>requestSaveLocalData</code>, <code>resolveSaveLocalData</code>, <code>rejectSaveLocalData</code></li>
-<li>Topic: <code>google_login</code> → Methods: <code>requestGoogleLogin</code>, <code>resolveGoogleLogin</code>, <code>rejectGoogleLogin</code></li>
-</ul>
-<p>When handlers call <code>context.resolve(data)</code> or <code>context.reject(error)</code>, the bridge:</p>
-<ol>
-<li><strong>Resolves/rejects the promise</strong> (modern approach)</li>
-<li><strong>Calls the pre-defined callback</strong> if it exists (legacy compatibility)</li>
-</ol>
-<p><strong>Note:</strong> New MicroApps should use the promise-based approach. The event-based pattern with pre-defined callbacks is maintained only for backward compatibility with existing implementations.</p>
 
 
 
