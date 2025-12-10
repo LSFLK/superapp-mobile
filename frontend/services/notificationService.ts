@@ -54,7 +54,6 @@ export async function requestNotificationPermissions(): Promise<boolean> {
     // }
 
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    console.log("Existing status:", existingStatus);
     let finalStatus = existingStatus;
 
     if (existingStatus !== "granted") {
@@ -116,14 +115,12 @@ export function registerNotificationListeners(
 ): () => void {
     const receivedSubscription = Notifications.addNotificationReceivedListener(
         (notification) => {
-            console.log("Notification received:", notification);
             onNotificationReceived?.(notification);
         }
     );
 
     const responseSubscription =
         Notifications.addNotificationResponseReceivedListener((response) => {
-            console.log("Notification tapped:", response);
             onNotificationTapped?.(response);
         });
 

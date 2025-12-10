@@ -39,18 +39,18 @@ let isInitialized = false;
  */
 export const initializeTelemetry = async () => {
   if (!OTEL_ENABLED) {
-    console.log("[otel] Telemetry disabled (EXPO_PUBLIC_OTEL_ENABLED !== 'true')");
+    // console.log("[otel] Telemetry disabled (EXPO_PUBLIC_OTEL_ENABLED !== 'true')");
     return;
   }
   if (isInitialized) {
-    console.log("[otel] Telemetry already initialized");
+    // console.log("[otel] Telemetry already initialized");
     return;
   }
 
   // Apply sampling to reduce load at scale
   // Only initialize telemetry for sampled percentage of users
   if (Math.random() > OTEL_SAMPLE_RATE) {
-    console.log(`[otel] User not sampled (rate: ${OTEL_SAMPLE_RATE * 100}%)`);
+    // console.log(`[otel] User not sampled (rate: ${OTEL_SAMPLE_RATE * 100}%)`);
     return;
   }
 

@@ -47,7 +47,6 @@ export const apiRequest = async (
   onLogout: () => Promise<void>
 ) => {
   let accessToken = await getAccessToken(); // Get stored access token
-  console.log("Access Token:", accessToken);
   // If no access token, return early
   if (!accessToken) return;
 
