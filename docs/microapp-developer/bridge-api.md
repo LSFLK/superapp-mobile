@@ -1,5 +1,28 @@
 # Bridge Communication Guide
 
+## Quick Reference (Available Bridge Functions)
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| [`requestToken()`](#token-management) | `Promise<string>` | Retrieve authentication token for API calls |
+| [`requestAlert({...})`](#alert-dialog) | `Promise<void>` | Display native alert dialog |
+| [`requestConfirmAlert({...})`](#confirmation-dialog) | `Promise<"confirm" \| "cancel">` | Display native confirmation dialog |
+| [`requestCloseWebview()`](#close-webview) | `void` | Navigate back/close current MicroApp |
+| [`requestQRCode()`](#qr-code-scanner) | `Promise<string>` | Activate QR scanner and get scanned code |
+| [`requestDeviceSafeAreaInsets()`](#device-safe-area-insets) | `Promise<{top, bottom, left, right}>` | Get device safe area insets |
+| [`requestSaveLocalData({...})`](#save-local-data) | `Promise<void>` | Persist data using AsyncStorage |
+| [`requestGetLocalData({...})`](#get-local-data) | `Promise<{value: string \| null}>` | Retrieve data from AsyncStorage |
+| [`requestAuthenticateWithGoogle()`](#google-authentication) | `Promise<UserInfo>` | Initiate Google OAuth flow |
+| [`requestCheckGoogleAuthState()`](#check-google-auth-state) | `Promise<boolean \| UserInfo>` | Check Google auth status |
+| [`requestGoogleUserInfo()`](#get-google-user-info) | `Promise<UserInfo>` | Get Google user information |
+| [`requestUploadToGoogleDrive(data)`](#upload-to-google-drive) | `Promise<{id: string}>` | Upload to Google Drive |
+| [`requestRestoreGoogleDriveBackup()`](#restore-from-google-drive) | `Promise<any>` | Restore backup from Google Drive |
+| [`requestDownloadFile({...})`](#file-downloads) | `Promise<{localPath: string}>` | Download file to device |
+| [`requestTotpQrMigrationData()`](#totp-qr-migration-data) | `Promise<{data: string}>` | Get TOTP migration QR data |
+| [`requestNativeLog({...})`](#native-log) | `void` | Log to native console (dev only) |
+
+---
+
 ## Overview
 
 The Bridge is a communication layer that enables secure, bidirectional messaging between the SuperApp (React Native) and embedded MicroApps (web applications running in WebViews). This architecture allows MicroApps to access native device capabilities and SuperApp services while maintaining security boundaries.
@@ -165,7 +188,7 @@ if (window.nativebridge) {
 
 ### Making Requests
 
-All bridge functions now return promises for cleaner asynchronous handling:
+All bridge functions return promises for cleaner asynchronous handling:
 
 ```javascript
 // Example: Request token
@@ -320,44 +343,3 @@ try {
 - **Request**: `window.nativebridge.requestNativeLog({level, message, data})`
 - **Purpose**: Log messages to native console (only works in development mode)
 - **Levels**: `"info"`, `"warn"`, `"error"`
-
----
-
-## Appendix: Backward Compatibility
-
-### Event-Based Approach (Legacy)
-
-The bridge system maintains backward compatibility with legacy event-based implementations. While the **promise-based approach is recommended** for new development, the bridge continues to support the older pattern.
-
-**Legacy Pattern (Pre-defined Callbacks):**
-
-```javascript
-// example usage for `save_local_data` function
-window.ReactNativeWebView.postMessage(
-  JSON.stringify({
-    topic: "save_local_data",
-    data: { key, value },
-  })
-);
-
-// Pre-define callbacks on the bridge object
-window.nativebridge.resolveSaveLocalData = (data) => {
-  console.log("Success:", data);
-};
-
-window.nativebridge.rejectSaveLocalData = (error) => {
-  console.error("Failed:", error);
-};
-```
-
-The bridge auto-generates method names from topics using a `capitalize` function that converts snake_case to PascalCase and appends the relevant prefix afterwards. For example:
-
-- Topic: `save_local_data` → Methods: `requestSaveLocalData`, `resolveSaveLocalData`, `rejectSaveLocalData`
-- Topic: `google_login` → Methods: `requestGoogleLogin`, `resolveGoogleLogin`, `rejectGoogleLogin`
-
-When handlers call `context.resolve(data)` or `context.reject(error)`, the bridge:
-
-1. **Resolves/rejects the promise** (modern approach)
-2. **Calls the pre-defined callback** if it exists (legacy compatibility)
-
-**Note:** New MicroApps should use the promise-based approach. The event-based pattern with pre-defined callbacks is maintained only for backward compatibility with existing implementations.
