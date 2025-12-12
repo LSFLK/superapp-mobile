@@ -1589,19 +1589,18 @@
 </span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="c1"># External IDP (Asgardeo) - for user authentication</span>
 </span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="nv">EXTERNAL_IDP_JWKS_URL</span><span class="o">=</span>https://api.asgardeo.io/t/your-org/oauth2/jwks
 </span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="nv">EXTERNAL_IDP_ISSUER</span><span class="o">=</span>https://api.asgardeo.io/t/your-org/oauth2/token
-</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="nv">EXTERNAL_IDP_AUDIENCE</span><span class="o">=</span>your-client-id
-</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>
-</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="c1"># Internal IDP (Token Service) - for service-to-service auth</span>
-</span><span id="__span-3-22"><a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="nv">INTERNAL_IDP_BASE_URL</span><span class="o">=</span>http://localhost:8081
-</span><span id="__span-3-23"><a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="nv">INTERNAL_IDP_ISSUER</span><span class="o">=</span>superapp-idp
-</span><span id="__span-3-24"><a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="nv">INTERNAL_IDP_AUDIENCE</span><span class="o">=</span>superapp-api
-</span><span id="__span-3-25"><a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>
-</span><span id="__span-3-26"><a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="c1"># Service Configuration</span>
-</span><span id="__span-3-27"><a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a><span class="nv">USER_SERVICE_TYPE</span><span class="o">=</span>db<span class="w">              </span><span class="c1"># User service type (db)</span>
-</span><span id="__span-3-28"><a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a><span class="nv">FILE_SERVICE_TYPE</span><span class="o">=</span>db<span class="w">              </span><span class="c1"># File service type (db)</span>
-</span><span id="__span-3-29"><a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a>
-</span><span id="__span-3-30"><a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a><span class="c1"># Firebase Configuration</span>
-</span><span id="__span-3-31"><a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a><span class="nv">FIREBASE_CREDENTIALS_PATH</span><span class="o">=</span>./path/to/firebase-admin-key.json
+</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>
+</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="c1"># Internal IDP (Token Service) - for service-to-service auth</span>
+</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="nv">INTERNAL_IDP_BASE_URL</span><span class="o">=</span>http://localhost:8081
+</span><span id="__span-3-22"><a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="nv">INTERNAL_IDP_ISSUER</span><span class="o">=</span>superapp
+</span><span id="__span-3-23"><a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="nv">INTERNAL_IDP_AUDIENCE</span><span class="o">=</span>superapp-api
+</span><span id="__span-3-24"><a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>
+</span><span id="__span-3-25"><a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a><span class="c1"># Service Configuration</span>
+</span><span id="__span-3-26"><a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="nv">USER_SERVICE_TYPE</span><span class="o">=</span>db<span class="w">              </span><span class="c1"># User service type (db)</span>
+</span><span id="__span-3-27"><a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a><span class="nv">FILE_SERVICE_TYPE</span><span class="o">=</span>db<span class="w">              </span><span class="c1"># File service type (db)</span>
+</span><span id="__span-3-28"><a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a>
+</span><span id="__span-3-29"><a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a><span class="c1"># Firebase Configuration</span>
+</span><span id="__span-3-30"><a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a><span class="nv">FIREBASE_CREDENTIALS_PATH</span><span class="o">=</span>./path/to/firebase-admin-key.json
 </span></code></pre></div>
 <div class="admonition important">
 <p class="admonition-title">Firebase Setup</p>
