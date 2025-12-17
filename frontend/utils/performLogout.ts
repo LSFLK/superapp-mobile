@@ -16,7 +16,7 @@
 import { APPS, AUTH_DATA, USER_INFO } from "@/constants/Constants";
 import { ScreenPaths } from "@/constants/ScreenPaths";
 import { resetAll } from "@/context/slices/authSlice";
-import { persistor } from "@/context/store";
+import { persistor, RootState } from "@/context/store";
 import { logout } from "@/services/authService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import SecureStorage from "@/utils/secureStorage";
@@ -24,18 +24,41 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import { router } from "expo-router";
 import { Alert } from "react-native";
 import { recordAuthLogout } from "@/telemetry/metrics";
+import { clearAuthDataFromSecureStore } from "@/utils/authTokenStore";
+import { clearAllExchangedTokens } from "@/utils/exchangedTokenStore";
+import { unregisterDeviceToken } from "@/services/notificationApiService";
+import { getDevicePushToken } from "@/services/notificationService";
 
 // Logout user
 export const performLogout = createAsyncThunk(
   "auth/logout",
-  async (_, { dispatch }) => {
+  async (_, { dispatch, getState }) => {
     try {
+      const state = getState() as RootState;
+      const appIds = state.apps.apps.map((app) => app.appId);
+      
+      // Deactivate device token before logout
+      try {
+        const userEmail = state.auth.email;
+        const deviceToken = await getDevicePushToken();
+        
+        if (userEmail && deviceToken) {
+          await unregisterDeviceToken(userEmail, deviceToken, async () => {
+          });
+        }
+      } catch (tokenError) {
+        console.error("Failed to deactivate device token:", tokenError);
+      }
+      
       await logout(); // Call Asgardeo logout
       recordAuthLogout(); // Record logout metric
       await persistor.purge(); // Clear redux-persist storage
       dispatch(resetAll()); // Reset Redux state completely
 
-      await SecureStorage.removeItem(AUTH_DATA);
+      // Clear all tokens from SecureStore
+      await clearAuthDataFromSecureStore();
+      await clearAllExchangedTokens(appIds);
+      
       await AsyncStorage.removeItem(USER_INFO);
       await AsyncStorage.removeItem(APPS);
 

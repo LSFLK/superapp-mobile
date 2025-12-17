@@ -15,8 +15,7 @@
     "lint": "eslint --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint --ext .js,.jsx,.ts,.tsx --fix",
     "lint:ci": "eslint --ext .js,.jsx,.ts,.tsx --max-warnings=0",
-    "write-firebase-files": "npx dotenv -e .env -- node ./scripts/writeFirebaseFiles.ts",
-    "postinstall": "npm run write-firebase-files || true && npm install --prefix .."
+    "write-firebase-files": "npx dotenv -e .env -- node ./scripts/writeFirebaseFiles.ts"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -116,6 +115,7 @@
     "lint-staged": "^16.1.5",
     "react-native-safe-area-context": "4.12.0",
     "react-test-renderer": "18.3.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },
   "private": true

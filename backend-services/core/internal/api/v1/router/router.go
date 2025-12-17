@@ -1,14 +1,30 @@
+// Copyright (c) 2025 WSO2 LLC. (https://www.wso2.com).
+//
+// WSO2 LLC. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
 package router
 
 import (
 	"net/http"
 
-	"go-backend/internal/api/v1/handler"
-	"go-backend/internal/config"
-	"go-backend/internal/services"
+	"github.com/opensuperapp/opensuperapp/backend-services/core/internal/api/v1/handler"
+	"github.com/opensuperapp/opensuperapp/backend-services/core/internal/auth/rbac"
+	"github.com/opensuperapp/opensuperapp/backend-services/core/internal/config"
+	"github.com/opensuperapp/opensuperapp/backend-services/core/internal/services"
 
-	fileservice "go-backend/plugins/file-service"
-	userservice "go-backend/plugins/user-service"
+	fileservice "github.com/opensuperapp/opensuperapp/backend-services/core/plugins/file-service"
+	userservice "github.com/opensuperapp/opensuperapp/backend-services/core/plugins/user-service"
 
 	"github.com/go-chi/chi/v5"
 	"gorm.io/gorm"
@@ -19,9 +35,9 @@ func NewUserRouter(db *gorm.DB, fcmService services.NotificationService, fileSer
 	r := chi.NewRouter()
 
 	r.Mount("/micro-apps", MicroAppRoutes(db))
-	r.Mount("/device-tokens", DeviceTokenRoutes(db, fcmService))
+	r.Mount("/device-tokens", deviceTokenRoutes(db, fcmService))
 	r.Mount("/token", TokenRoutes(db, cfg))
-	r.Mount("/files", fileRoutes(fileService))
+	r.Mount("/files", fileRoutes(fileService, cfg))
 	r.Mount("/users", userRoutes(db, userService))
 	r.Mount("/user-info", userInfoRoutes(userService))
 
@@ -51,17 +67,17 @@ func NewNoAuthRouter(db *gorm.DB, cfg *config.Config, serviceTokenValidator serv
 	r.Get("/.well-known/jwks.json", tokenHandler.GetJWKS)
 
 	// Other public routes
-	r.Mount("/public", PublicRoutes(fileService))
+	r.Mount("/public", PublicRoutes(fileService, cfg))
 
 	return r
 }
 
 // PublicRoutes sets up a sub-router for public routes
-func PublicRoutes(fileService fileservice.FileService) http.Handler {
+func PublicRoutes(fileService fileservice.FileService, cfg *config.Config) http.Handler {
 	r := chi.NewRouter()
 
 	// GET /public/micro-app-files/download/{fileName}
-	r.Get("/micro-app-files/download/{fileName}", handler.NewFileHandler(fileService).DownloadMicroAppFile)
+	r.Get("/micro-app-files/download/{fileName}", handler.NewFileHandler(fileService, cfg.UploadFileMaxSizeMB).DownloadMicroAppFile)
 
 	return r
 }
@@ -80,26 +96,35 @@ func MicroAppRoutes(db *gorm.DB) http.Handler {
 	// GET /micro-apps/{appID}
 	r.Get("/{appID}", microappHandler.GetByID)
 
-	// POST /micro-apps
-	r.Post("/", microappHandler.Upsert)
+	// POST /micro-apps (admin only)
+	r.
+		With(rbac.RequireGroups(rbac.GroupAdmin)).
+		Post("/", microappHandler.Upsert)
 
-	// PUT /micro-apps/deactivate/{appID}
-	r.Put("/deactivate/{appID}", microappHandler.Deactivate)
+	// PUT /micro-apps/deactivate/{appID} (admin only)
+	r.
+		With(rbac.RequireGroups(rbac.GroupAdmin)).
+		Put("/deactivate/{appID}", microappHandler.Deactivate)
 
-	// POST /micro-apps/{appID}/versions
-	r.Post("/{appID}/versions", microappVersionHandler.UpsertVersion)
+	// POST /micro-apps/{appID}/versions (admin only)
+	r.
+		With(rbac.RequireGroups(rbac.GroupAdmin)).
+		Post("/{appID}/versions", microappVersionHandler.UpsertVersion)
 
 	return r
 }
 
 // DeviceTokenRoutes sets up a sub-router for device token endpoints
-func DeviceTokenRoutes(db *gorm.DB, fcmService services.NotificationService) http.Handler {
+func deviceTokenRoutes(db *gorm.DB, fcmService services.NotificationService) http.Handler {
 	r := chi.NewRouter()
 
 	notificationHandler := handler.NewNotificationHandler(db, fcmService)
 
 	// POST /device-tokens
 	r.Post("/", notificationHandler.RegisterDeviceToken)
+
+	// DELETE /device-tokens
+	r.Delete("/", notificationHandler.DeactivateDeviceToken)
 
 	return r
 }
@@ -129,16 +154,20 @@ func TokenRoutes(db *gorm.DB, cfg *config.Config) http.Handler {
 }
 
 // fileRoutes sets up a sub-router for file operations.
-func fileRoutes(fileService fileservice.FileService) http.Handler {
+func fileRoutes(fileService fileservice.FileService, cfg *config.Config) http.Handler {
 	r := chi.NewRouter()
 
-	fileHandler := handler.NewFileHandler(fileService)
+	fileHandler := handler.NewFileHandler(fileService, cfg.UploadFileMaxSizeMB)
 
 	// POST /files?fileName=xxx
-	r.Post("/", fileHandler.UploadFile)
+	r.
+		With(rbac.RequireGroups(rbac.GroupAdmin)).
+		Post("/", fileHandler.UploadFile)
 
 	// DELETE /files?fileName=xxx
-	r.Delete("/", fileHandler.DeleteFile)
+	r.
+		With(rbac.RequireGroups(rbac.GroupAdmin)).
+		Delete("/", fileHandler.DeleteFile)
 
 	return r
 }
@@ -164,13 +193,19 @@ func userRoutes(db *gorm.DB, userService userservice.UserService) http.Handler {
 	userHandler := handler.NewUserHandler(userService)
 
 	// GET /users
-	r.Get("/", userHandler.GetAll)
+	r.
+		With(rbac.RequireGroups(rbac.GroupAdmin)).
+		Get("/", userHandler.GetAll)
 
 	// POST /users
-	r.Post("/", userHandler.Upsert)
+	r.
+		With(rbac.RequireGroups(rbac.GroupAdmin)).
+		Post("/", userHandler.Upsert)
 
 	// DELETE /users/{email}
-	r.Delete("/{email}", userHandler.Delete)
+	r.
+		With(rbac.RequireGroups(rbac.GroupAdmin)).
+		Delete("/{email}", userHandler.Delete)
 
 	// GET /users/app-configs
 	r.Get("/app-configs", userConfigHandler.GetAppConfigs)

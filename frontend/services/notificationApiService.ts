@@ -85,33 +85,44 @@ export async function updateDeviceToken(
 }
 
 /**
- * Unregister device token from the backend
+ * Unregister device token from the backend (called on logout)
  * @param email - User's email address
+ * @param token - FCM/APNs device token
  * @param onLogout - Logout callback for token refresh
  * @returns Promise<boolean> - true if successful, false otherwise
  */
 export async function unregisterDeviceToken(
     email: string,
+    token: string,
     onLogout: () => Promise<void>
 ): Promise<boolean> {
     try {
+        const platform = Platform.OS === "ios" ? "ios" : "android";
+
+        const payload: DeviceTokenPayload = {
+            email,
+            token,
+            platform,
+        };
+
         const response = await apiRequest(
             {
                 url: `${BASE_URL}/device-tokens`,
                 method: "DELETE",
+                data: payload,
             },
             onLogout
         );
 
-        if (response?.status === 204 || response?.status === 200) {
-            console.log("Device token unregistered successfully");
+        if (response?.status === 200 || response?.status === 204) {
+            console.log("Device token deactivated successfully");
             return true;
         }
 
-        console.error("Failed to unregister device token:", response);
+        console.error("Failed to deactivate device token:", response);
         return false;
     } catch (error) {
-        console.error("Error unregistering device token:", error);
+        console.error("Error deactivating device token:", error);
         return false;
     }
 }

@@ -25,7 +25,7 @@ Before setting up the project, ensure you have the following installed:
 
    ```bash
    git clone <repository-url>
-   cd superapp-mobile/frontend
+   cd opensuperapp/frontend
    ```
 
 2. **Install Dependencies**
@@ -156,6 +156,8 @@ npx tsc --noEmit
 - **Storage**:
   - `expo-secure-store` - Encrypted storage for sensitive data (auth tokens, user configs)
   - `@react-native-async-storage/async-storage` - General storage for non-sensitive data
+- **Integrations**:
+  - Firebase (optional) - Push notifications via config plugin
 - **Styling**: React Native StyleSheet + Custom components
 - **HTTP Client**: Axios
 - **Testing**: Jest + React Native Testing Library
@@ -184,10 +186,11 @@ The app uses a **dual-storage approach** for optimal security and performance:
 ### Security Features
 
 - ✅ **Token-based authentication** with automatic refresh
-- ✅ **Encrypted storage** for authentication credentials
-- ✅ **Secure token exchange** for micro-app access
+- ✅ **Encrypted storage** for authentication credentials (iOS Keychain / Android Keystore)
+- ✅ **Separate token storage** - Tokens stored in SecureStore
+- ✅ **Secure token exchange** for micro-app access with per-app token isolation
 - ✅ **Automatic token expiration handling**
-- ✅ **Secure logout** with complete token cleanup
+- ✅ **Secure logout** with complete token cleanup from all storage layers
 
 ---
 
@@ -215,6 +218,8 @@ The app uses a **dual-storage approach** for optimal security and performance:
 ├── docs/                     # Frontend related documentation
 ├── google-services/          # Google services configuration
 ├── hooks/                    # Custom React hooks
+├── integrations/             # Expo config plugins for platform integrations
+│   └── firebase/             # Firebase push notification config plugin
 ├── plugins/                  # Expo plugins
 ├── scripts/                  # Build and utility scripts
 ├── services/                 # API service handlers
@@ -292,7 +297,8 @@ sequenceDiagram
 - **`components/`** → Reusable presentational UI components (Views)
 - **`context/`** → Redux store and slices (Model - State Management)
 - **`services/`** → API service layer (Model - Data Access)
-- **`utils/`** → Utility functions (helpers, bridge, storage)
+- **`utils/`** → Utility functions (helpers, bridge, storage, token management)
+- **`integrations/`** → Expo config plugins for Firebase, etc.
 - **`constants/`** → Configuration constants and theme definitions
 - **`types/`** → TypeScript type definitions
 - **`__tests__/`** → Unit and integration tests

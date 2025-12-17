@@ -15,4 +15,11 @@ window.configs = {
   
   // Backend API
   API_BASE_URL: 'http://localhost:8080',
+
+  /**
+   * RBAC (Role-Based Access Control)
+   * Access control is configured in src/config/rbac.config.ts
+   * Users must have one of the allowed groups in their JWT token's 'groups' claim
+   * Default: ['admin']
+   */
 };

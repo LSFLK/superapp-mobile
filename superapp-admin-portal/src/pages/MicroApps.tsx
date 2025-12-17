@@ -39,15 +39,6 @@ import { microAppsService } from "../services";
 import { ConfirmDialog, EditMicroAppDialog, AddVersionDialog } from "..";
 import AddMicroAppDialog from "../components/ui/AddMicroAppDialog";
 
-function useDebouncedValue<T>(value: T, delay = 300) {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const id = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(id);
-  }, [value, delay]);
-  return debounced;
-}
-
 const MicroApps = () => {
   // const { state } = useAuth();
   // const userRoles = (state.roles ?? []).map((r) => r.toLowerCase());
@@ -55,7 +46,6 @@ const MicroApps = () => {
   const [loading, setLoading] = useState(true);
   const [forbidden, setForbidden] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const debouncedQuery = useDebouncedValue(searchQuery, 300);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const [editDialog, setEditDialog] = useState<{
@@ -91,14 +81,13 @@ const MicroApps = () => {
   useEffect(() => {
     fetchMicroApps();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedQuery]);
+  }, []);
 
   const fetchMicroApps = async () => {
     try {
       setLoading(true);
       setForbidden(false);
-      const q = debouncedQuery.trim();
-      const data = await microAppsService.getAll(q ? q : undefined);
+      const data = await microAppsService.getAll();
       setMicroApps(data);
     } catch (error) {
       console.error("Error fetching micro apps:", error);
@@ -269,6 +258,17 @@ const MicroApps = () => {
     );
   }
 
+  // Filter micro apps locally based on search query
+  const filteredMicroApps = microApps.filter((app) => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      app.name.toLowerCase().includes(query) ||
+      app.appId.toLowerCase().includes(query) ||
+      app.description?.toLowerCase().includes(query)
+    );
+  });
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Header Section */}
@@ -320,7 +320,7 @@ const MicroApps = () => {
         </Box>
       </Box>
 
-      {microApps.length === 0 ? (
+      {filteredMicroApps.length === 0 ? (
         <Paper
           sx={{
             p: 8,
@@ -386,7 +386,7 @@ const MicroApps = () => {
         </Paper>
       ) : (
     <Grid container spacing={3} sx={{ alignItems: "flex-start" }} data-testid="microapps-grid">
-          {microApps.map((app) => (
+          {filteredMicroApps.map((app) => (
       <Grid item xs={12} sm={6} md={4} key={app.appId} data-testid="microapp-card">
               <Card
                 sx={{

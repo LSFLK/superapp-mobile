@@ -7,12 +7,22 @@ This is the Admin Portal for SuperApp, built using Vite for fast development and
 ## Features
 
 - User management (create, update, delete, view)
-- Role-based access control
+- Role-based access control (RBAC)
 - Content moderation
 - Analytics dashboard
 - System configuration
 - Responsive UI
-- Authentication and authorization
+- Authentication and authorization via JWT tokens
+
+### Configuring Allowed Groups
+
+Edit `src/config/rbac.config.ts` to modify which groups can access the portal:
+
+```typescript
+export const RBAC_CONFIG = {
+  allowedGroups: ['admin'] as const,
+} as const;
+```
 
 ## Tech Stack
 

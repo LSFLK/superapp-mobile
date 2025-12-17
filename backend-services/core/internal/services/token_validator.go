@@ -1,3 +1,18 @@
+// Copyright (c) 2025 WSO2 LLC. (https://www.wso2.com).
+//
+// WSO2 LLC. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
 package services
 
 import (
@@ -33,6 +48,8 @@ type RSATokenValidator struct {
 	lastRefreshAttempt time.Time
 	httpClient         *http.Client
 	cachedJWKS         json.RawMessage
+	done               chan struct{}
+	closeOnce          sync.Once
 }
 
 type TokenClaims struct {
@@ -70,6 +87,7 @@ func NewTokenValidatorWithJWKSURL(jwksURL, issuer, audience string) (TokenValida
 		httpClient: &http.Client{
 			Timeout: defaultHTTPTimeout,
 		},
+		done: make(chan struct{}),
 	}
 
 	// Fetch keys on initialization
@@ -120,6 +138,11 @@ func (tv *RSATokenValidator) ValidateToken(tokenString string) (*TokenClaims, er
 	}
 
 	return claims, nil
+}
+
+// Close stops the background refresh goroutine and releases resources
+func (tv *RSATokenValidator) Close() {
+	tv.closeOnce.Do(func() { close(tv.done) })
 }
 
 // getKey returns the public key for the given kid.
@@ -239,9 +262,14 @@ func (tv *RSATokenValidator) backgroundRefresh() {
 	ticker := time.NewTicker(jwksRefreshInterval)
 	defer ticker.Stop()
 
-	for range ticker.C {
-		if err := tv.refreshKeys(); err != nil {
-			slog.Warn("Background JWKS refresh failed", "error", err)
+	for {
+		select {
+		case <-tv.done:
+			return
+		case <-ticker.C:
+			if err := tv.refreshKeys(); err != nil {
+				slog.Warn("Background JWKS refresh failed", "error", err)
+			}
 		}
 	}
 }

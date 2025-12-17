@@ -13,12 +13,17 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
+
+// Enable TypeScript compilation for config plugins
+require('ts-node/register');
+
 import "dotenv/config";
 import type { ExpoConfig } from "expo/config";
 
 /* Firebase configuration for push notifications */
 import fs from "fs";
 import path from "path";
+import { withFirebase } from "./integrations/firebase/withFirebase";
 
 const PRODUCTION = "production";
 const DEVELOPMENT = "development";
@@ -202,4 +207,11 @@ const config: ExpoConfig = {
   assetBundlePatterns: ["**/*"],
 };
 
-export default config;
+// Conditionally apply integration plugins based on environment variables
+let finalConfig = config;
+
+if (process.env.ENABLE_FIREBASE === "true") {
+  finalConfig = withFirebase(finalConfig);
+}
+
+export default finalConfig;

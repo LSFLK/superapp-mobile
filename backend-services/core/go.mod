@@ -1,4 +1,4 @@
-module go-backend
+module github.com/opensuperapp/opensuperapp/backend-services/core
 
 go 1.25.4
 

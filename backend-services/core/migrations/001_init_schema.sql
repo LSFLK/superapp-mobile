@@ -1,3 +1,19 @@
+-- Copyright (c) 2025 WSO2 LLC. (https://www.wso2.com).
+
+-- WSO2 LLC. licenses this file to you under the Apache License,
+-- Version 2.0 (the "License"); you may not use this file except
+-- in compliance with the License.
+-- You may obtain a copy of the License at
+
+-- http://www.apache.org/licenses/LICENSE-2.0
+
+-- Unless required by applicable law or agreed to in writing,
+-- software distributed under the License is distributed on an
+-- "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+-- KIND, either express or implied.  See the License for the
+-- specific language governing permissions and limitations
+-- under the License.
+
 -- ========================================
 -- SuperApp Database Schema
 -- ========================================
@@ -241,7 +257,7 @@ CREATE TABLE `notification_logs` (
 CREATE TABLE `o_auth2_clients` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Internal auto-increment ID',
   `client_id` VARCHAR(255) NOT NULL COMMENT 'OAuth2 client ID',
-  `client_secret` VARCHAR(255) NOT NULL COMMENT 'OAuth2 client secret (hashed)',
+  `client_secret` TEXT NOT NULL COMMENT 'OAuth2 client secret (bcrypt hashed, ~60 chars)',
   `name` VARCHAR(255) NOT NULL COMMENT 'Client name/description',
   `scopes` VARCHAR(1024) DEFAULT NULL COMMENT 'Allowed scopes (comma-separated)',
   `is_active` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Active status (1=active, 0=inactive)',

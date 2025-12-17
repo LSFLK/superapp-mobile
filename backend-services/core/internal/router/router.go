@@ -1,17 +1,32 @@
+// Copyright (c) 2025 WSO2 LLC. (https://www.wso2.com).
+//
+// WSO2 LLC. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
 package router
 
 import (
 	"log/slog"
 	"net/http"
 
-	v1 "go-backend/internal/api/v1/router"
-	"go-backend/internal/auth"
-	"go-backend/internal/config"
-	"go-backend/internal/services"
+	v1 "github.com/opensuperapp/opensuperapp/backend-services/core/internal/api/v1/router"
+	"github.com/opensuperapp/opensuperapp/backend-services/core/internal/auth"
+	"github.com/opensuperapp/opensuperapp/backend-services/core/internal/config"
+	"github.com/opensuperapp/opensuperapp/backend-services/core/internal/services"
 
 	// pluggable services
-	fileservice "go-backend/plugins/file-service"
-	userservice "go-backend/plugins/user-service"
+	fileservice "github.com/opensuperapp/opensuperapp/backend-services/core/plugins/file-service"
+	userservice "github.com/opensuperapp/opensuperapp/backend-services/core/plugins/user-service"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -40,6 +55,7 @@ func NewRouter(db *gorm.DB, cfg *config.Config) http.Handler {
 	)
 	if err != nil {
 		slog.Error("Failed to initialize External IDP Validator", "error", err)
+		panic("External IDP Validator is required but failed to initialize")
 	} else {
 		slog.Info("External IDP Validator initialized successfully", "issuer", cfg.ExternalIdPIssuer)
 	}
@@ -48,6 +64,7 @@ func NewRouter(db *gorm.DB, cfg *config.Config) http.Handler {
 	internalIDPValidator, err := services.NewTokenValidator(cfg.InternalIdPBaseURL, cfg.InternalIdPIssuer, cfg.InternalIdPAudience)
 	if err != nil {
 		slog.Error("Failed to initialize Internal IDP Validator", "error", err)
+		panic("Internal IDP Validator is required but failed to initialize")
 	} else {
 		slog.Info("Internal IDP Validator initialized successfully", "idp_url", cfg.InternalIdPBaseURL)
 	}
@@ -96,17 +113,13 @@ func NewRouter(db *gorm.DB, cfg *config.Config) http.Handler {
 
 	// User Authenticated Routes (validates against External IDP)
 	r.Route(userRoutesPrefix, func(r chi.Router) {
-		if externalIDPValidator != nil {
-			r.Use(auth.AuthMiddleware(externalIDPValidator))
-		}
+		r.Use(auth.AuthMiddleware(externalIDPValidator))
 		r.Mount("/", v1.NewUserRouter(db, fcmService, fileService, userService, cfg))
 	})
 
 	// Service Routes (validates against Internal IDP)
 	r.Route(serviceRoutesPrefix, func(r chi.Router) {
-		if internalIDPValidator != nil {
-			r.Use(auth.ServiceOAuthMiddleware(internalIDPValidator))
-		}
+		r.Use(auth.ServiceOAuthMiddleware(internalIDPValidator))
 		r.Mount("/", v1.NewServiceRouter(db, fcmService))
 	})
 

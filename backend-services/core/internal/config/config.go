@@ -1,3 +1,18 @@
+// Copyright (c) 2025 WSO2 LLC. (https://www.wso2.com).
+//
+// WSO2 LLC. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
 package config
 
 import (
@@ -45,8 +60,13 @@ type Config struct {
 	// User Service
 	UserServiceType string
 
-	// RawEnv stores all environment variables for plugins
-	RawEnv map[string]any
+	// File Upload
+	UploadFileMaxSizeMB int // Maximum file upload size in megabytes
+
+	// rawEnv stores all environment variables for plugin configuration.
+	// This field is unexported to prevent direct access to sensitive data.
+	// Use GetPluginConfig() to access filtered configuration by prefix.
+	rawEnv map[string]any
 }
 
 func Load() *Config {
@@ -65,11 +85,11 @@ func Load() *Config {
 	}
 
 	cfg := &Config{
-		DBUser:            getEnv("DB_USER", "root"),
-		DBPassword:        getEnvRequired("DB_PASSWORD"), // Required
-		DBHost:            getEnv("DB_HOST", "localhost"),
-		DBPort:            getEnv("DB_PORT", "3306"),
-		DBName:            getEnv("DB_NAME", "testdb"),
+		DBUser:            getEnvRequired("DB_USER"),
+		DBPassword:        getEnvRequired("DB_PASSWORD"),
+		DBHost:            getEnvRequired("DB_HOST"),
+		DBPort:            getEnvRequired("DB_PORT"),
+		DBName:            getEnvRequired("DB_NAME"),
 		DBMaxOpenConns:    getEnvInt("DB_MAX_OPEN_CONNS", 25),
 		DBMaxIdleConns:    getEnvInt("DB_MAX_IDLE_CONNS", 5),
 		DBConnMaxLifetime: getEnvInt("DB_CONN_MAX_LIFETIME_MIN", 30),
@@ -95,7 +115,10 @@ func Load() *Config {
 		// User Service
 		UserServiceType: getEnv("USER_SERVICE_TYPE", "db"),
 
-		RawEnv: rawEnv,
+		// File Upload
+		UploadFileMaxSizeMB: getEnvInt("UPLOAD_FILE_MAX_SIZE_MB", 20),
+
+		rawEnv: rawEnv,
 	}
 
 	slog.Info("Configuration loaded", "server_port", cfg.ServerPort, "db_host", cfg.DBHost)
@@ -143,9 +166,11 @@ func (c *Config) GetUserServiceConfig() map[string]any {
 }
 
 // GetPluginConfig returns a map of environment variables that start with the given prefix.
+// This provides controlled access to environment variables without exposing all secrets.
+// Only variables matching the prefix are returned, limiting exposure of sensitive data.
 func (c *Config) GetPluginConfig(prefix string) map[string]any {
 	filtered := make(map[string]any)
-	for k, v := range c.RawEnv {
+	for k, v := range c.rawEnv {
 		if strings.HasPrefix(k, prefix) {
 			filtered[k] = v
 		}

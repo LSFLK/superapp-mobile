@@ -1,3 +1,18 @@
+// Copyright (c) 2025 WSO2 LLC. (https://www.wso2.com).
+//
+// WSO2 LLC. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
 package database
 
 import (
@@ -5,7 +20,7 @@ import (
 	"log/slog"
 	"time"
 
-	"go-backend/internal/config"
+	"github.com/opensuperapp/opensuperapp/backend-services/core/internal/config"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -26,7 +41,7 @@ func Connect(cfg *config.Config) *gorm.DB {
 		}
 		slog.Warn("Failed to connect to database, retrying...",
 			"attempt", i+1, "max", cfg.DBConnectRetries, "error", err)
-		time.Sleep(time.Duration(i+1) * 2 * time.Second) // Exponential backoff
+		time.Sleep(time.Duration(1<<uint(i)) * 2 * time.Second) // Exponential backoff
 	}
 
 	if err != nil {
@@ -53,8 +68,13 @@ func Connect(cfg *config.Config) *gorm.DB {
 
 func Close(db *gorm.DB) {
 	sqlDB, err := db.DB()
-	if err == nil {
-		sqlDB.Close()
+	if err != nil {
+		slog.Error("Failed to get DB instance for closing", "error", err)
+		return
+	}
+	if err := sqlDB.Close(); err != nil {
+		slog.Error("Failed to close database connection", "error", err)
+	} else {
 		slog.Info("Database connection closed")
 	}
 }

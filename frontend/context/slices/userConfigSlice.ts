@@ -17,6 +17,7 @@ import { BASE_URL, USER_CONFIGURATIONS } from "@/constants/Constants";
 import { apiRequest } from "@/utils/requestHandler";
 import * as secureStorage from "@/utils/secureStorage";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { removeDuplicatesFromUserConfigs } from "@/utils/removeDuplicates";
 
 interface AppArrangement {
   name: string;
@@ -52,11 +53,14 @@ export const getUserConfigurations = createAsyncThunk(
       );
 
       if (response?.status === 200 && response?.data) {
+        // Remove duplicates from configValue arrays
+        const cleanedData = removeDuplicatesFromUserConfigs(response.data);
+        
         await secureStorage.setItem(
           USER_CONFIGURATIONS,
-          JSON.stringify(response.data)
+          JSON.stringify(cleanedData)
         );
-        return response.data;
+        return cleanedData;
       } else {
         return [];
       }

@@ -13,8 +13,10 @@ import MicroApps from "./pages/MicroApps";
 import Users from "./pages/Users";
 import ComingSoon from "./pages/ComingSoon";
 import NotFound from "./pages/NotFound";
+import AccessDenied from "./pages/AccessDenied";
 import { useNotification } from "./context";
 import { apiService } from "./services";
+import { hasAccess } from "./config/rbac.config";
 
 function App() {
   const { state, getAccessToken, signOut } = useAuth();
@@ -73,6 +75,12 @@ function App() {
   if (!state.isAuthenticated) {
     console.log("User not authenticated, showing login page");
     return <Login />;
+  }
+
+  // Check RBAC - user must belong to allowed groups
+  if (!hasAccess(state.roles)) {
+    console.log("User does not have required permissions, access denied");
+    return <AccessDenied />;
   }
 
   return (
